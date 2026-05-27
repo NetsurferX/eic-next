@@ -193,10 +193,22 @@ button, textarea, input {
   color: #ccc !important;
 }
 
+.eic-semivowel {
+  color: #000 !important;
+}
+
+.eic-seg[style*="gradient"] {
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 .eic-syllabic {
+  border: 1px solid #000;
   border-radius: 2px;
-  padding: 0 1px;
-  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #000;
+  margin: 0 .5px;
+  padding: 0;
+  line-height: 1;
   color: #000 !important;
 }
 
@@ -504,6 +516,12 @@ button, textarea, input {
 .k-empty {
   color: var(--color-text-muted);
   font-size: 1rem;
+  font-style: italic;
+}
+
+.k-voice-hint {
+  color: var(--color-text-muted);
+  font-size: 11px;
   font-style: italic;
 }
 

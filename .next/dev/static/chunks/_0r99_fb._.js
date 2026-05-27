@@ -36,13 +36,6 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "[project]/src/components/WordRenderer.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-// WordRenderer — aplică regulile vizuale peste RenderNode[] din DB
-// Reguli implementate:
-//   1. Consoană cu fonem → neagră; fără fonem → gri
-//   2. Vocale grupate → un segment colorat
-//   3. Consoană silabică (s=SYLLABIC_MARKER) → negru cu chenar alb
-//   4. Subliniere → întreaga secvență vocalică din silaba accentuată
-//   5. Monosilabice și bisilabice cu consoană silabică → fără subliniere
 __turbopack_context__.s([
     "default",
     ()=>WordRenderer
@@ -51,74 +44,184 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/renderNode.ts [app-client] (ecmascript)");
 ;
 ;
-// Detectează dacă un cuvânt e monosilabic (nu are silabă accentuată în DB)
+// ── Constants ─────────────────────────────────────────────────────────────────
+// Purely graphic consonant letters — y/w excluded (can be semivowels)
+const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
+// Semivowel sounds in DB
+const SEMIVOWEL_SOUNDS = new Set([
+    'j',
+    'w',
+    'ỷ'
+]);
+// Diphthong descent colour: #FF3399 (ɔ/pink) → #CC0000 (i/red)
+const DIPHTHONG_START = '#FF3399';
+const DIPHTHONG_END = '#CC0000';
+// ── Node classification helpers ───────────────────────────────────────────────
+function isGraphicConsonant(t) {
+    return t.length > 0 && [
+        ...t.toLowerCase()
+    ].every((c)=>GRAPHIC_CONSONANTS.has(c));
+}
+// Node has vowel colour but grapheme is purely consonantic → DB error → mute
+function shouldBeMute(n) {
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
+    if (!n.t || n.t.length === 0) return false;
+    if (n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && isGraphicConsonant(n.t)) return true;
+    return false;
+}
+// True vowel: has vowel colour, not consonant, not mute, grapheme not pure-consonant
+function isVowel(n) {
+    if (!n.t || n.t.length === 0) return false;
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"] || n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]) return false;
+    if (n.x) return false;
+    if (isGraphicConsonant(n.t)) return false;
+    return true;
+}
+// Semivowel node: idx=5 (s='j'|'w'|'ỷ')
+function isSemivowel(n) {
+    return SEMIVOWEL_SOUNDS.has(n.s) && n.c === '#E57373';
+}
+function classifyNodes(nodes) {
+    const SCHWA = '#888888';
+    const trueSyllabic = new Set();
+    const diphthongGlide = new Set();
+    for(let i = 0; i < nodes.length; i++){
+        if (nodes[i].s !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SYLLABIC_MARKER"]) continue;
+        const prev = i > 0 ? nodes[i - 1] : null;
+        if (prev && prev.c === SCHWA) trueSyllabic.add(i);
+        else diphthongGlide.add(i);
+    }
+    return {
+        trueSyllabic,
+        diphthongGlide
+    };
+}
+// ── Diphthong gradient detection ──────────────────────────────────────────────
+// Descending diphthong: vowel node followed immediately by semivowel (idx=5)
+// → gradient from vowel-colour → #CC0000 (red)
+// e.g. boy: o(ɔ,#FF3399) + y(\u200d glide after non-schwa) — but y is diphthongGlide
+// Actually in DB: royal → o="ɔ"(7) + y=\u200d glide + a="ɪ"(4)
+// Pattern for gradient: stressed vowel + diphthongGlide immediately after
+// → both nodes get gradient treatment
+function buildDiphthongGradients(nodes, diphthongGlide) {
+    const result = new Set();
+    for(let i = 0; i < nodes.length; i++){
+        if (!diphthongGlide.has(i)) continue;
+        // The preceding vowel node is part of the diphthong
+        if (i > 0 && isVowel(nodes[i - 1]) && nodes[i].t.length > 0) {
+            result.add(i - 1); // vowel part
+            result.add(i); // glide part
+        }
+    }
+    return result;
+}
+// ── Monosyllabic / syllabic consonant detection ───────────────────────────────
 function isMonosyllabic(nodes) {
     return !nodes.some((n)=>n.u === true);
 }
-// Detectează dacă cuvântul are consoană silabică → nu subliniezi
-function hasSyllabicConsonant(nodes) {
-    return nodes.some((n)=>n.s === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SYLLABIC_MARKER"] && n.t.length > 0);
+function hasTrueSyllabic(trueSyllabic) {
+    return trueSyllabic.size > 0;
 }
-// Grupează nodurile consecutive vocale accentuate pentru subliniere
-function buildUnderlineGroups(nodes, allowUnderline) {
-    const underlined = new Set();
-    if (!allowUnderline) return underlined;
+// ── Underline: stressed vowel + consecutive vowel run ─────────────────────────
+// Rules:
+//   - No underline in monosyllabic words
+//   - No underline in words with true syllabic consonant (apple, button)
+//   - Stressed vowel node anchors the group
+//   - Group extends through consecutive vowels and diphthong glides
+//   - Semivowels (idx=5 with grapheme) included in group
+//   - Never underlines consonants or mute nodes
+function buildUnderlined(nodes, allow, diphthongGlide) {
+    const result = new Set();
+    if (!allow) return result;
     let i = 0;
     while(i < nodes.length){
-        if (nodes[i].u && !nodes[i].x && nodes[i].t.length > 0) {
-            // Start grup vocal accentuat
-            const start = i;
-            let end = i;
-            // Extinde grupul cu vocale consecutive (accentuate sau nu, dar fără consoane)
+        const n = nodes[i];
+        // Anchor: stressed vowel or stressed semivowel with grapheme
+        const isStressedVowel = n.u && isVowel(n) && !shouldBeMute(n);
+        const isStressedSemi = n.u && isSemivowel(n) && n.t.length > 0;
+        if (isStressedVowel || isStressedSemi) {
+            result.add(i);
+            // Extend through consecutive vowels, semivowels, diphthong glides
             let j = i + 1;
-            while(j < nodes.length && !nodes[j].x && nodes[j].t.length > 0){
-                end = j;
-                j++;
+            while(j < nodes.length){
+                const next = nodes[j];
+                if (isVowel(next) && !shouldBeMute(next) || isSemivowel(next) && next.t.length > 0 || diphthongGlide.has(j)) {
+                    result.add(j);
+                    j++;
+                } else {
+                    break;
+                }
             }
-            for(let k = start; k <= end; k++)underlined.add(k);
-            i = end + 1;
+            i = j;
         } else {
             i++;
         }
     }
-    return underlined;
+    return result;
 }
 function WordRenderer({ nodes }) {
+    const { trueSyllabic, diphthongGlide } = classifyNodes(nodes);
+    const diphthongNodes = buildDiphthongGradients(nodes, diphthongGlide);
     const mono = isMonosyllabic(nodes);
-    const syllabic = hasSyllabicConsonant(nodes);
-    const allowUnderline = !mono && !syllabic;
-    const underlined = buildUnderlineGroups(nodes, allowUnderline);
+    const hasSyl = hasTrueSyllabic(trueSyllabic);
+    const allow = !mono && !hasSyl;
+    const underlined = buildUnderlined(nodes, allow, diphthongGlide);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
         className: "eic-word",
         children: nodes.map((n, i)=>{
-            if (!n.t) return null // grafem gol — fonem fără literă, ignorăm vizual
-            ;
-            const isSyllabic = n.s === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SYLLABIC_MARKER"];
+            if (!n.t) return null;
+            const isTrueSyl = trueSyllabic.has(i);
+            const isGlide = diphthongGlide.has(i);
+            const isDiphNode = diphthongNodes.has(i);
             const isUnderlined = underlined.has(i);
-            const isMute = n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
-            const style = {
-                color: isSyllabic ? '#000000' : n.c
-            };
+            const mute = shouldBeMute(n) || isGlide && !isDiphNode;
+            const semi = isSemivowel(n) && n.t.length > 0 && !isGlide;
+            // ── Colour resolution ──
+            let color;
+            let style = {};
+            if (isTrueSyl) {
+                // Syllabic consonant — black
+                color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+            } else if (isDiphNode) {
+                // Diphthong gradient: roz → roșu via CSS gradient on text
+                style = {
+                    background: `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                };
+                color = 'transparent';
+            } else if (mute) {
+                color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
+            } else if (semi) {
+                // Semivowel with grapheme — black (consonantal display)
+                color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+            } else {
+                color = n.c;
+            }
             const classes = [
                 'eic-seg',
-                isSyllabic ? 'eic-syllabic' : '',
-                isUnderlined ? 'eic-stressed' : '',
-                isMute && !isSyllabic ? 'eic-silent' : ''
+                isTrueSyl ? 'eic-syllabic' : '',
+                isUnderlined && !isTrueSyl ? 'eic-stressed' : '',
+                mute && !isTrueSyl ? 'eic-silent' : '',
+                semi ? 'eic-semivowel' : ''
             ].filter(Boolean).join(' ');
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                style: style,
+                style: isDiphNode ? style : {
+                    color
+                },
                 className: classes,
                 title: n.s && n.s !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SYLLABIC_MARKER"] ? n.s : undefined,
                 children: n.t
             }, i, false, {
                 fileName: "[project]/src/components/WordRenderer.tsx",
-                lineNumber: 80,
+                lineNumber: 212,
                 columnNumber: 11
             }, this);
         })
     }, void 0, false, {
         fileName: "[project]/src/components/WordRenderer.tsx",
-        lineNumber: 60,
+        lineNumber: 167,
         columnNumber: 5
     }, this);
 }
@@ -572,10 +675,39 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 const SPEEDS = {
-    slow: 900,
-    normal: 550,
-    fast: 280
+    slow: 2000,
+    normal: 1000,
+    fast: 500
 };
+// Audio cache — avoid re-fetching the same word
+const audioCache = new Map() // word → object URL
+;
+async function speak(word) {
+    if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+    ;
+    try {
+        let url = audioCache.get(word);
+        if (!url) {
+            const res = await fetch('/api/speak', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    word
+                })
+            });
+            if (!res.ok) return;
+            const blob = await res.blob();
+            url = URL.createObjectURL(blob);
+            audioCache.set(word, url);
+        }
+        const audio = new Audio(url);
+        audio.play().catch(()=>{});
+    } catch (e) {
+        console.warn('speak error:', e);
+    }
+}
 function KaraokeMode({ tokens }) {
     _s();
     const wordTokens = tokens.filter((t)=>t.isWord && t.nodes);
@@ -583,8 +715,8 @@ function KaraokeMode({ tokens }) {
     const [playing, setPlaying] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [speed, setSpeed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('normal');
     const timerRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const currentRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(current);
-    currentRef.current = current;
+    const speedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(speed);
+    speedRef.current = speed;
     const stop = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "KaraokeMode.useCallback[stop]": ()=>{
             setPlaying(false);
@@ -592,47 +724,38 @@ function KaraokeMode({ tokens }) {
         }
     }["KaraokeMode.useCallback[stop]"], []);
     const advance = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
-        "KaraokeMode.useCallback[advance]": ()=>{
-            setCurrent({
-                "KaraokeMode.useCallback[advance]": (prev)=>{
-                    const next = prev + 1;
-                    if (next >= wordTokens.length) {
-                        setPlaying(false);
-                        return prev;
-                    }
-                    timerRef.current = setTimeout(advance, SPEEDS[speed]);
-                    return next;
-                }
-            }["KaraokeMode.useCallback[advance]"]);
+        "KaraokeMode.useCallback[advance]": (idx)=>{
+            const next = idx + 1;
+            if (next >= wordTokens.length) {
+                setPlaying(false);
+                return;
+            }
+            setCurrent(next);
+            speak(wordTokens[next].raw);
+            timerRef.current = setTimeout({
+                "KaraokeMode.useCallback[advance]": ()=>advance(next)
+            }["KaraokeMode.useCallback[advance]"], SPEEDS[speedRef.current]);
         }
     }["KaraokeMode.useCallback[advance]"], [
-        wordTokens.length,
-        speed
+        wordTokens
     ]);
     const play = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "KaraokeMode.useCallback[play]": ()=>{
             if (wordTokens.length === 0) return;
-            if (current >= wordTokens.length - 1) setCurrent(-1);
+            const startIdx = current >= wordTokens.length - 1 ? 0 : Math.max(0, current);
             setPlaying(true);
-            timerRef.current = setTimeout(advance, 100);
+            setCurrent(startIdx);
+            speak(wordTokens[startIdx].raw);
+            timerRef.current = setTimeout({
+                "KaraokeMode.useCallback[play]": ()=>advance(startIdx)
+            }["KaraokeMode.useCallback[play]"], SPEEDS[speedRef.current]);
         }
     }["KaraokeMode.useCallback[play]"], [
         advance,
         current,
-        wordTokens.length
+        wordTokens
     ]);
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "KaraokeMode.useEffect": ()=>{
-            if (!playing) return;
-            return ({
-                "KaraokeMode.useEffect": ()=>{
-                    if (timerRef.current) clearTimeout(timerRef.current);
-                }
-            })["KaraokeMode.useEffect"];
-        }
-    }["KaraokeMode.useEffect"], [
-        playing
-    ]);
+    // Stop when tokens change
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "KaraokeMode.useEffect": ()=>{
             stop();
@@ -642,13 +765,19 @@ function KaraokeMode({ tokens }) {
         tokens,
         stop
     ]);
-    // Build full rendered text with highlights
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "KaraokeMode.useEffect": ()=>({
+                "KaraokeMode.useEffect": ()=>stop()
+            })["KaraokeMode.useEffect"]
+    }["KaraokeMode.useEffect"], [
+        stop
+    ]);
     const rendered = tokens.map((tok, i)=>{
         if (tok.isWhitespace) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
             children: tok.raw
         }, i, false, {
             fileName: "[project]/src/components/KaraokeMode.tsx",
-            lineNumber: 58,
+            lineNumber: 77,
             columnNumber: 34
         }, this);
         if (tok.isPunct) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -656,21 +785,21 @@ function KaraokeMode({ tokens }) {
             children: tok.raw
         }, i, false, {
             fileName: "[project]/src/components/KaraokeMode.tsx",
-            lineNumber: 59,
+            lineNumber: 78,
             columnNumber: 34
         }, this);
         const wordIdx = wordTokens.indexOf(tok);
-        const isPast = wordIdx < current;
-        const isCurrent = wordIdx === current;
-        const isFuture = wordIdx > current;
+        const isPast = wordIdx !== -1 && wordIdx < current;
+        const isCurrent = wordIdx !== -1 && wordIdx === current;
+        const isFuture = wordIdx !== -1 && wordIdx > current || wordIdx === -1;
         if (!tok.nodes) {
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: `k-word ${isFuture ? 'k-future' : ''}`,
                 children: tok.raw
             }, i, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 68,
-                columnNumber: 9
+                lineNumber: 86,
+                columnNumber: 14
             }, this);
         }
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -685,12 +814,12 @@ function KaraokeMode({ tokens }) {
                 wordStr: tok.raw
             }, void 0, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 84,
+                lineNumber: 99,
                 columnNumber: 9
             }, this)
         }, i, false, {
             fileName: "[project]/src/components/KaraokeMode.tsx",
-            lineNumber: 75,
+            lineNumber: 90,
             columnNumber: 7
         }, this);
     });
@@ -708,12 +837,12 @@ function KaraokeMode({ tokens }) {
                                 children: s
                             }, s, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 96,
+                                lineNumber: 111,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/KaraokeMode.tsx",
-                        lineNumber: 94,
+                        lineNumber: 109,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -722,10 +851,10 @@ function KaraokeMode({ tokens }) {
                             !playing ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "k-play-btn",
                                 onClick: play,
-                                children: current === -1 || current >= wordTokens.length - 1 ? '▶ play' : '▶ resume'
+                                children: current <= 0 || current >= wordTokens.length - 1 ? '▶ play' : '▶ resume'
                             }, void 0, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 108,
+                                lineNumber: 123,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "k-play-btn k-stop",
@@ -733,11 +862,12 @@ function KaraokeMode({ tokens }) {
                                 children: "■ stop"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 112,
+                                lineNumber: 127,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "k-reset-btn",
+                                title: "restart",
                                 onClick: ()=>{
                                     stop();
                                     setCurrent(-1);
@@ -745,19 +875,19 @@ function KaraokeMode({ tokens }) {
                                 children: "↺"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 114,
+                                lineNumber: 129,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/KaraokeMode.tsx",
-                        lineNumber: 106,
+                        lineNumber: 121,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 93,
+                lineNumber: 108,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -769,12 +899,12 @@ function KaraokeMode({ tokens }) {
                     }
                 }, void 0, false, {
                     fileName: "[project]/src/components/KaraokeMode.tsx",
-                    lineNumber: 120,
+                    lineNumber: 136,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 119,
+                lineNumber: 135,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -785,37 +915,37 @@ function KaraokeMode({ tokens }) {
                     children: "Paste text above to begin reading."
                 }, void 0, false, {
                     fileName: "[project]/src/components/KaraokeMode.tsx",
-                    lineNumber: 133,
+                    lineNumber: 149,
                     columnNumber: 13
                 }, this) : rendered
             }, void 0, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 131,
+                lineNumber: 147,
                 columnNumber: 7
             }, this),
-            current >= 0 && current < wordTokens.length && wordTokens[current].nodes && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            current >= 0 && current < wordTokens.length && wordTokens[current]?.nodes && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "k-callout",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$WordRenderer$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                     nodes: wordTokens[current].nodes,
                     wordStr: wordTokens[current].raw
                 }, void 0, false, {
                     fileName: "[project]/src/components/KaraokeMode.tsx",
-                    lineNumber: 141,
+                    lineNumber: 157,
                     columnNumber: 11
                 }, this)
-            }, void 0, false, {
+            }, current, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 140,
+                lineNumber: 156,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/KaraokeMode.tsx",
-        lineNumber: 90,
+        lineNumber: 105,
         columnNumber: 5
     }, this);
 }
-_s(KaraokeMode, "TKIW+h0txRrxVGkjD8q/QvJ9nok=");
+_s(KaraokeMode, "OC+qPI/YDVUrg2s6gGim1ipTAaY=");
 _c = KaraokeMode;
 var _c;
 __turbopack_context__.k.register(_c, "KaraokeMode");

@@ -130,13 +130,23 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* Literă mută */
 .eic-silent { color: #cccccc !important; }
+.eic-semivowel { color: #000000 !important; }
+
+/* Diphthong gradient — background-clip text */
+.eic-seg[style*="gradient"] {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 /* Consoană silabică — negru cu chenar alb */
 .eic-syllabic {
   color: #000000 !important;
-  box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 3px #000000;
+  border: 1px solid #000000;
   border-radius: 2px;
-  padding: 0 1px;
+  line-height: 1;
+  padding: 0;
+  margin: 0 0.5px;
 }
 
 /* ── Legend ── */
@@ -327,6 +337,7 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .k-punct { color: var(--color-text-muted); }
 .k-empty { color: var(--color-text-muted); font-style: italic; font-size: 1rem; }
+.k-voice-hint { font-size: 11px; color: var(--color-text-muted); font-style: italic; }
 .k-callout {
   display: flex;
   justify-content: center;

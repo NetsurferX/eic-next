@@ -8,67 +8,82 @@ interface Props {
   tokens: TextToken[]
 }
 
-const SPEEDS = { slow: 900, normal: 550, fast: 280 }
+const SPEEDS = { slow: 2000, normal: 1000, fast: 500 }
+
+// Audio cache — avoid re-fetching the same word
+const audioCache = new Map<string, string>()  // word → object URL
+
+async function speak(word: string) {
+  if (typeof window === 'undefined') return
+  try {
+    let url = audioCache.get(word)
+    if (!url) {
+      const res = await fetch('/api/speak', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ word }),
+      })
+      if (!res.ok) return
+      const blob = await res.blob()
+      url = URL.createObjectURL(blob)
+      audioCache.set(word, url)
+    }
+    const audio = new Audio(url)
+    audio.play().catch(() => {})
+  } catch (e) {
+    console.warn('speak error:', e)
+  }
+}
 
 export default function KaraokeMode({ tokens }: Props) {
   const wordTokens = tokens.filter(t => t.isWord && t.nodes)
-  const [current, setCurrent]   = useState(-1)
-  const [playing, setPlaying]   = useState(false)
-  const [speed, setSpeed]       = useState<keyof typeof SPEEDS>('normal')
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const currentRef = useRef(current)
-  currentRef.current = current
+  const [current, setCurrent]         = useState(-1)
+  const [playing, setPlaying]         = useState(false)
+  const [speed, setSpeed]             = useState<keyof typeof SPEEDS>('normal')
+  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const speedRef   = useRef(speed)
+  speedRef.current = speed
 
   const stop = useCallback(() => {
     setPlaying(false)
     if (timerRef.current) clearTimeout(timerRef.current)
   }, [])
 
-  const advance = useCallback(() => {
-    setCurrent(prev => {
-      const next = prev + 1
-      if (next >= wordTokens.length) {
-        setPlaying(false)
-        return prev
-      }
-      timerRef.current = setTimeout(advance, SPEEDS[speed])
-      return next
-    })
-  }, [wordTokens.length, speed])
+  const advance = useCallback((idx: number) => {
+    const next = idx + 1
+    if (next >= wordTokens.length) {
+      setPlaying(false)
+      return
+    }
+    setCurrent(next)
+    speak(wordTokens[next].raw)
+    timerRef.current = setTimeout(() => advance(next), SPEEDS[speedRef.current])
+  }, [wordTokens])
 
   const play = useCallback(() => {
     if (wordTokens.length === 0) return
-    if (current >= wordTokens.length - 1) setCurrent(-1)
+    const startIdx = current >= wordTokens.length - 1 ? 0 : Math.max(0, current)
     setPlaying(true)
-    timerRef.current = setTimeout(advance, 100)
-  }, [advance, current, wordTokens.length])
+    setCurrent(startIdx)
+    speak(wordTokens[startIdx].raw)
+    timerRef.current = setTimeout(() => advance(startIdx), SPEEDS[speedRef.current])
+  }, [advance, current, wordTokens])
 
-  useEffect(() => {
-    if (!playing) return
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [playing])
+  // Stop when tokens change
+  useEffect(() => { stop(); setCurrent(-1) }, [tokens, stop])
+  useEffect(() => () => stop(), [stop])
 
-  useEffect(() => {
-    stop()
-    setCurrent(-1)
-  }, [tokens, stop])
-
-  // Build full rendered text with highlights
   const rendered = tokens.map((tok, i) => {
     if (tok.isWhitespace) return <span key={i}>{tok.raw}</span>
     if (tok.isPunct)      return <span key={i} className="k-punct">{tok.raw}</span>
 
-    const wordIdx = wordTokens.indexOf(tok)
-    const isPast    = wordIdx < current
-    const isCurrent = wordIdx === current
-    const isFuture  = wordIdx > current
+    const wordIdx   = wordTokens.indexOf(tok)
+    const isPast    = wordIdx !== -1 && wordIdx < current
+    const isCurrent = wordIdx !== -1 && wordIdx === current
+    const isFuture  = wordIdx !== -1 && wordIdx > current || wordIdx === -1
 
     if (!tok.nodes) {
-      return (
-        <span key={i} className={`k-word ${isFuture ? 'k-future' : ''}`}>
-          {tok.raw}
-        </span>
-      )
+      return <span key={i} className={`k-word ${isFuture ? 'k-future' : ''}`}>{tok.raw}</span>
     }
 
     return (
@@ -106,16 +121,17 @@ export default function KaraokeMode({ tokens }: Props) {
         <div className="k-actions">
           {!playing ? (
             <button className="k-play-btn" onClick={play}>
-              {current === -1 || current >= wordTokens.length - 1 ? '▶ play' : '▶ resume'}
+              {current <= 0 || current >= wordTokens.length - 1 ? '▶ play' : '▶ resume'}
             </button>
           ) : (
             <button className="k-play-btn k-stop" onClick={stop}>■ stop</button>
           )}
-          <button className="k-reset-btn" onClick={() => { stop(); setCurrent(-1) }}>↺</button>
+          <button className="k-reset-btn" title="restart" onClick={() => { stop(); setCurrent(-1) }}>↺</button>
         </div>
+
       </div>
 
-      {/* Progress bar */}
+      {/* Progress */}
       <div className="k-progress-wrap">
         <div
           className="k-progress-fill"
@@ -127,7 +143,7 @@ export default function KaraokeMode({ tokens }: Props) {
         />
       </div>
 
-      {/* Text display */}
+      {/* Text */}
       <div className="k-text" aria-live="polite">
         {tokens.length === 0
           ? <span className="k-empty">Paste text above to begin reading.</span>
@@ -135,15 +151,16 @@ export default function KaraokeMode({ tokens }: Props) {
         }
       </div>
 
-      {/* Current word callout */}
-      {current >= 0 && current < wordTokens.length && wordTokens[current].nodes && (
-        <div className="k-callout">
+      {/* Big word callout */}
+      {current >= 0 && current < wordTokens.length && wordTokens[current]?.nodes && (
+        <div className="k-callout" key={current}>
           <WordRenderer
             nodes={wordTokens[current].nodes!}
             wordStr={wordTokens[current].raw}
           />
         </div>
       )}
+
     </div>
   )
 }
