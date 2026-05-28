@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useMemo, useState } from 'react'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import WordRenderer from '@/components/WordRenderer'
 import StatsBar from '@/components/StatsBar'
@@ -82,6 +83,9 @@ export default function Home() {
         </div>
         <h1 className="eic-headline">See English as it sounds.</h1>
         <p className="eic-subline">Type or paste text — every grapheme colours in place.</p>
+        <div style={{ marginTop: '1rem' }}>
+          <Link href="/learn" className="eic-nav-link">🎮 Learn with games</Link>
+        </div>
       </header>
 
       {/* Sound Spectrum — always visible */}

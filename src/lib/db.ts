@@ -21,7 +21,7 @@ const COLOR_INDEX: Record<number, string> = {
 // ── DB singleton ──────────────────────────────────────────────────────────────
 let _db: Database.Database | null = null
 
-function getDb(): Database.Database {
+export function getDb(): Database.Database {
   if (!_db) {
     _db = new Database(DB_PATH, { readonly: true, fileMustExist: true })
     _db.pragma('cache_size = -32000')

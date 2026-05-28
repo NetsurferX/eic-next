@@ -86,6 +86,8 @@ __turbopack_context__.s([
     ()=>getBestNodes,
     "getBestNodesMany",
     ()=>getBestNodesMany,
+    "getDb",
+    ()=>getDb,
     "searchPrefix",
     ()=>searchPrefix
 ]);
