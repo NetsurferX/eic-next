@@ -1,134 +1,149 @@
 // Server-side only — Next.js API routes
+// Two-database architecture:
+//   lexicon.db  (A) — read-only, IPA source of truth
+//   cache.db    (B) — read-write, processed results cache
+
 import Database from 'better-sqlite3'
 import path from 'path'
-import type { RenderNode } from './renderNode'
-import { COLOR_SILENT, COLOR_CONSONANT, SYLLABIC_MARKER } from './renderNode'
+import { processIpa, scoreNodes, extractProps } from './pipeline'
+import type { RenderNode } from './pipeline'
 
-const DB_PATH = path.join(process.cwd(), 'data', 'words.db')
+const LEXICON_PATH = path.join(process.cwd(), 'data', 'lexicon.db')
+const CACHE_PATH   = path.join(process.cwd(), 'data', 'cache.db')
 
-// ── Color index table (words_clean.db array format) ───────────────────────────
-const COLOR_INDEX: Record<number, string> = {
-  0: '#008E40',  // ɑ/ʌ
-  1: '#00b0f0',  // æ
-  2: '#7030A0',  // u/ʊ
-  3: '#888888',  // ə
-  4: '#CC0000',  // i/ɪ
-  5: '#E57373',  // j/w semivowel
-  6: '#EE5B00',  // e/ɛ
-  7: '#FF3399',  // ɒ/ɔ
-}
+// ── Singletons ────────────────────────────────────────────────────────────────
 
-// ── DB singleton ──────────────────────────────────────────────────────────────
-let _db: Database.Database | null = null
+let _lexicon: Database.Database | null = null
+let _cache:   Database.Database | null = null
 
-export function getDb(): Database.Database {
-  if (!_db) {
-    _db = new Database(DB_PATH, { readonly: true, fileMustExist: true })
-    _db.pragma('cache_size = -32000')
-    _db.pragma('temp_store = memory')
+export function getLexicon(): Database.Database {
+  if (!_lexicon) {
+    _lexicon = new Database(LEXICON_PATH, { readonly: true, fileMustExist: true })
+    _lexicon.pragma('cache_size = -16000')
+    _lexicon.pragma('temp_store = memory')
   }
-  return _db
+  return _lexicon
 }
 
+export function getCache(): Database.Database {
+  if (!_cache) {
+    _cache = new Database(CACHE_PATH, { fileMustExist: true })
+    _cache.pragma('journal_mode = WAL')
+    _cache.pragma('cache_size = -8000')
+    _cache.pragma('temp_store = memory')
+    _cache.pragma('synchronous = NORMAL')
+  }
+  return _cache
+}
+
+// Alias for backward compat (game route uses getDb)
+export function getDb(): Database.Database { return getLexicon() }
+
+// ── Prepared statements ───────────────────────────────────────────────────────
+
+// Cache (B) reads
+let _stmtCacheGet: Database.Statement | null = null
+function stmtCacheGet() {
+  if (!_stmtCacheGet)
+    _stmtCacheGet = getCache().prepare(
+      'SELECT nodes_json, variant FROM words WHERE word = ? LIMIT 1'
+    )
+  return _stmtCacheGet
+}
+
+// Cache (B) write
+let _stmtCacheSet: Database.Statement | null = null
+function stmtCacheSet() {
+  if (!_stmtCacheSet)
+    _stmtCacheSet = getCache().prepare(`
+      INSERT INTO words
+        (word, variant, nodes_json, ipa_uk, ipa_us,
+         dominant_color, has_silent, has_stress, syllable_count,
+         word_length, processed_at, hit_count)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,1)
+      ON CONFLICT(word) DO UPDATE SET
+        hit_count    = hit_count + 1,
+        processed_at = excluded.processed_at
+    `)
+  return _stmtCacheSet
+}
+
+// Lexicon (A) reads
 let _stmtUk: Database.Statement | null = null
 let _stmtUs: Database.Statement | null = null
-let _stmtPrefix: Database.Statement | null = null
-
 function stmtUk() {
-  if (!_stmtUk) _stmtUk = getDb().prepare('SELECT RenderJson FROM uk WHERE Word = ? LIMIT 1')
+  if (!_stmtUk)
+    _stmtUk = getLexicon().prepare('SELECT ipa FROM uk WHERE word = ? LIMIT 1')
   return _stmtUk
 }
 function stmtUs() {
-  if (!_stmtUs) _stmtUs = getDb().prepare('SELECT RenderJson FROM us WHERE Word = ? LIMIT 1')
+  if (!_stmtUs)
+    _stmtUs = getLexicon().prepare('SELECT ipa FROM us WHERE word = ? LIMIT 1')
   return _stmtUs
 }
 
-// ── Parse array format: ["grapheme","sound",colorIdx,isStressed,isConsonant] ──
-
-function parseNode(raw: unknown[]): RenderNode | null {
-  if (!Array.isArray(raw) || raw.length < 5) return null
-  const [t, s, colorIdx, u, x] = raw as [string, string, number, number, number]
-
-  // Determine color
-  let c: string
-  if (colorIdx === 8) {
-    // Consonant slot — silent if no grapheme or sound is empty/syllabic
-    const isSyllabic = s === SYLLABIC_MARKER
-    const isEmpty    = !t && !s
-    c = (isEmpty || (!s && !isSyllabic)) ? COLOR_SILENT : COLOR_CONSONANT
-  } else {
-    c = COLOR_INDEX[colorIdx] ?? COLOR_SILENT
-  }
-
-  return {
-    t: t ?? '',
-    s: s ?? '',
-    c,
-    u: u === 1,
-    x: x === 1,
-  }
-}
-
-function parseNodes(raw: string | null): RenderNode[] | null {
-  if (!raw) return null
-  try {
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed) || parsed.length === 0) return null
-
-    const nodes: RenderNode[] = []
-    for (const item of parsed) {
-      const node = parseNode(item)
-      if (node) nodes.push(node)
-    }
-    return nodes.length > 0 ? nodes : null
-  } catch {
-    return null
-  }
-}
-
-// ── Score — letters covered by vowel colour rules ─────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface WordResult {
   nodes:   RenderNode[]
   variant: 'uk' | 'us' | 'coin'
 }
 
-function score(nodes: RenderNode[]): number {
-  return nodes
-    .filter(n => n.t && n.c !== COLOR_SILENT && n.c !== COLOR_CONSONANT)
-    .reduce((sum, n) => sum + n.t.length, 0)
-}
-
-// ── SelectBest ────────────────────────────────────────────────────────────────
-
-function selectBest(uk: RenderNode[] | null, us: RenderNode[] | null): WordResult | null {
-  if (!uk && !us) return null
-  if (!uk) return { nodes: us!, variant: 'us' }
-  if (!us) return { nodes: uk,  variant: 'uk' }
-
-  const ukScore = score(uk)
-  const usScore = score(us)
-
-  if (ukScore > usScore) return { nodes: uk, variant: 'uk' }
-  if (usScore > ukScore) return { nodes: us, variant: 'us' }
-
-  const winner = Math.random() < 0.5 ? 'uk' : 'us'
-  return { nodes: winner === 'uk' ? uk : us, variant: 'coin' }
-}
-
-// ── Public API ────────────────────────────────────────────────────────────────
+// ── Core lookup — cache-first ─────────────────────────────────────────────────
 
 export function getBestNodes(word: string): WordResult | null {
   word = word.toLowerCase().trim()
-  if (!word) return null
+  if (!word || !/^[a-z'-]+$/.test(word)) return null
 
-  const ukRow = stmtUk().get(word) as { RenderJson: string } | undefined
-  const usRow = stmtUs().get(word) as { RenderJson: string } | undefined
+  // 1. Check cache (B)
+  const cached = stmtCacheGet().get(word) as { nodes_json: string; variant: string } | undefined
+  if (cached) {
+    try {
+      return {
+        nodes:   JSON.parse(cached.nodes_json) as RenderNode[],
+        variant: cached.variant as 'uk' | 'us' | 'coin',
+      }
+    } catch { /* fall through to reprocess */ }
+  }
 
-  return selectBest(
-    parseNodes(ukRow?.RenderJson ?? null),
-    parseNodes(usRow?.RenderJson ?? null)
-  )
+  // 2. Look up IPA in lexicon (A)
+  const ukRow = stmtUk().get(word) as { ipa: string } | undefined
+  const usRow = stmtUs().get(word) as { ipa: string } | undefined
+
+  if (!ukRow && !usRow) return null
+
+  // 3. Process through pipeline
+  const ukNodes = ukRow ? processIpa(word, ukRow.ipa) : null
+  const usNodes = usRow ? processIpa(word, usRow.ipa) : null
+
+  // 4. Select best variant
+  const result = selectBest(ukNodes, usNodes)
+  if (!result) return null
+
+  // 5. Extract properties
+  const props = extractProps(result.nodes)
+
+  // 6. Save to cache (B)
+  try {
+    stmtCacheSet().run(
+      word,
+      result.variant,
+      JSON.stringify(result.nodes),
+      ukRow?.ipa ?? null,
+      usRow?.ipa ?? null,
+      props.dominantColor,
+      props.hasSilent  ? 1 : 0,
+      props.hasStress  ? 1 : 0,
+      props.syllableCount,
+      word.length,
+      new Date().toISOString(),
+    )
+  } catch (e) {
+    // Cache write failure is non-fatal — log and continue
+    console.warn('cache write failed:', e)
+  }
+
+  return result
 }
 
 export function getBestNodesMany(words: string[]): Map<string, WordResult> {
@@ -140,12 +155,64 @@ export function getBestNodesMany(words: string[]): Map<string, WordResult> {
   return result
 }
 
+// ── Selection algorithm ───────────────────────────────────────────────────────
+
+function selectBest(uk: RenderNode[] | null, us: RenderNode[] | null): WordResult | null {
+  if (!uk && !us) return null
+  if (!uk) return { nodes: us!, variant: 'us' }
+  if (!us) return { nodes: uk,  variant: 'uk' }
+
+  const ukScore = scoreNodes(uk)
+  const usScore = scoreNodes(us)
+
+  if (ukScore > usScore) return { nodes: uk, variant: 'uk' }
+  if (usScore > ukScore) return { nodes: us, variant: 'us' }
+
+  const winner = Math.random() < 0.5 ? 'uk' : 'us'
+  return { nodes: winner === 'uk' ? uk : us, variant: 'coin' }
+}
+
+// ── Prefix search (from cache first, fallback to lexicon) ─────────────────────
+
+let _stmtPrefixCache:   Database.Statement | null = null
+let _stmtPrefixLexicon: Database.Statement | null = null
+
 export function searchPrefix(prefix: string, limit = 10): string[] {
   if (!prefix || prefix.length < 2) return []
-  if (!_stmtPrefix)
-    _stmtPrefix = getDb().prepare(
-      'SELECT Word FROM uk WHERE Word LIKE ? ORDER BY length(Word), Word LIMIT ?'
+  const p = prefix.toLowerCase() + '%'
+
+  // Search cache first — these are known-good words
+  if (!_stmtPrefixCache)
+    _stmtPrefixCache = getCache().prepare(
+      'SELECT word FROM words WHERE word LIKE ? ORDER BY hit_count DESC, length(word), word LIMIT ?'
     )
-  const rows = _stmtPrefix.all(prefix.toLowerCase() + '%', limit) as { Word: string }[]
-  return rows.map(r => r.Word)
+  const cached = (_stmtPrefixCache.all(p, limit) as { word: string }[]).map(r => r.word)
+  if (cached.length >= limit) return cached
+
+  // Fill from lexicon
+  if (!_stmtPrefixLexicon)
+    _stmtPrefixLexicon = getLexicon().prepare(
+      'SELECT word FROM uk WHERE word LIKE ? ORDER BY length(word), word LIMIT ?'
+    )
+  const fromLexicon = (_stmtPrefixLexicon.all(p, limit) as { word: string }[]).map(r => r.word)
+
+  // Merge, deduplicate, limit
+  const seen = new Set(cached)
+  const merged = [...cached]
+  for (const w of fromLexicon) {
+    if (!seen.has(w)) merged.push(w)
+    if (merged.length >= limit) break
+  }
+  return merged
+}
+
+// ── Cache stats (for admin/debug) ────────────────────────────────────────────
+
+export function getCacheStats(): { total: number; byVariant: Record<string, number> } {
+  const total = (getCache().prepare('SELECT COUNT(*) as n FROM words').get() as { n: number }).n
+  const byVariant = Object.fromEntries(
+    (getCache().prepare('SELECT variant, COUNT(*) as n FROM words GROUP BY variant').all() as
+      { variant: string; n: number }[]).map(r => [r.variant, r.n])
+  )
+  return { total, byVariant }
 }

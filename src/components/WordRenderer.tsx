@@ -9,7 +9,9 @@ interface Props {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 // Purely graphic consonant letters — y/w excluded (can be semivowels)
+
 const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz')
+
 
 // Semivowel sounds in DB
 const SEMIVOWEL_SOUNDS = new Set(['j', 'w', 'ỷ'])

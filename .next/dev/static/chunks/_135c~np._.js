@@ -279,13 +279,13 @@ function WordRenderer({ nodes }) {
                 children: n.t
             }, i, false, {
                 fileName: "[project]/src/components/WordRenderer.tsx",
-                lineNumber: 212,
+                lineNumber: 214,
                 columnNumber: 11
             }, this);
         })
     }, void 0, false, {
         fileName: "[project]/src/components/WordRenderer.tsx",
-        lineNumber: 167,
+        lineNumber: 169,
         columnNumber: 5
     }, this);
 }
