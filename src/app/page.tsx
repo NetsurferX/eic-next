@@ -85,6 +85,7 @@ export default function Home() {
         <p className="eic-subline">Type or paste text — every grapheme colours in place.</p>
         <div style={{ marginTop: '1rem' }}>
           <Link href="/learn" className="eic-nav-link">🎮 Learn with games</Link>
+          <Link href="/rules" className="eic-nav-link" style={{fontSize:'12px', opacity:0.7}}>⚙ Rule editor</Link>
         </div>
       </header>
 
