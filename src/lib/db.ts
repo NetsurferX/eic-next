@@ -27,11 +27,34 @@ export function getLexicon(): Database.Database {
 
 export function getCache(): Database.Database {
   if (!_cache) {
-    _cache = new Database(CACHE_PATH, { fileMustExist: true })
+    // Create if not exists — do NOT use fileMustExist
+    _cache = new Database(CACHE_PATH)
     _cache.pragma('journal_mode = WAL')
     _cache.pragma('cache_size = -8000')
     _cache.pragma('temp_store = memory')
     _cache.pragma('synchronous = NORMAL')
+    // Ensure schema exists
+    _cache.exec(`
+      CREATE TABLE IF NOT EXISTS words (
+        word           TEXT PRIMARY KEY,
+        variant        TEXT NOT NULL,
+        nodes_json     TEXT NOT NULL,
+        ipa_uk         TEXT,
+        ipa_us         TEXT,
+        dominant_color TEXT,
+        has_silent     INTEGER DEFAULT 0,
+        has_stress     INTEGER DEFAULT 0,
+        syllable_count INTEGER DEFAULT 1,
+        word_length    INTEGER NOT NULL,
+        processed_at   TEXT,
+        hit_count      INTEGER DEFAULT 1
+      );
+      CREATE INDEX IF NOT EXISTS idx_dominant_color ON words(dominant_color);
+      CREATE INDEX IF NOT EXISTS idx_has_silent     ON words(has_silent);
+      CREATE INDEX IF NOT EXISTS idx_has_stress     ON words(has_stress);
+      CREATE INDEX IF NOT EXISTS idx_syllable_count ON words(syllable_count);
+      CREATE INDEX IF NOT EXISTS idx_word_length    ON words(word_length);
+    `)
   }
   return _cache
 }

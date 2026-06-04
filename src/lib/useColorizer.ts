@@ -107,6 +107,19 @@ function computeStats(tokens: TextToken[]): Stats {
   }
 }
 
+// Restore original casing from user input onto pipeline nodes.
+// Pipeline returns lowercase graphemes — we match them back to the
+// original word character by character to preserve capitals.
+function restoreCasing(nodes: RenderNode[], originalWord: string): RenderNode[] {
+  let pos = 0
+  return nodes.map(n => {
+    if (!n.t) return n
+    const original = originalWord.slice(pos, pos + n.t.length)
+    pos += n.t.length
+    return original ? { ...n, t: original } : n
+  })
+}
+
 export function useColorizer() {
   const [tokens, setTokens]       = useState<TextToken[]>([])
   const [stats, setStats]         = useState<Stats | null>(null)
@@ -138,10 +151,14 @@ export function useColorizer() {
       } catch (e) { console.error('Fetch error:', e) }
     }
 
-    const updated: TextToken[] = raw.map(t => ({
-      ...t,
-      nodes: t.isWord ? (nodeCache.get(t.raw.toLowerCase()) ?? null) : null
-    }))
+    const updated: TextToken[] = raw.map(t => {
+      const cached = t.isWord ? (nodeCache.get(t.raw.toLowerCase()) ?? null) : null
+      return {
+        ...t,
+        // Restore original casing (e.g. Christ → C preserved)
+        nodes: cached ? restoreCasing(cached, t.raw) : null
+      }
+    })
 
     setTokens(updated)
     setStats(computeStats(updated))
@@ -150,12 +167,14 @@ export function useColorizer() {
   const onInput = useCallback((text: string) => {
     setInputText(text)
 
-    // Render instant cu cache existent
     const raw = tokenize(text)
-    const fast: TextToken[] = raw.map(t => ({
-      ...t,
-      nodes: t.isWord ? (nodeCache.get(t.raw.toLowerCase()) ?? null) : null
-    }))
+    const fast: TextToken[] = raw.map(t => {
+      const cached = t.isWord ? (nodeCache.get(t.raw.toLowerCase()) ?? null) : null
+      return {
+        ...t,
+        nodes: cached ? restoreCasing(cached, t.raw) : null
+      }
+    })
     setTokens(fast)
 
     if (debounceRef.current) clearTimeout(debounceRef.current)

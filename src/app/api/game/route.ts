@@ -1,120 +1,98 @@
 // GET /api/game?level=1&n=10
-// Returns n words appropriate for the given game level
-// Level 1: colour recognition (simple 3-5 letter words, clear dominant vowel)
-// Level 2: silent letter detection (words with mute letters)
-// Level 3: stress/accent recognition (polysyllabic words with clear stress)
+// Returns n words for the given game level, using cache.db first then lexicon.db
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { getCache, getLexicon, getBestNodes } from '@/lib/db'
 
-const SILENT  = '#cccccc'
+const SILENT       = '#cccccc'
+const CONSONANT    = '#000000'
 const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
 
-function isGraphicCons(t: string): boolean {
+interface GameNode { t: string; s: string; c: string; u: boolean; x: boolean }
+
+function isGraphicCons(t: string) {
   return !!t && [...t.toLowerCase()].every(c => GRAPHIC_CONS.has(c))
 }
-
-interface DbWord { Word: string; RenderJson: string }
-
-interface GameNode {
-  t: string; s: string; c: string; u: boolean; x: boolean
-}
-
-function parseNodes(rj: string): GameNode[] | null {
-  try {
-    const p = JSON.parse(rj)
-    if (!Array.isArray(p) || p.length === 0) return null
-    // Handle both object format (v2) and array format (words_clean)
-    if (typeof p[0] === 'object' && !Array.isArray(p[0])) return p as GameNode[]
-    // Array format: [t, s, colorIdx, isStressed, isConsonant]
-    const COLOR_INDEX: Record<number, string> = {
-      0:'#008E40',1:'#00b0f0',2:'#7030A0',3:'#888888',
-      4:'#CC0000',5:'#E57373',6:'#EE5B00',7:'#FF3399',
-    }
-    return p.map((n: unknown[]) => ({
-      t: n[0] as string ?? '',
-      s: n[1] as string ?? '',
-      c: n[2] === 8 ? SILENT : (COLOR_INDEX[n[2] as number] ?? SILENT),
-      u: n[3] === 1,
-      x: n[4] === 1,
-    }))
-  } catch { return null }
-}
-
 function dominantColor(nodes: GameNode[]): string | null {
   const cc: Record<string, number> = {}
-  for (const n of nodes) {
-    if (n.c && n.c !== SILENT && n.t && !isGraphicCons(n.t))
+  for (const n of nodes)
+    if (n.c !== SILENT && n.c !== CONSONANT && n.t && !isGraphicCons(n.t))
       cc[n.c] = (cc[n.c] ?? 0) + n.t.length
-  }
   const entries = Object.entries(cc)
-  if (!entries.length) return null
-  return entries.sort((a, b) => b[1] - a[1])[0][0]
+  return entries.length ? entries.sort((a,b) => b[1]-a[1])[0][0] : null
 }
-
-function hasSilentLetters(nodes: GameNode[]): boolean {
+function hasSilentLetters(nodes: GameNode[]) {
   return nodes.some(n => n.c === SILENT && n.t && isGraphicCons(n.t))
 }
-
-function hasStress(nodes: GameNode[]): boolean {
+function hasStress(nodes: GameNode[]) {
   return nodes.some(n => n.u && n.c !== SILENT)
 }
-
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]]
   }
   return a
 }
 
 export async function GET(req: NextRequest) {
-  const level = parseInt(req.nextUrl.searchParams.get('level') ?? '1')
-  const n     = Math.min(parseInt(req.nextUrl.searchParams.get('n') ?? '10'), 20)
-
-  const db = getDb()
-
-  // Fetch candidate words
+  const level  = parseInt(req.nextUrl.searchParams.get('level') ?? '1')
+  const n      = Math.min(parseInt(req.nextUrl.searchParams.get('n') ?? '10'), 20)
   const maxLen = level === 1 ? 6 : level === 2 ? 8 : 10
   const minLen = level === 1 ? 3 : 4
 
-  const rows = db.prepare(`
-    SELECT Word, RenderJson FROM uk
-    WHERE RenderJson IS NOT NULL AND RenderJson != '[]'
-    AND length(Word) BETWEEN ? AND ?
-    ORDER BY RANDOM()
-    LIMIT 2000
-  `).all(minLen, maxLen) as DbWord[]
+  // Get candidate words — from cache if populated, else from lexicon
+  let candidates: string[] = []
 
-  const filtered: { word: string; nodes: GameNode[]; dominantColor: string }[] = []
+  try {
+    const cache = getCache()
+    const cacheCount = (cache.prepare('SELECT COUNT(*) as c FROM words').get() as {c:number}).c
 
-  for (const row of rows) {
-    const nodes = parseNodes(row.RenderJson)
-    if (!nodes) continue
-
-    const dom = dominantColor(nodes)
-    if (!dom) continue
-
-    if (level === 1) {
-      // Simple words with clear single dominant vowel colour
-      filtered.push({ word: row.Word, nodes, dominantColor: dom })
-    } else if (level === 2) {
-      // Must have silent letters
-      if (hasSilentLetters(nodes))
-        filtered.push({ word: row.Word, nodes, dominantColor: dom })
-    } else if (level === 3) {
-      // Must have stress marking
-      if (hasStress(nodes) && row.Word.length >= 5)
-        filtered.push({ word: row.Word, nodes, dominantColor: dom })
+    if (cacheCount > 50) {
+      let q = `SELECT word FROM words WHERE word_length BETWEEN ? AND ?`
+      if (level === 2) q += ` AND has_silent = 1`
+      if (level === 3) q += ` AND has_stress = 1 AND word_length >= 5`
+      q += ` ORDER BY RANDOM() LIMIT ${n * 6}`
+      candidates = (cache.prepare(q).all(minLen, maxLen) as {word:string}[]).map(r => r.word)
     }
+  } catch { /* cache not ready yet */ }
 
-    if (filtered.length >= n * 5) break
+  // Supplement from lexicon if needed
+  if (candidates.length < n * 3) {
+    try {
+      const lex = getLexicon()
+      const rows = lex.prepare(
+        `SELECT word FROM uk WHERE length(word) BETWEEN ? AND ? ORDER BY RANDOM() LIMIT 400`
+      ).all(minLen, maxLen) as {word:string}[]
+      const extra = rows.map(r => r.word).filter(w => !candidates.includes(w))
+      candidates = [...candidates, ...extra]
+    } catch { /* lexicon not ready */ }
   }
 
-  const selected = shuffle(filtered).slice(0, n)
+  // Process and filter
+  const filtered: { word: string; nodes: GameNode[]; dominantColor: string }[] = []
 
-  return NextResponse.json({ words: selected }, {
-    headers: { 'Cache-Control': 'no-store' }
-  })
+  for (const word of shuffle(candidates)) {
+    if (filtered.length >= n * 3) break
+    try {
+      const result = getBestNodes(word)
+      if (!result) continue
+      const nodes = result.nodes as GameNode[]
+      const dom   = dominantColor(nodes)
+      if (!dom) continue
+
+      const ok =
+        level === 1 ? true :
+        level === 2 ? hasSilentLetters(nodes) :
+        hasStress(nodes) && word.length >= 5
+
+      if (ok) filtered.push({ word, nodes, dominantColor: dom })
+    } catch { continue }
+  }
+
+  return NextResponse.json(
+    { words: shuffle(filtered).slice(0, n) },
+    { headers: { 'Cache-Control': 'no-store' } }
+  )
 }

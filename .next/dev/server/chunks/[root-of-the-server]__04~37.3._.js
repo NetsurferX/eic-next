@@ -404,71 +404,100 @@ function segment(clean, stressPos) {
     }
     return result;
 }
+// ── Grapheme classification ───────────────────────────────────────────────────
+const GRAPHIC_VOWELS = new Set([
+    ...'aeiouAEIOU'
+]);
+const SEMIVOWEL_DISPLAY = new Set([
+    'j',
+    'w',
+    'ỷ'
+]);
+function isGraphicVowel(c) {
+    return GRAPHIC_VOWELS.has(c);
+}
+function isGraphicCons(c) {
+    return !GRAPHIC_VOWELS.has(c);
+}
+// ── mapToWord v4 — strict left-to-right vowel/consonant matching ──────────────
+//
+// Algorithm:
+//   Walk IPA segments and word characters strictly left-to-right.
+//   - Consonant IPA  → consume 1 consonant grapheme (2 for IPA digraph)
+//   - Vowel IPA      → consume entire consecutive vowel grapheme run
+//   - Semivowel IPA  → consume 1 consonant grapheme if available, else empty
+//   - Empty display  → latent phoneme, no grapheme consumed
+//   - Remaining word letters after all segs → silent
 function mapToWord(word, segs) {
-    const nodes = [];
-    let wPos = 0;
-    const n = segs.length;
-    const wLen = word.length;
-    if (n === 0) {
-        return [
-            {
-                t: word,
-                s: '',
-                c: COLOR_SILENT,
-                u: false,
-                x: false
-            }
-        ];
-    }
-    // Distribute letters: each segment gets at least 1
-    // IPA digraphs (ipa.length >= 2) get priority for extra letters
-    const gl = new Array(n).fill(1);
-    let extra = wLen - n;
-    for(let pass = 0; pass < 2 && extra > 0; pass++){
-        for(let i = 0; i < n && extra > 0; i++){
-            if (pass === 0 && segs[i].ipa.length < 2) continue;
-            gl[i]++;
-            extra--;
+    if (segs.length === 0) return [
+        {
+            t: word,
+            s: '',
+            c: COLOR_SILENT,
+            u: false,
+            x: false
         }
-    }
-    if (extra > 0) gl[n - 1] += extra;
-    for(let i = 0; i < n; i++){
-        const take = Math.max(0, Math.min(gl[i], wLen - wPos));
-        const text = take > 0 ? word.slice(wPos, wPos + take) : '';
-        wPos += take;
-        const color = getColor(segs[i].display);
-        const isStressed = segs[i].accented && segs[i].isVowel;
-        const isSilent = color === null && !segs[i].isVowel;
-        const isCons = color === null && segs[i].isVowel === false;
+    ];
+    const nodes = [];
+    let pos = 0;
+    const wLen = word.length;
+    for (const seg of segs){
+        const { ipa, display, isVowel, accented } = seg;
+        // Latent phoneme or syllabic marker — no grapheme consumed
+        if (!display || display === '\u200d') {
+            nodes.push({
+                t: '',
+                s: display ?? '',
+                c: COLOR_CONSONANT,
+                u: false,
+                x: true
+            });
+            continue;
+        }
+        let consumed = '';
+        if (SEMIVOWEL_DISPLAY.has(display)) {
+            // Semivowel: take 1 consonant grapheme if current position is consonant
+            if (pos < wLen && isGraphicCons(word[pos])) {
+                consumed = word[pos++];
+            }
+        // else: latent semivowel — no grapheme shown
+        } else if (isVowel) {
+            // Vowel: consume the entire consecutive vowel grapheme run
+            const start = pos;
+            while(pos < wLen && isGraphicVowel(word[pos]))pos++;
+            consumed = word.slice(start, pos);
+        } else {
+            // Consonant: take 1 consonant grapheme (2 for IPA digraphs)
+            if (pos < wLen && isGraphicCons(word[pos])) {
+                consumed = word[pos++];
+                // IPA digraph → try to take a second adjacent consonant
+                if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos])) consumed += word[pos++];
+            }
+        }
+        const color = getColor(display);
+        const isStressed = accented && isVowel;
+        const isSilent = !color && !isVowel;
+        const isCons = !color && !isVowel;
         nodes.push({
-            t: text,
-            s: segs[i].display,
+            t: consumed,
+            s: display,
             c: color ?? (isSilent ? COLOR_SILENT : COLOR_CONSONANT),
             u: isStressed,
             x: isCons || color === COLOR_CONSONANT
         });
     }
-    // Remaining letters → silent
-    if (wPos < wLen) {
-        nodes.push({
-            t: word.slice(wPos),
-            s: '',
-            c: COLOR_SILENT,
-            u: false,
-            x: false
-        });
-    }
+    // Remaining word letters → silent
+    if (pos < wLen) nodes.push({
+        t: word.slice(pos),
+        s: '',
+        c: COLOR_SILENT,
+        u: false,
+        x: false
+    });
     return nodes;
 }
 function scoreNodes(nodes) {
     return nodes.filter((n)=>n.t && n.c !== COLOR_SILENT && n.c !== COLOR_CONSONANT).reduce((sum, n)=>sum + n.t.length, 0);
-}
-// ── Word properties for cache.db columns ─────────────────────────────────────
-const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz');
-function isGraphicCons(t) {
-    return !!t && [
-        ...t.toLowerCase()
-    ].every((c)=>GRAPHIC_CONS.has(c));
 }
 function extractProps(nodes) {
     const colorCounts = {};
@@ -545,13 +574,34 @@ function getLexicon() {
 }
 function getCache() {
     if (!_cache) {
-        _cache = new __TURBOPACK__imported__module__$5b$externals$5d2f$better$2d$sqlite3__$5b$external$5d$__$28$better$2d$sqlite3$2c$__cjs$2c$__$5b$project$5d2f$node_modules$2f$better$2d$sqlite3$29$__["default"](CACHE_PATH, {
-            fileMustExist: true
-        });
+        // Create if not exists — do NOT use fileMustExist
+        _cache = new __TURBOPACK__imported__module__$5b$externals$5d2f$better$2d$sqlite3__$5b$external$5d$__$28$better$2d$sqlite3$2c$__cjs$2c$__$5b$project$5d2f$node_modules$2f$better$2d$sqlite3$29$__["default"](CACHE_PATH);
         _cache.pragma('journal_mode = WAL');
         _cache.pragma('cache_size = -8000');
         _cache.pragma('temp_store = memory');
         _cache.pragma('synchronous = NORMAL');
+        // Ensure schema exists
+        _cache.exec(`
+      CREATE TABLE IF NOT EXISTS words (
+        word           TEXT PRIMARY KEY,
+        variant        TEXT NOT NULL,
+        nodes_json     TEXT NOT NULL,
+        ipa_uk         TEXT,
+        ipa_us         TEXT,
+        dominant_color TEXT,
+        has_silent     INTEGER DEFAULT 0,
+        has_stress     INTEGER DEFAULT 0,
+        syllable_count INTEGER DEFAULT 1,
+        word_length    INTEGER NOT NULL,
+        processed_at   TEXT,
+        hit_count      INTEGER DEFAULT 1
+      );
+      CREATE INDEX IF NOT EXISTS idx_dominant_color ON words(dominant_color);
+      CREATE INDEX IF NOT EXISTS idx_has_silent     ON words(has_silent);
+      CREATE INDEX IF NOT EXISTS idx_has_stress     ON words(has_stress);
+      CREATE INDEX IF NOT EXISTS idx_syllable_count ON words(syllable_count);
+      CREATE INDEX IF NOT EXISTS idx_word_length    ON words(word_length);
+    `);
     }
     return _cache;
 }
@@ -700,6 +750,8 @@ function getCacheStats() {
 "use strict";
 
 __turbopack_context__.s([
+    "DELETE",
+    ()=>DELETE,
     "POST",
     ()=>POST
 ]);
@@ -731,6 +783,22 @@ async function POST(req) {
         console.error('/api/words error:', err);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: 'Internal error'
+        }, {
+            status: 500
+        });
+    }
+}
+async function DELETE() {
+    try {
+        const { getCache } = await __turbopack_context__.A("[project]/src/lib/db.ts [app-route] (ecmascript, async loader)");
+        getCache().prepare('DELETE FROM words').run();
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            ok: true,
+            message: 'Cache cleared'
+        });
+    } catch (err) {
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+            error: String(err)
         }, {
             status: 500
         });

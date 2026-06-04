@@ -27,3 +27,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+// DELETE /api/words — clear cache (admin use)
+export async function DELETE() {
+  try {
+    const { getCache } = await import('@/lib/db')
+    getCache().prepare('DELETE FROM words').run()
+    return NextResponse.json({ ok: true, message: 'Cache cleared' })
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
+}

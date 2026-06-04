@@ -1,8 +1,5 @@
 {
-  "/api/game/route": "app/api/game/route.js",
-  "/api/speak/route": "app/api/speak/route.js",
   "/api/words/route": "app/api/words/route.js",
-  "/learn/page": "app/learn/page.js",
   "/page": "app/page.js",
   "/rules/page": "app/rules/page.js"
 }

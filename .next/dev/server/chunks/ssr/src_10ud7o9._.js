@@ -1291,6 +1291,21 @@ function computeStats(tokens) {
         diffLabel
     };
 }
+// Restore original casing from user input onto pipeline nodes.
+// Pipeline returns lowercase graphemes — we match them back to the
+// original word character by character to preserve capitals.
+function restoreCasing(nodes, originalWord) {
+    let pos = 0;
+    return nodes.map((n)=>{
+        if (!n.t) return n;
+        const original = originalWord.slice(pos, pos + n.t.length);
+        pos += n.t.length;
+        return original ? {
+            ...n,
+            t: original
+        } : n;
+    });
+}
 function useColorizer() {
     const [tokens, setTokens] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [stats, setStats] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -1323,21 +1338,27 @@ function useColorizer() {
                 console.error('Fetch error:', e);
             }
         }
-        const updated = raw.map((t)=>({
+        const updated = raw.map((t)=>{
+            const cached = t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null;
+            return {
                 ...t,
-                nodes: t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null
-            }));
+                // Restore original casing (e.g. Christ → C preserved)
+                nodes: cached ? restoreCasing(cached, t.raw) : null
+            };
+        });
         setTokens(updated);
         setStats(computeStats(updated));
     }, []);
     const onInput = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((text)=>{
         setInputText(text);
-        // Render instant cu cache existent
         const raw = tokenize(text);
-        const fast = raw.map((t)=>({
+        const fast = raw.map((t)=>{
+            const cached = t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null;
+            return {
                 ...t,
-                nodes: t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null
-            }));
+                nodes: cached ? restoreCasing(cached, t.raw) : null
+            };
+        });
         setTokens(fast);
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(()=>processText(text), DEBOUNCE_MS);

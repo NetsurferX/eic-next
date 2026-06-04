@@ -151,53 +151,82 @@ function segment(clean: string, stressPos: number): Seg[] {
   return result
 }
 
+// ── Grapheme classification ───────────────────────────────────────────────────
+const GRAPHIC_VOWELS    = new Set([...'aeiouAEIOU'])
+const SEMIVOWEL_DISPLAY = new Set(['j', 'w', 'ỷ'])
+
+function isGraphicVowel(c: string): boolean { return GRAPHIC_VOWELS.has(c) }
+function isGraphicCons(c: string):  boolean { return !GRAPHIC_VOWELS.has(c) }
+
+// ── mapToWord v4 — strict left-to-right vowel/consonant matching ──────────────
+//
+// Algorithm:
+//   Walk IPA segments and word characters strictly left-to-right.
+//   - Consonant IPA  → consume 1 consonant grapheme (2 for IPA digraph)
+//   - Vowel IPA      → consume entire consecutive vowel grapheme run
+//   - Semivowel IPA  → consume 1 consonant grapheme if available, else empty
+//   - Empty display  → latent phoneme, no grapheme consumed
+//   - Remaining word letters after all segs → silent
+
 function mapToWord(word: string, segs: Seg[]): RenderNode[] {
+  if (segs.length === 0)
+    return [{ t: word, s: '', c: COLOR_SILENT, u: false, x: false }]
+
   const nodes: RenderNode[] = []
-  let wPos = 0
-  const n    = segs.length
+  let pos = 0
   const wLen = word.length
 
-  if (n === 0) {
-    return [{ t: word, s: '', c: COLOR_SILENT, u: false, x: false }]
-  }
+  for (const seg of segs) {
+    const { ipa, display, isVowel, accented } = seg
 
-  // Distribute letters: each segment gets at least 1
-  // IPA digraphs (ipa.length >= 2) get priority for extra letters
-  const gl = new Array(n).fill(1)
-  let extra = wLen - n
-
-  for (let pass = 0; pass < 2 && extra > 0; pass++) {
-    for (let i = 0; i < n && extra > 0; i++) {
-      if (pass === 0 && segs[i].ipa.length < 2) continue
-      gl[i]++
-      extra--
+    // Latent phoneme or syllabic marker — no grapheme consumed
+    if (!display || display === '\u200d') {
+      nodes.push({ t: '', s: display ?? '', c: COLOR_CONSONANT, u: false, x: true })
+      continue
     }
-  }
-  if (extra > 0) gl[n - 1] += extra
 
-  for (let i = 0; i < n; i++) {
-    const take  = Math.max(0, Math.min(gl[i], wLen - wPos))
-    const text  = take > 0 ? word.slice(wPos, wPos + take) : ''
-    wPos += take
+    let consumed = ''
 
-    const color     = getColor(segs[i].display)
-    const isStressed = segs[i].accented && segs[i].isVowel
-    const isSilent   = color === null && !segs[i].isVowel
-    const isCons     = color === null && segs[i].isVowel === false
+    if (SEMIVOWEL_DISPLAY.has(display)) {
+      // Semivowel: take 1 consonant grapheme if current position is consonant
+      if (pos < wLen && isGraphicCons(word[pos])) {
+        consumed = word[pos++]
+      }
+      // else: latent semivowel — no grapheme shown
+
+    } else if (isVowel) {
+      // Vowel: consume the entire consecutive vowel grapheme run
+      const start = pos
+      while (pos < wLen && isGraphicVowel(word[pos])) pos++
+      consumed = word.slice(start, pos)
+
+    } else {
+      // Consonant: take 1 consonant grapheme (2 for IPA digraphs)
+      if (pos < wLen && isGraphicCons(word[pos])) {
+        consumed = word[pos++]
+        // IPA digraph → try to take a second adjacent consonant
+        if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos]))
+          consumed += word[pos++]
+      }
+    }
+
+    const color      = getColor(display)
+    const isStressed = accented && isVowel
+    const isSilent   = !color && !isVowel
+    const isCons     = !color && !isVowel
 
     nodes.push({
-      t: text,
-      s: segs[i].display,
+      t: consumed,
+      s: display,
       c: color ?? (isSilent ? COLOR_SILENT : COLOR_CONSONANT),
       u: isStressed,
-      x: isCons || (color === COLOR_CONSONANT),
+      x: isCons || color === COLOR_CONSONANT,
     })
   }
 
-  // Remaining letters → silent
-  if (wPos < wLen) {
-    nodes.push({ t: word.slice(wPos), s: '', c: COLOR_SILENT, u: false, x: false })
-  }
+  // Remaining word letters → silent
+  if (pos < wLen)
+    nodes.push({ t: word.slice(pos), s: '', c: COLOR_SILENT, u: false, x: false })
 
   return nodes
 }
@@ -211,12 +240,6 @@ export function scoreNodes(nodes: RenderNode[]): number {
 }
 
 // ── Word properties for cache.db columns ─────────────────────────────────────
-
-const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
-
-function isGraphicCons(t: string): boolean {
-  return !!t && [...t.toLowerCase()].every(c => GRAPHIC_CONS.has(c))
-}
 
 export interface WordProps {
   dominantColor:  string | null

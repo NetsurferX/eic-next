@@ -1395,6 +1395,21 @@ function computeStats(tokens) {
         diffLabel
     };
 }
+// Restore original casing from user input onto pipeline nodes.
+// Pipeline returns lowercase graphemes — we match them back to the
+// original word character by character to preserve capitals.
+function restoreCasing(nodes, originalWord) {
+    let pos = 0;
+    return nodes.map((n)=>{
+        if (!n.t) return n;
+        const original = originalWord.slice(pos, pos + n.t.length);
+        pos += n.t.length;
+        return original ? {
+            ...n,
+            t: original
+        } : n;
+    });
+}
 function useColorizer() {
     _s();
     const [tokens, setTokens] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
@@ -1436,10 +1451,14 @@ function useColorizer() {
                 }
             }
             const updated = raw.map({
-                "useColorizer.useCallback[processText].updated": (t)=>({
+                "useColorizer.useCallback[processText].updated": (t)=>{
+                    const cached = t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null;
+                    return {
                         ...t,
-                        nodes: t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null
-                    })
+                        // Restore original casing (e.g. Christ → C preserved)
+                        nodes: cached ? restoreCasing(cached, t.raw) : null
+                    };
+                }
             }["useColorizer.useCallback[processText].updated"]);
             setTokens(updated);
             setStats(computeStats(updated));
@@ -1448,13 +1467,15 @@ function useColorizer() {
     const onInput = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "useColorizer.useCallback[onInput]": (text)=>{
             setInputText(text);
-            // Render instant cu cache existent
             const raw = tokenize(text);
             const fast = raw.map({
-                "useColorizer.useCallback[onInput].fast": (t)=>({
+                "useColorizer.useCallback[onInput].fast": (t)=>{
+                    const cached = t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null;
+                    return {
                         ...t,
-                        nodes: t.isWord ? nodeCache.get(t.raw.toLowerCase()) ?? null : null
-                    })
+                        nodes: cached ? restoreCasing(cached, t.raw) : null
+                    };
+                }
             }["useColorizer.useCallback[onInput].fast"]);
             setTokens(fast);
             if (debounceRef.current) clearTimeout(debounceRef.current);
