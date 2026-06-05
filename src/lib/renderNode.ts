@@ -24,3 +24,9 @@ export function isMute(node: RenderNode): boolean {
 export function isVowelNode(node: RenderNode): boolean {
   return !node.x && node.c !== COLOR_SILENT && node.t.length > 0
 }
+
+export const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
+
+export function isGraphicConsonantString(t: string): boolean {
+  return t.length > 0 && [...t.toLowerCase()].every(c => GRAPHIC_CONSONANTS.has(c));
+}

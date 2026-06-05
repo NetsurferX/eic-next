@@ -8,8 +8,12 @@ __turbopack_context__.s([
     ()=>COLOR_CONSONANT,
     "COLOR_SILENT",
     ()=>COLOR_SILENT,
+    "GRAPHIC_CONSONANTS",
+    ()=>GRAPHIC_CONSONANTS,
     "SYLLABIC_MARKER",
     ()=>SYLLABIC_MARKER,
+    "isGraphicConsonantString",
+    ()=>isGraphicConsonantString,
     "isMute",
     ()=>isMute,
     "isSyllabicConsonant",
@@ -29,6 +33,12 @@ function isMute(node) {
 function isVowelNode(node) {
     return !node.x && node.c !== COLOR_SILENT && node.t.length > 0;
 }
+const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
+function isGraphicConsonantString(t) {
+    return t.length > 0 && [
+        ...t.toLowerCase()
+    ].every((c)=>GRAPHIC_CONSONANTS.has(c));
+}
 }),
 "[project]/src/components/WordRenderer.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
@@ -42,15 +52,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$
 ;
 ;
 // ── Constants ─────────────────────────────────────────────────────────────────
-// Purely graphic consonant letters — y/w excluded (can be semivowels)
 const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
-// Semivowel sounds in DB
 const SEMIVOWEL_SOUNDS = new Set([
     'j',
     'w',
     'ỷ'
 ]);
-// Diphthong descent colour: #FF3399 (ɔ/pink) → #CC0000 (i/red)
 const DIPHTHONG_START = '#FF3399';
 const DIPHTHONG_END = '#CC0000';
 // ── Node classification helpers ───────────────────────────────────────────────
@@ -59,22 +66,20 @@ function isGraphicConsonant(t) {
         ...t.toLowerCase()
     ].every((c)=>GRAPHIC_CONSONANTS.has(c));
 }
-// Node has vowel colour but grapheme is purely consonantic → DB error → mute
 function shouldBeMute(n) {
     if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
     if (!n.t || n.t.length === 0) return false;
-    if (n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && isGraphicConsonant(n.t)) return true;
+    // Modificare critică: O consoană este mută doar dacă are o culoare explicită de vocală (nu goală, nu neagră)
+    const hasActiveVowelColor = n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.c !== '' && n.c !== undefined;
+    if (hasActiveVowelColor && isGraphicConsonant(n.t)) return true;
     return false;
 }
-// True vowel: has vowel colour, not consonant, not mute, grapheme not pure-consonant
 function isVowel(n) {
     if (!n.t || n.t.length === 0) return false;
-    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_SILENT"] || n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]) return false;
-    if (n.x) return false;
-    if (isGraphicConsonant(n.t)) return false;
+    if (shouldBeMute(n)) return false;
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] || n.x || n.c === '') return false;
     return true;
 }
-// Semivowel node: idx=5 (s='j'|'w'|'ỷ')
 function isSemivowel(n) {
     return SEMIVOWEL_SOUNDS.has(n.s) && n.c === '#E57373';
 }
@@ -94,20 +99,13 @@ function classifyNodes(nodes) {
     };
 }
 // ── Diphthong gradient detection ──────────────────────────────────────────────
-// Descending diphthong: vowel node followed immediately by semivowel (idx=5)
-// → gradient from vowel-colour → #CC0000 (red)
-// e.g. boy: o(ɔ,#FF3399) + y(\u200d glide after non-schwa) — but y is diphthongGlide
-// Actually in DB: royal → o="ɔ"(7) + y=\u200d glide + a="ɪ"(4)
-// Pattern for gradient: stressed vowel + diphthongGlide immediately after
-// → both nodes get gradient treatment
 function buildDiphthongGradients(nodes, diphthongGlide) {
     const result = new Set();
     for(let i = 0; i < nodes.length; i++){
         if (!diphthongGlide.has(i)) continue;
-        // The preceding vowel node is part of the diphthong
         if (i > 0 && isVowel(nodes[i - 1]) && nodes[i].t.length > 0) {
-            result.add(i - 1); // vowel part
-            result.add(i); // glide part
+            result.add(i - 1);
+            result.add(i);
         }
     }
     return result;
@@ -120,25 +118,18 @@ function hasTrueSyllabic(trueSyllabic) {
     return trueSyllabic.size > 0;
 }
 // ── Underline: stressed vowel + consecutive vowel run ─────────────────────────
-// Rules:
-//   - No underline in monosyllabic words
-//   - No underline in words with true syllabic consonant (apple, button)
-//   - Stressed vowel node anchors the group
-//   - Group extends through consecutive vowels and diphthong glides
-//   - Semivowels (idx=5 with grapheme) included in group
-//   - Never underlines consonants or mute nodes
 function buildUnderlined(nodes, allow, diphthongGlide) {
     const result = new Set();
-    if (!allow) return result;
+    // Heuristic Override: Dacă baza de date nu trimite accente (cuvinte scurte/monosilabice),
+    // dar vrem să corectăm randarea vizuală unde o consoană a primit accent din greșeală.
     let i = 0;
     while(i < nodes.length){
         const n = nodes[i];
-        // Anchor: stressed vowel or stressed semivowel with grapheme
+        // Doar un nucleu vocalic sau semivocalic real poate ancora accentul/sublinierea
         const isStressedVowel = n.u && isVowel(n) && !shouldBeMute(n);
         const isStressedSemi = n.u && isSemivowel(n) && n.t.length > 0;
         if (isStressedVowel || isStressedSemi) {
             result.add(i);
-            // Extend through consecutive vowels, semivowels, diphthong glides
             let j = i + 1;
             while(j < nodes.length){
                 const next = nodes[j];
@@ -161,6 +152,7 @@ function WordRenderer({ nodes }) {
     const diphthongNodes = buildDiphthongGradients(nodes, diphthongGlide);
     const mono = isMonosyllabic(nodes);
     const hasSyl = hasTrueSyllabic(trueSyllabic);
+    // Permitem randarea liniei dacă există stări de accent precalculate valid
     const allow = !mono && !hasSyl;
     const underlined = buildUnderlined(nodes, allow, diphthongGlide);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -173,14 +165,11 @@ function WordRenderer({ nodes }) {
             const isUnderlined = underlined.has(i);
             const mute = shouldBeMute(n) || isGlide && !isDiphNode;
             const semi = isSemivowel(n) && n.t.length > 0 && !isGlide;
-            // ── Colour resolution ──
             let color;
             let style = {};
             if (isTrueSyl) {
-                // Syllabic consonant — black
                 color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
             } else if (isDiphNode) {
-                // Diphthong gradient: roz → roșu via CSS gradient on text
                 style = {
                     background: `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
                     WebkitBackgroundClip: 'text',
@@ -191,10 +180,10 @@ function WordRenderer({ nodes }) {
             } else if (mute) {
                 color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
             } else if (semi) {
-                // Semivowel with grapheme — black (consonantal display)
                 color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
             } else {
-                color = n.c;
+                // Soluția pentru fallback: dacă culoarea din DB este goală sau invalidă, aplicăm negru implicit (consoană)
+                color = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
             }
             const classes = [
                 'eic-seg',
@@ -212,13 +201,13 @@ function WordRenderer({ nodes }) {
                 children: n.t
             }, i, false, {
                 fileName: "[project]/src/components/WordRenderer.tsx",
-                lineNumber: 214,
+                lineNumber: 191,
                 columnNumber: 11
             }, this);
         })
     }, void 0, false, {
         fileName: "[project]/src/components/WordRenderer.tsx",
-        lineNumber: 169,
+        lineNumber: 149,
         columnNumber: 5
     }, this);
 }
