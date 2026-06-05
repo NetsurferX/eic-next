@@ -10,7 +10,7 @@ export interface RenderNode {
 // Zero-width joiner — marker pentru consoana silabică în DB
 export const SYLLABIC_MARKER = '\u200d'
 
-export const COLOR_SILENT    = '#cccccc'
+export const COLOR_SILENT    = '#000000'
 export const COLOR_CONSONANT = '#000000'
 
 export function isSyllabicConsonant(node: RenderNode): boolean {

@@ -124,7 +124,7 @@ export default function LearnPage() {
               { c: '#4472C4', label: 'aɪ/aʊ', ex: 'my, now, eye' },
               { c: '#E57373', label: 'j / w', ex: 'yes, we, you' },
               { c: '#000000', label: '∅',     ex: 'consonants' },
-              { c: '#cccccc', label: '—',     ex: 'silent letters' },
+              { c: '#000000', label: '—',     ex: 'silent letters' },
             ].map(({ c, label, ex }) => (
               <div key={c} className="game-colour-item">
                 <div className="game-colour-swatch" style={{ background: c }} />

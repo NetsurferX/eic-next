@@ -17,7 +17,7 @@ interface WordPeak {
 }
 
 function wordComplexity(tok: TextToken): WordPeak {
-  if (!tok.nodes) return { word: tok.raw, height: 0.1, color: '#cccccc', silent: 0, stressed: false }
+  if (!tok.nodes) return { word: tok.raw, height: 0.1, color: '#000000', silent: 0, stressed: false }
 
   const nodes    = tok.nodes
   const total    = nodes.filter(n => n.t.length > 0).length
@@ -42,7 +42,7 @@ function wordComplexity(tok: TextToken): WordPeak {
   return {
     word:     tok.raw,
     height,
-    color:    dominant?.[0] ?? '#888888',
+    color:    dominant?.[0] ?? '#000000',
     silent,
     stressed,
   }
@@ -143,7 +143,7 @@ export default function TerrainView({ tokens }: Props) {
                 />
                 {peak.silent > 0 && (
                   <circle cx={x} cy={y} r={8} fill="none"
-                    stroke="#cccccc" strokeWidth="1" strokeDasharray="2,2" />
+                    stroke="#" strokeWidth="1" strokeDasharray="2,2" />
                 )}
               </g>
             ))}

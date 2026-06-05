@@ -10,7 +10,7 @@ interface Props {
   onAnswer:    (correct: boolean) => void
 }
 
-const SILENT   = '#cccccc'
+const SILENT   = '#000000'
 const CONSONANT = '#000000'
 const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
 const SYLLABIC_MARKER = '\u200d'
@@ -128,7 +128,7 @@ export default function StressGame({ word, phase, lastCorrect, onAnswer }: Props
           <span
             key={`n-${nodeIdx}`}
             className="stress-cons"
-            style={{ color: n.c === SILENT ? '#cccccc' : n.c || '#000' }}
+            style={{ color: n.c === SILENT ? '#000000' : n.c || '#000' }}
           >
             {n.t}
           </span>

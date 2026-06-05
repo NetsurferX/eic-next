@@ -17,7 +17,7 @@ function renderWord(word: string, nodes: NodePreview[], config: RuleConfig) {
       <span
         key={i}
         style={{
-          color:           isSilent ? '#cccccc' : color ?? '#000',
+          color:           isSilent ? '#000000' : color ?? '#000',
           textDecoration:  n.isStressed && !isSilent ? 'underline' : 'none',
           textUnderlineOffset: '6px',
           textDecorationThickness: '2.5px',

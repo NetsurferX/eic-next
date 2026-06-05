@@ -149,7 +149,7 @@ The app uses these standard IPA vowel colors:
 | 🟣 Light Purple | j / w (semivowels) | yes, we | #E57373 |
 | 🟠 Orange | e / ɛ | bed, say | #EE5B00 |
 | 🩷 Pink | ɒ / ɔ | hot, or | #FF3399 |
-| ⚪ Silent | (no sound) | — | #cccccc |
+| ⚪ Silent | (no sound) | — | #000000 |
 | ⬛ Black | consonants | — | #000000 |
 
 ---
@@ -177,7 +177,7 @@ const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz')
 
 A node should be silent if:
 
-1. **The color is grey** (`#cccccc`) — database explicitly says "no sound"
+1. **The color is grey** (`#000000`) — database explicitly says "no sound"
 2. **The color is NOT grey AND NOT black, BUT the grapheme is pure consonant** — **database error!**
 
 ```typescript
@@ -191,7 +191,7 @@ function shouldBeMute(n: RenderNode): boolean {
 
 **Example:**
 - ✅ `{ t: "e", s: "ə", c: "#888888" }` — mute (silent vowel schwa)
-- ✅ `{ t: "gh", s: "", c: "#cccccc" }` — mute (grey color)
+- ✅ `{ t: "gh", s: "", c: "#000000" }` — mute (grey color)
 - ⚠️ `{ t: "b", s: "ə", c: "#FF3399" }` — mute (WRONG DATA: consonant letters with a vowel color!)
 
 ---
@@ -372,7 +372,7 @@ export interface RenderNode {
 // Zero-width joiner — marker pentru consoana silabică în DB
 export const SYLLABIC_MARKER = '\u200d'
 
-export const COLOR_SILENT    = '#cccccc'
+export const COLOR_SILENT    = '#000000'
 export const COLOR_CONSONANT = '#000000'
 
 export function isSyllabicConsonant(node: RenderNode): boolean {
@@ -814,7 +814,7 @@ interface WordPeak {
 }
 
 function wordComplexity(tok: TextToken): WordPeak {
-  if (!tok.nodes) return { word: tok.raw, height: 0.1, color: '#cccccc', silent: 0, stressed: false }
+  if (!tok.nodes) return { word: tok.raw, height: 0.1, color: '#000000', silent: 0, stressed: false }
 
   const nodes    = tok.nodes
   const total    = nodes.filter(n => n.t.length > 0).length
@@ -1018,7 +1018,7 @@ export async function POST(req: NextRequest) {
 import { NextRequest, NextResponse } from 'next/server'
 import { getCache, getLexicon, getBestNodes } from '@/lib/db'
 
-const SILENT       = '#cccccc'
+const SILENT       = '#000000'
 const CONSONANT    = '#000000'
 const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
 

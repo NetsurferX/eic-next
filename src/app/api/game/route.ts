@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCache, getLexicon, getBestNodes } from '@/lib/db'
 
-const SILENT       = '#cccccc'
+const SILENT       = '#000000'
 const CONSONANT    = '#000000'
 const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
 

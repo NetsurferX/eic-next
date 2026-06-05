@@ -38,7 +38,7 @@ export default function ConstellationView({ tokens }: Props) {
           colorCounts.set(n.c, (colorCounts.get(n.c) ?? 0) + 1)
       }
       const dominant = [...colorCounts.entries()].sort((a, b) => b[1] - a[1])[0]
-      const color = dominant?.[0] ?? '#888888'
+      const color = dominant?.[0] ?? '#000000'
 
       const existing = freq.get(lower)
       if (existing) existing.count++

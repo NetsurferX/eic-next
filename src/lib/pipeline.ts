@@ -11,7 +11,7 @@ export interface RenderNode {
 
 // ── ColorMap ──────────────────────────────────────────────────────────────────
 
-export const COLOR_SILENT    = '#cccccc'
+export const COLOR_SILENT    = '#000000'
 export const COLOR_CONSONANT = '#000000'
 
 const COLOR_MAP: Record<string, string> = {

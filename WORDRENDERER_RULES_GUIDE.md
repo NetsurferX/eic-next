@@ -47,7 +47,7 @@ The app uses these standard IPA vowel colors:
 | 🟣 Light Purple | j / w (semivowels) | yes, we | #E57373 |
 | 🟠 Orange | e / ɛ | bed, say | #EE5B00 |
 | 🩷 Pink | ɒ / ɔ | hot, or | #FF3399 |
-| ⚪ Silent | (no sound) | — | #cccccc |
+| ⚪ Silent | (no sound) | — | #000000 |
 | ⬛ Black | consonants | — | #000000 |
 
 ---
@@ -75,7 +75,7 @@ const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz')
 
 A node should be silent if:
 
-1. **The color is grey** (`#cccccc`) — database explicitly says "no sound"
+1. **The color is grey** (`#000000`) — database explicitly says "no sound"
 2. **The color is NOT grey AND NOT black, BUT the grapheme is pure consonant** — **database error!**
 
 ```typescript
@@ -89,7 +89,7 @@ function shouldBeMute(n: RenderNode): boolean {
 
 **Example:**
 - ✅ `{ t: "e", s: "ə", c: "#888888" }` — mute (silent vowel schwa)
-- ✅ `{ t: "gh", s: "", c: "#cccccc" }` — mute (grey color)
+- ✅ `{ t: "gh", s: "", c: "#000000" }` — mute (grey color)
 - ⚠️ `{ t: "b", s: "ə", c: "#FF3399" }` — mute (WRONG DATA: consonant letters with a vowel color!)
 
 ---
@@ -321,8 +321,8 @@ if (isTrueSyllabic) {
   // Rule B: Diphthong → GRADIENT (pink to red)
   style = gradient('linear-gradient(to right, #FF3399, #CC0000)')
 } else if (shouldBeMute) {
-  // Rule C: Silent → GREY (#cccccc)
-  color = '#cccccc'
+  // Rule C: Silent → GREY (#000000)
+  color = '#000000'
 } else if (isSemivowel && hasText) {
   // Rule D: Semivowel with text → BLACK (consonantal display)
   color = '#000000'

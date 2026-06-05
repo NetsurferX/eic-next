@@ -10,7 +10,7 @@ interface Props {
   onAnswer:    (correct: boolean) => void
 }
 
-const SILENT     = '#cccccc'
+const SILENT     = '#000000'
 const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
 
 function isGraphicCons(t: string) {
@@ -97,8 +97,8 @@ export default function SilentGame({ word, phase, lastCorrect, onAnswer }: Props
               ].filter(Boolean).join(' ')}
               style={{
                 color: isFeedback
-                  ? (isSilent ? '#cccccc' : n.c || '#000')
-                  : (isTapped ? '#cccccc' : n.c || '#000'),
+                  ? (isSilent ? '#000000' : n.c || '#000')
+                  : (isTapped ? '#000000' : n.c || '#000'),
               }}
               onClick={() => handleTap(i)}
               disabled={!isClickable || isFeedback}
