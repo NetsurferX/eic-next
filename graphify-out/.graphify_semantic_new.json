@@ -1,0 +1,56 @@
+{
+  "nodes": [
+    {
+      "id": "doc:PROJECT_CONTEXT.md",
+      "label": "Project Context",
+      "type": "document",
+      "source_location": {
+        "path": "/home/doruciocanu/EiC/eic-next/PROJECT_CONTEXT.md",
+        "line_start": 1,
+        "line_end": 200
+      },
+      "summary": "Project metadata, directory structure, setup steps, and WordRenderer rules overview.",
+      "confidence": 0.9
+    },
+    {
+      "id": "doc:README.md",
+      "label": "README: Setup & Structure",
+      "type": "document",
+      "source_location": {
+        "path": "/home/doruciocanu/EiC/eic-next/README.md",
+        "line_start": 1,
+        "line_end": 200
+      },
+      "summary": "Install, dev/build/run instructions and high-level project structure (app, components, lib, data).",
+      "confidence": 0.9
+    },
+    {
+      "id": "doc:WORDRENDERER_RULES_GUIDE.md",
+      "label": "WordRenderer Rules Guide",
+      "type": "document",
+      "source_location": {
+        "path": "/home/doruciocanu/EiC/eic-next/WORDRENDERER_RULES_GUIDE.md",
+        "line_start": 1,
+        "line_end": 400
+      },
+      "summary": "Explains RenderNode shape, color mapping, and rules for mute, vowels, semivowels, syllabic consonants, and underlining.",
+      "confidence": 0.95
+    },
+    {
+      "id": "doc:WORDRENDERER_LINE_BY_LINE_GUIDE.md",
+      "label": "WordRenderer Line-by-Line Guide",
+      "type": "document",
+      "source_location": {
+        "path": "/home/doruciocanu/EiC/eic-next/WORDRENDERER_LINE_BY_LINE_GUIDE.md",
+        "line_start": 1,
+        "line_end": 500
+      },
+      "summary": "Precise line numbers and edit guidance for each rule in WordRenderer.tsx.",
+      "confidence": 0.95
+    }
+  ],
+  "edges": [],
+  "hyperedges": [],
+  "input_tokens": 1200,
+  "output_tokens": 400
+}

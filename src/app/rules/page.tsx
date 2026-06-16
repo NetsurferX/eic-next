@@ -2,23 +2,35 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import type { RuleConfig, TestCase, RuleDiff } from '@/lib/ruleConfig'
-import { DEFAULT_CONFIG, diffConfigs, generatePrompt } from '@/lib/ruleConfig'
+import type { RuleConfig, TestCase, RuleDiff, RegexRule, RegexRuleAction } from '@/lib/ruleConfig'
+import { DEFAULT_CONFIG, diffConfigs, generatePrompt, applyRegexOverrides } from '@/lib/ruleConfig'
 
 // Deep clone
 function clone<T>(obj: T): T { return JSON.parse(JSON.stringify(obj)) }
 
-// Mini word renderer using config colours
+interface NodePreview {
+  t: string; s: string; isStressed: boolean; isSilent: boolean
+  c?: string                              // set by applyRegexOverrides() when a colour rule matches
+  underlineOverride?: 'force' | 'deny'    // set by applyRegexOverrides() when an underline rule matches
+}
+
+// Mini word renderer using config colours — respects regex-rule overrides
+// already baked into the node (c / isSilent / underlineOverride) from
+// applyRegexOverrides(), falling back to the normal colour-map lookup.
 function renderWord(word: string, nodes: NodePreview[], config: RuleConfig) {
   return nodes.map((n, i) => {
-    const color = resolveColor(n.s, config)
-    const isSilent = !color || n.isSilent
+    const color = n.c ?? resolveColor(n.s, config)
+    const isSilent = n.isSilent || !color
+    const underlined =
+      n.underlineOverride === 'deny'  ? false :
+      n.underlineOverride === 'force' ? true  :
+      n.isStressed
     return (
       <span
         key={i}
         style={{
           color:           isSilent ? '#000000' : color ?? '#000',
-          textDecoration:  n.isStressed && !isSilent ? 'underline' : 'none',
+          textDecoration:  underlined && !isSilent ? 'underline' : 'none',
           textUnderlineOffset: '6px',
           textDecorationThickness: '2.5px',
           fontWeight: 600,
@@ -39,19 +51,18 @@ function resolveColor(sound: string, config: RuleConfig): string | null {
   return null
 }
 
-interface NodePreview { t: string; s: string; isStressed: boolean; isSilent: boolean }
-
 export default function RulesPage() {
   const [config, setConfig]         = useState<RuleConfig>(() => clone(DEFAULT_CONFIG))
   const [testWord, setTestWord]     = useState('')
   const [testNodes, setTestNodes]   = useState<{ word: string; nodes: NodePreview[] } | null>(null)
   const [testCases, setTestCases]   = useState<TestCase[]>([])
   const [copied, setCopied]         = useState(false)
-  const [activeTab, setActiveTab]   = useState<'colors'|'underline'|'silent'|'vowels'|'test'>('colors')
+  const [activeTab, setActiveTab]   = useState<'colors'|'underline'|'silent'|'vowels'|'regex'|'test'>('colors')
   const [loadingTest, setLoading]   = useState(false)
   const [newPattern, setNewPattern] = useState('')
   const [tcNote, setTcNote]         = useState('')
   const [tcDesired, setTcDesired]   = useState('')
+  const [ruleTestWords, setRuleTestWords] = useState<Record<string, string>>({})
 
   const diffs: RuleDiff[] = diffConfigs(DEFAULT_CONFIG, config)
 
@@ -59,19 +70,22 @@ export default function RulesPage() {
   const lookupWord = useCallback(async (w: string) => {
     if (!w.trim()) return
     setLoading(true)
+    const wl = w.toLowerCase().trim()
     try {
       const res  = await fetch('/api/words', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ words: [w.toLowerCase().trim()] }),
+        body:    JSON.stringify({ words: [wl] }),
       })
       const data = await res.json() as { results: Record<string, NodePreview[]> }
-      const nodes = data.results?.[w.toLowerCase().trim()]
-      if (nodes) setTestNodes({ word: w, nodes })
-      else setTestNodes(null)
+      const nodes = data.results?.[wl]
+      if (nodes) {
+        const withOverrides = applyRegexOverrides(wl, nodes, config.regexRules)
+        setTestNodes({ word: w, nodes: withOverrides })
+      } else setTestNodes(null)
     } catch { setTestNodes(null) }
     setLoading(false)
-  }, [])
+  }, [config.regexRules])
 
   // ── Prompt generation ─────────────────────────────────────────────────────
   const prompt = generatePrompt(diffs, testCases, config)
@@ -163,11 +177,101 @@ export default function RulesPage() {
     })
   }
 
+  // ── Regex rule helpers ────────────────────────────────────────────────────
+  function reindexPriorities(rules: RegexRule[]) {
+    rules.forEach((r, i) => { r.priority = i })
+  }
+
+  function addRegexRule() {
+    setConfig(prev => {
+      const next = clone(prev)
+      next.regexRules.push({
+        id:       `rule-${Date.now()}`,
+        label:    'New rule',
+        enabled:  true,
+        pattern:  '',
+        flags:    'i',
+        group:    0,
+        action:   {},
+        priority: next.regexRules.length,
+        notes:    '',
+        testWords: [],
+      })
+      return next
+    })
+  }
+
+  function updateRegexRule(idx: number, patch: Partial<RegexRule>) {
+    setConfig(prev => {
+      const next = clone(prev)
+      next.regexRules[idx] = { ...next.regexRules[idx], ...patch }
+      return next
+    })
+  }
+
+  function updateRegexAction(idx: number, patch: Partial<RegexRuleAction>) {
+    setConfig(prev => {
+      const next = clone(prev)
+      const action = { ...next.regexRules[idx].action, ...patch }
+      // Drop keys explicitly cleared (set to undefined) so JSON/diffs stay clean
+      for (const k of Object.keys(action) as (keyof RegexRuleAction)[]) {
+        if (action[k] === undefined) delete action[k]
+      }
+      next.regexRules[idx].action = action
+      return next
+    })
+  }
+
+  function removeRegexRule(idx: number) {
+    setConfig(prev => {
+      const next = clone(prev)
+      next.regexRules.splice(idx, 1)
+      reindexPriorities(next.regexRules)
+      return next
+    })
+  }
+
+  function moveRegexRule(idx: number, dir: -1 | 1) {
+    setConfig(prev => {
+      const next = clone(prev)
+      const j = idx + dir
+      if (j < 0 || j >= next.regexRules.length) return prev
+      const tmp = next.regexRules[idx]
+      next.regexRules[idx] = next.regexRules[j]
+      next.regexRules[j] = tmp
+      reindexPriorities(next.regexRules)
+      return next
+    })
+  }
+
+  // Pure client-side preview of what a rule would target — same matching
+  // semantics as applyRegexOverrides() in ruleConfig.ts, no DB lookup needed.
+  function testRulePattern(rule: RegexRule, word: string): {
+    matched: boolean; before: string; target: string; after: string; error?: string
+  } {
+    if (!word) return { matched: false, before: '', target: '', after: '' }
+    if (!rule.pattern) return { matched: false, before: word, target: '', after: '' }
+    try {
+      const flags = Array.from(new Set([...(rule.flags ?? ''), 'd'])).join('')
+      const re = new RegExp(rule.pattern, flags)
+      const m = re.exec(word) as (RegExpExecArray & { indices?: Array<[number, number] | undefined> }) | null
+      if (!m?.indices) return { matched: false, before: word, target: '', after: '' }
+      const g = rule.group ?? 0
+      const span = m.indices[g]
+      if (!span) return { matched: false, before: word, target: '', after: '' }
+      const [s, e] = span
+      return { matched: true, before: word.slice(0, s), target: word.slice(s, e), after: word.slice(e) }
+    } catch {
+      return { matched: false, before: word, target: '', after: '', error: 'Invalid regex' }
+    }
+  }
+
   const TABS = [
     { id: 'colors'   as const, label: '🎨 Colours' },
     { id: 'underline'as const, label: '_ Underline' },
     { id: 'silent'   as const, label: '○ Silent'   },
     { id: 'vowels'   as const, label: 'V Vowels'   },
+    { id: 'regex'    as const, label: '⚡ Regex'    },
     { id: 'test'     as const, label: '⚗ Test'     },
   ]
 
@@ -370,6 +474,174 @@ export default function RulesPage() {
                 </div>
               </div>
             ))}
+          </section>
+        )}
+
+        {/* ── REGEX ── */}
+        {activeTab === 'regex' && (
+          <section className="rules-section">
+            <h2 className="rules-section-title">Regex Override Rules</h2>
+            <p className="rules-section-desc">
+              Punctual, per-word overrides. Each rule is a regex matched against the word's
+              letters — the matched span (or a capture group within it) gets the action
+              applied (colour / force-silent / force-or-deny underline), bypassing the
+              general rules above for that grapheme only. Type a test word under any rule
+              to see exactly what it targets, no lookup needed.
+            </p>
+
+            <button className="silent-add-btn" onClick={addRegexRule} style={{ marginBottom: '12px' }}>
+              + Add rule
+            </button>
+
+            {config.regexRules.length === 0 && (
+              <p className="rules-section-desc" style={{ opacity: 0.6 }}>
+                No regex rules yet — click "+ Add rule" to define one.
+              </p>
+            )}
+
+            <div className="regex-rule-list">
+              {config.regexRules.map((rule, idx) => {
+                const orig    = DEFAULT_CONFIG.regexRules.find(r => r.id === rule.id)
+                const changed = !orig || JSON.stringify(orig) !== JSON.stringify(rule)
+                const tw      = ruleTestWords[rule.id] ?? (rule.testWords?.[0] ?? '')
+                const result  = testRulePattern(rule, tw)
+
+                return (
+                  <div key={rule.id} className={`regex-rule-card ${changed ? 'changed' : ''}`}>
+
+                    <div className="regex-rule-head">
+                      <button
+                        className={`toggle-btn ${rule.enabled ? 'on' : 'off'}`}
+                        onClick={() => updateRegexRule(idx, { enabled: !rule.enabled })}
+                      >
+                        {rule.enabled ? 'ON' : 'OFF'}
+                      </button>
+                      <input
+                        className="color-sounds-input"
+                        style={{ flex: 1 }}
+                        value={rule.label}
+                        onChange={e => updateRegexRule(idx, { label: e.target.value })}
+                        placeholder="Rule label"
+                      />
+                      <button className="pill-remove" title="Move up"
+                        onClick={() => moveRegexRule(idx, -1)} disabled={idx === 0}>↑</button>
+                      <button className="pill-remove" title="Move down"
+                        onClick={() => moveRegexRule(idx, 1)} disabled={idx === config.regexRules.length - 1}>↓</button>
+                      <button className="pill-remove" title="Delete rule"
+                        onClick={() => removeRegexRule(idx)}>×</button>
+                      {changed && <span className="changed-badge">✎</span>}
+                    </div>
+
+                    <div className="regex-rule-pattern-row">
+                      <code className="regex-rule-slash">/</code>
+                      <input
+                        className="silent-input"
+                        style={{ fontFamily: 'monospace', flex: 1 }}
+                        value={rule.pattern}
+                        onChange={e => updateRegexRule(idx, { pattern: e.target.value })}
+                        placeholder="e.g. ^i(s)land$"
+                      />
+                      <code className="regex-rule-slash">/</code>
+                      <input
+                        className="silent-input"
+                        style={{ width: '50px', fontFamily: 'monospace' }}
+                        value={rule.flags ?? ''}
+                        onChange={e => updateRegexRule(idx, { flags: e.target.value })}
+                        placeholder="flags"
+                        title="Regex flags, e.g. i for case-insensitive"
+                      />
+                      <label className="toggle-label" style={{ marginLeft: '8px' }}>group</label>
+                      <input
+                        type="number"
+                        className="silent-input"
+                        style={{ width: '50px' }}
+                        value={rule.group ?? 0}
+                        min={0}
+                        onChange={e => updateRegexRule(idx, { group: Math.max(0, parseInt(e.target.value) || 0) })}
+                      />
+                    </div>
+
+                    <div className="regex-rule-action-row">
+                      <label className="toggle-label">
+                        <input
+                          type="checkbox"
+                          checked={rule.action.color !== undefined}
+                          onChange={e => updateRegexAction(idx, { color: e.target.checked ? '#000000' : undefined })}
+                        />
+                        {' '}Colour
+                      </label>
+                      {rule.action.color !== undefined && (
+                        <>
+                          <input
+                            type="color"
+                            className="color-picker"
+                            value={rule.action.color}
+                            onChange={e => updateRegexAction(idx, { color: e.target.value })}
+                          />
+                          <span className="color-hex">{rule.action.color}</span>
+                        </>
+                      )}
+
+                      <label className="toggle-label" style={{ marginLeft: '16px' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!rule.action.silent}
+                          onChange={e => updateRegexAction(idx, { silent: e.target.checked ? true : undefined })}
+                        />
+                        {' '}Silent
+                      </label>
+
+                      <label className="toggle-label" style={{ marginLeft: '16px' }}>Underline</label>
+                      <select
+                        className="color-cat-select"
+                        value={rule.action.underline ?? ''}
+                        onChange={e => updateRegexAction(idx, {
+                          underline: e.target.value === '' ? undefined : (e.target.value as 'force' | 'deny'),
+                        })}
+                      >
+                        <option value="">— no override —</option>
+                        <option value="force">force</option>
+                        <option value="deny">deny</option>
+                      </select>
+                    </div>
+
+                    <textarea
+                      className="silent-input"
+                      style={{ width: '100%', minHeight: '40px', marginTop: '6px', fontFamily: 'inherit', resize: 'vertical' }}
+                      value={rule.notes ?? ''}
+                      onChange={e => updateRegexRule(idx, { notes: e.target.value })}
+                      placeholder="Notes (why this rule exists, what it fixes)…"
+                    />
+
+                    <div className="regex-rule-test">
+                      <input
+                        className="test-word-input"
+                        placeholder="Type a word to test this pattern…"
+                        value={tw}
+                        onChange={e => setRuleTestWords(prev => ({ ...prev, [rule.id]: e.target.value }))}
+                      />
+                      <div className="regex-test-preview">
+                        {tw === '' ? (
+                          <span style={{ opacity: 0.5 }}>—</span>
+                        ) : result.error ? (
+                          <span style={{ color: '#c44' }}>{result.error}</span>
+                        ) : result.matched ? (
+                          <span>
+                            {result.before}
+                            <mark style={{ background: '#4E79A7', color: '#fff', borderRadius: '3px', padding: '0 2px' }}>
+                              {result.target || '∅'}
+                            </mark>
+                            {result.after}
+                          </span>
+                        ) : (
+                          <span style={{ opacity: 0.5 }}>no match</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </section>
         )}
 

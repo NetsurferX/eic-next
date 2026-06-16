@@ -1,5 +1,6 @@
 import type { RenderNode } from '@/lib/renderNode'
 import { COLOR_SILENT, COLOR_CONSONANT, SYLLABIC_MARKER } from '@/lib/renderNode'
+import { DEFAULT_CONFIG, applyRegexOverrides } from '@/lib/ruleConfig'
 
 interface Props {
   nodes:   RenderNode[]
@@ -104,17 +105,22 @@ function buildUnderlined(
   let i = 0
   while (i < nodes.length) {
     const n = nodes[i]
+    const denied = n.underlineOverride === 'deny'
+    const forced = n.underlineOverride === 'force'
 
-    // Doar un nucleu vocalic sau semivocalic real poate ancora accentul/sublinierea
-    const isStressedVowel = n.u && isVowel(n) && !shouldBeMute(n)
-    const isStressedSemi  = n.u && isSemivowel(n) && n.t.length > 0
+    // Doar un nucleu vocalic sau semivocalic real poate ancora accentul/sublinierea —
+    // cu excepția unui rule regex 'force', care poate ancora pe orice grafem.
+    const isStressedVowel = !denied && n.u && isVowel(n) && !shouldBeMute(n)
+    const isStressedSemi  = !denied && n.u && isSemivowel(n) && n.t.length > 0
 
-    if (isStressedVowel || isStressedSemi) {
-      result.add(i)
+    if (forced || isStressedVowel || isStressedSemi) {
+      if (!denied) result.add(i)
       let j = i + 1
       while (j < nodes.length) {
         const next = nodes[j]
-        if ((isVowel(next) && !shouldBeMute(next))
+        if (next.underlineOverride === 'deny') break
+        if (next.underlineOverride === 'force'
+          || (isVowel(next) && !shouldBeMute(next))
           || (isSemivowel(next) && next.t.length > 0)
           || diphthongGlide.has(j)) {
           result.add(j)
@@ -133,21 +139,23 @@ function buildUnderlined(
 
 // ── Render ────────────────────────────────────────────────────────────────────
 
-export default function WordRenderer({ nodes }: Props) {
-  const { trueSyllabic, diphthongGlide } = classifyNodes(nodes)
-  const diphthongNodes = buildDiphthongGradients(nodes, diphthongGlide)
+export default function WordRenderer({ nodes, wordStr }: Props) {
+  const renderNodes = applyRegexOverrides(wordStr, nodes, DEFAULT_CONFIG.regexRules)
 
-  const mono   = isMonosyllabic(nodes)
+  const { trueSyllabic, diphthongGlide } = classifyNodes(renderNodes)
+  const diphthongNodes = buildDiphthongGradients(renderNodes, diphthongGlide)
+
+  const mono   = isMonosyllabic(renderNodes)
   const hasSyl = hasTrueSyllabic(trueSyllabic)
   
   // Permitem randarea liniei dacă există stări de accent precalculate valid
   const allow  = !mono && !hasSyl
 
-  const underlined = buildUnderlined(nodes, allow, diphthongGlide)
+  const underlined = buildUnderlined(renderNodes, allow, diphthongGlide)
 
   return (
     <span className="eic-word">
-      {nodes.map((n, i) => {
+      {renderNodes.map((n, i) => {
         if (!n.t) return null
 
         const isTrueSyl     = trueSyllabic.has(i)

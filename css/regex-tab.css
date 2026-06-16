@@ -1,0 +1,64 @@
+/* ── Regex tab additions — append to your existing rules-page stylesheet ── */
+
+.regex-rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.regex-rule-card {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.regex-rule-card.changed {
+  border-color: #4E79A7;
+  background: rgba(78, 121, 167, 0.06);
+}
+
+.regex-rule-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.regex-rule-pattern-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.regex-rule-slash {
+  opacity: 0.5;
+  font-family: monospace;
+}
+
+.regex-rule-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.regex-rule-test {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.regex-test-preview {
+  font-family: monospace;
+  font-size: 1.1em;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  min-height: 1.4em;
+}

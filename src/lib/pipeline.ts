@@ -7,6 +7,7 @@ export interface RenderNode {
   c: string    // hex colour
   u: boolean   // isStressed
   x: boolean   // isConsonant
+  underlineOverride?: 'force' | 'deny'  // set client-side by applyRegexOverrides() from ruleConfig.ts
 }
 
 // ── ColorMap ──────────────────────────────────────────────────────────────────

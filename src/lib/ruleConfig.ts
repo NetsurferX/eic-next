@@ -29,11 +29,40 @@ export interface VowelChars {
   consonants: string[]  // IPA chars classified as consonants (for reference)
 }
 
+// ── Regex override rules ───────────────────────────────────────────────────────
+// "Punctual" per-word/per-grapheme overrides. Each rule is a regex matched
+// against the WORD's letters (not the IPA). The matched span (or a capture
+// group within it) is mapped onto the RenderNode(s) covering that span, and
+// the action is applied — bypassing the general heuristics for that grapheme.
+//
+// Use these for irregular words where the general rules in pipeline.ts /
+// WordRenderer.tsx get the colour, silence, or stress-underline wrong.
+
+export interface RegexRuleAction {
+  color?:     string             // hex override for the matched grapheme(s)
+  silent?:    boolean            // force matched grapheme(s) to render silent/grey
+  underline?: 'force' | 'deny'   // force-anchor or forbid stress underline here
+}
+
+export interface RegexRule {
+  id:       string    // stable id, e.g. 'island-s'
+  label:    string    // human description shown in the editor
+  enabled:  boolean
+  pattern:  string    // regex source (no slashes), matched against the word
+  flags?:   string    // regex flags, default '' (case-sensitive; add 'i' for case-insensitive)
+  group?:   number    // capture group to target; 0 = whole match (default 0)
+  action:   RegexRuleAction
+  priority: number    // lower runs first; later rules can overwrite earlier results
+  notes?:   string
+  testWords?: string[]  // example words this rule is meant to affect
+}
+
 export interface RuleConfig {
   colors:     ColorEntry[]
   underline:  UnderlineRules
   silent:     SilentRules
   vowelChars: VowelChars
+  regexRules: RegexRule[]
 }
 
 // ── DEFAULT CONFIG — matches current implementation ───────────────────────────
@@ -69,6 +98,92 @@ export const DEFAULT_CONFIG: RuleConfig = {
     consonants: ['b','d','f','g','h','k','l','m','n','p','r','s','t','v','x','z',
                  'θ','ð','ʃ','ʒ','tʃ','dʒ','ŋ','ɹ'],
   },
+
+  regexRules: [
+    // Example (disabled): "island" — the 's' is silent. Targets capture group 1
+    // (the 's') and forces it grey, leaving the rest of the word untouched.
+    {
+      id:       'island-s',
+      label:    "Silence the 's' in island",
+      enabled:  false,
+      pattern:  '^i(s)land$',
+      flags:    'i',
+      group:    1,
+      action:   { silent: true },
+      priority: 100,
+      notes:    "General silent-pattern rules don't cover positional cases like this.",
+      testWords: ['island'],
+    },
+  ],
+}
+
+// ── Apply regex override rules ─────────────────────────────────────────────────
+//
+// Generic over any node shape that has `t` (grapheme text) and optionally
+// `c` (colour), `u` (stressed flag) and `underlineOverride`. Works directly
+// on pipeline RenderNode[] (in WordRenderer.tsx) and on adapted preview
+// nodes (in the /rules Test/Regex tabs) without import coupling.
+//
+// Matching: each enabled rule's regex is run once against `word`. The span of
+// the targeted group (default group 0 = whole match) is mapped onto every
+// node whose grapheme range overlaps that span, and the rule's action is
+// applied to those nodes. Rules run in ascending `priority` order, so a
+// later rule can overwrite an earlier one.
+
+const SILENT_HEX = '#000000'
+
+export function applyRegexOverrides<
+  T extends { t: string; c?: string; u?: boolean; underlineOverride?: 'force' | 'deny' }
+>(word: string, nodes: T[], rules: RegexRule[]): T[] {
+  if (!rules?.length) return nodes
+
+  // Character range [start, end) covered by each node's grapheme text
+  const ranges: [number, number][] = []
+  let pos = 0
+  for (const n of nodes) {
+    const len = n.t?.length ?? 0
+    ranges.push([pos, pos + len])
+    pos += len
+  }
+
+  const out = nodes.map(n => ({ ...n }))
+
+  const active = rules
+    .filter(r => r.enabled && r.pattern)
+    .sort((a, b) => a.priority - b.priority)
+
+  for (const rule of active) {
+    // Ensure the 'd' flag (match.indices) is present, no duplicate flags
+    const flags = Array.from(new Set([...(rule.flags ?? ''), 'd'])).join('')
+
+    let re: RegExp
+    try {
+      re = new RegExp(rule.pattern, flags)
+    } catch {
+      continue // invalid regex — skip rather than crash rendering
+    }
+
+    const m = re.exec(word)
+    if (!m?.indices) continue
+
+    const groupIdx = rule.group ?? 0
+    const span = m.indices[groupIdx]
+    if (!span) continue
+
+    const [gStart, gEnd] = span
+    if (gStart === gEnd) continue // empty match — nothing to target
+
+    for (let i = 0; i < out.length; i++) {
+      const [nStart, nEnd] = ranges[i]
+      if (nEnd <= gStart || nStart >= gEnd) continue // no overlap
+
+      if (rule.action.color)     out[i].c = rule.action.color
+      if (rule.action.silent)    out[i].c = SILENT_HEX
+      if (rule.action.underline) out[i].underlineOverride = rule.action.underline
+    }
+  }
+
+  return out
 }
 
 // ── Diff generator ────────────────────────────────────────────────────────────
@@ -122,6 +237,29 @@ export function diffConfigs(base: RuleConfig, modified: RuleConfig): RuleDiff[] 
     diffs.push({ section: 'VowelChars', field: 'vowels', old: base.vowelChars.vowels.join(', '), new: modified.vowelChars.vowels.join(', ') })
   if (base.vowelChars.semivowels.join(',') !== modified.vowelChars.semivowels.join(','))
     diffs.push({ section: 'VowelChars', field: 'semivowels', old: base.vowelChars.semivowels.join(', '), new: modified.vowelChars.semivowels.join(', ') })
+
+  // Regex rules — diff by id so additions/edits/removals are all visible
+  const baseRules = base.regexRules ?? []
+  const modRules  = modified.regexRules ?? []
+  const baseById  = new Map(baseRules.map(r => [r.id, r]))
+  const modById   = new Map(modRules.map(r => [r.id, r]))
+
+  for (const [id, mod] of modById) {
+    const orig = baseById.get(id)
+    if (!orig) {
+      diffs.push({ section: 'RegexRules', field: `${id} (new)`, old: '—', new: `${mod.pattern} → ${JSON.stringify(mod.action)}` })
+    } else if (JSON.stringify(orig) !== JSON.stringify(mod)) {
+      diffs.push({
+        section: 'RegexRules', field: id,
+        old: `${orig.pattern} → ${JSON.stringify(orig.action)}${orig.enabled ? '' : ' (disabled)'}`,
+        new: `${mod.pattern} → ${JSON.stringify(mod.action)}${mod.enabled ? '' : ' (disabled)'}`,
+      })
+    }
+  }
+  for (const [id, orig] of baseById) {
+    if (!modById.has(id))
+      diffs.push({ section: 'RegexRules', field: `${id} (removed)`, old: `${orig.pattern} → ${JSON.stringify(orig.action)}`, new: '—' })
+  }
 
   return diffs
 }
