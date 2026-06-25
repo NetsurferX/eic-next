@@ -1,160 +1,160 @@
 {
-  "/home/doruciocanu/EiC/eic-next/next-env.d.ts": {
+  "next-env.d.ts": {
     "mtime": 1779689026.1425934,
     "ast_hash": "d0f8375ae1199dc7acd3977fc33b78b8",
     "semantic_hash": "d0f8375ae1199dc7acd3977fc33b78b8"
   },
-  "/home/doruciocanu/EiC/eic-next/next.config.ts": {
+  "next.config.ts": {
     "mtime": 1779785398.1940553,
     "ast_hash": "4bfde509ea6eebf075f2faa4f3622520",
     "semantic_hash": "4bfde509ea6eebf075f2faa4f3622520"
   },
-  "/home/doruciocanu/EiC/eic-next/package.json": {
+  "package.json": {
     "mtime": 1779773896.0,
     "ast_hash": "48b7db0b4024dafbaf919ab757816436",
     "semantic_hash": "48b7db0b4024dafbaf919ab757816436"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/api/game/route.ts": {
+  "src/app/api/game/route.ts": {
     "mtime": 1780647307.7764125,
     "ast_hash": "f9dc5f2e39f55ba5063cf03f4a23b93b",
     "semantic_hash": "f9dc5f2e39f55ba5063cf03f4a23b93b"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/api/search/route.ts": {
+  "src/app/api/search/route.ts": {
     "mtime": 1779688969.3429775,
     "ast_hash": "7d261f6ab212f7089150fe0f4acfa01d",
     "semantic_hash": "7d261f6ab212f7089150fe0f4acfa01d"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/api/speak/route.ts": {
+  "src/app/api/speak/route.ts": {
     "mtime": 1779846110.0,
     "ast_hash": "f22606f75ea4f4d595910d56cdc24da2",
     "semantic_hash": "f22606f75ea4f4d595910d56cdc24da2"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/api/words/route.ts": {
+  "src/app/api/words/route.ts": {
     "mtime": 1780645028.7071562,
     "ast_hash": "586f0ca9cb2b86ae82d56bebaf8038fe",
     "semantic_hash": "586f0ca9cb2b86ae82d56bebaf8038fe"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/layout.tsx": {
+  "src/app/layout.tsx": {
     "mtime": 1780645028.7071562,
     "ast_hash": "a48b65d36bd450e72ef999daff702bd7",
     "semantic_hash": "a48b65d36bd450e72ef999daff702bd7"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/learn/page.tsx": {
+  "src/app/learn/page.tsx": {
     "mtime": 1780647133.4184535,
     "ast_hash": "8254649dd7653033bee7589a3fb2d44d",
     "semantic_hash": "8254649dd7653033bee7589a3fb2d44d"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/page.tsx": {
+  "src/app/page.tsx": {
     "mtime": 1780366458.0,
     "ast_hash": "9b5cb2241fe6d1a0f899c1c5cf18a956",
     "semantic_hash": "9b5cb2241fe6d1a0f899c1c5cf18a956"
   },
-  "/home/doruciocanu/EiC/eic-next/src/app/rules/page.tsx": {
-    "mtime": 1780647142.6525636,
-    "ast_hash": "76e9afd5a3948b1347aa594adbac3850",
-    "semantic_hash": "76e9afd5a3948b1347aa594adbac3850"
+  "src/app/rules/page.tsx": {
+    "mtime": 1781578686.0,
+    "ast_hash": "dbc584c44d924bd4056643ed31b56d34",
+    "semantic_hash": "dbc584c44d924bd4056643ed31b56d34"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/ConstellationView.tsx": {
+  "src/components/ConstellationView.tsx": {
     "mtime": 1780646721.790124,
     "ast_hash": "92ef35a148b3b820b04efb8c5e33cb42",
     "semantic_hash": "92ef35a148b3b820b04efb8c5e33cb42"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/KaraokeMode.tsx": {
+  "src/components/KaraokeMode.tsx": {
     "mtime": 1779846110.0,
     "ast_hash": "a04498e7dc41ab9892189e93d2e412d5",
     "semantic_hash": "a04498e7dc41ab9892189e93d2e412d5"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/SoundSpectrum.tsx": {
+  "src/components/SoundSpectrum.tsx": {
     "mtime": 1779773896.0,
     "ast_hash": "38f5684b5ad05336ff39e73bb8458e18",
     "semantic_hash": "38f5684b5ad05336ff39e73bb8458e18"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/StatsBar.tsx": {
+  "src/components/StatsBar.tsx": {
     "mtime": 1779677188.0,
     "ast_hash": "afff4bd2689f8204340c472f6c0b26a9",
     "semantic_hash": "afff4bd2689f8204340c472f6c0b26a9"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/TerrainView.tsx": {
+  "src/components/TerrainView.tsx": {
     "mtime": 1780647307.7764125,
     "ast_hash": "8f82023096c7e2688fd114f349464fd6",
     "semantic_hash": "8f82023096c7e2688fd114f349464fd6"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/WordRenderer.tsx": {
-    "mtime": 1780637123.5363178,
-    "ast_hash": "9316dcdf13d9f15af6e68e3287041316",
-    "semantic_hash": "9316dcdf13d9f15af6e68e3287041316"
+  "src/components/WordRenderer.tsx": {
+    "mtime": 1781578686.0,
+    "ast_hash": "fe0a26e4552feca53989c71c58ecf94b",
+    "semantic_hash": "fe0a26e4552feca53989c71c58ecf94b"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/game/ColourGame.tsx": {
+  "src/components/game/ColourGame.tsx": {
     "mtime": 1779944800.0,
     "ast_hash": "6177fc8db984705a211d4789887f3461",
     "semantic_hash": "6177fc8db984705a211d4789887f3461"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/game/GameProgress.tsx": {
+  "src/components/game/GameProgress.tsx": {
     "mtime": 1779944800.0,
     "ast_hash": "fbd19afe6f62180081d0c42f2797a231",
     "semantic_hash": "fbd19afe6f62180081d0c42f2797a231"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/game/SilentGame.tsx": {
+  "src/components/game/SilentGame.tsx": {
     "mtime": 1780647307.7764125,
     "ast_hash": "d19c7ce98772a65c027d7a1868df09ab",
     "semantic_hash": "d19c7ce98772a65c027d7a1868df09ab"
   },
-  "/home/doruciocanu/EiC/eic-next/src/components/game/StressGame.tsx": {
+  "src/components/game/StressGame.tsx": {
     "mtime": 1780647307.7764125,
     "ast_hash": "ec20e0a23546fedb2feac94fd1d665e7",
     "semantic_hash": "ec20e0a23546fedb2feac94fd1d665e7"
   },
-  "/home/doruciocanu/EiC/eic-next/src/lib/db.ts": {
+  "src/lib/db.ts": {
     "mtime": 1780645028.7071562,
     "ast_hash": "e9fc0d7c1a4d027cd344c76bb59ec299",
     "semantic_hash": "e9fc0d7c1a4d027cd344c76bb59ec299"
   },
-  "/home/doruciocanu/EiC/eic-next/src/lib/gameTypes.ts": {
+  "src/lib/gameTypes.ts": {
     "mtime": 1779944800.0,
     "ast_hash": "025452c5208676b8c8d00eff7661795a",
     "semantic_hash": "025452c5208676b8c8d00eff7661795a"
   },
-  "/home/doruciocanu/EiC/eic-next/src/lib/pipeline.ts": {
-    "mtime": 1781077036.9044657,
-    "ast_hash": "61f6e8442e13ae7b3d1456b4bda0e864",
-    "semantic_hash": "61f6e8442e13ae7b3d1456b4bda0e864"
+  "src/lib/pipeline.ts": {
+    "mtime": 1781578686.0,
+    "ast_hash": "d535a85f4088410724be51dd8321ecad",
+    "semantic_hash": "d535a85f4088410724be51dd8321ecad"
   },
-  "/home/doruciocanu/EiC/eic-next/src/lib/renderNode.ts": {
+  "src/lib/renderNode.ts": {
     "mtime": 1780647033.0733268,
     "ast_hash": "8e0aa12ad988515bf363b5894d1ffabf",
     "semantic_hash": "8e0aa12ad988515bf363b5894d1ffabf"
   },
-  "/home/doruciocanu/EiC/eic-next/src/lib/ruleConfig.ts": {
-    "mtime": 1781077036.9444687,
-    "ast_hash": "d708fa963542e4018152a07575231835",
-    "semantic_hash": "d708fa963542e4018152a07575231835"
+  "src/lib/ruleConfig.ts": {
+    "mtime": 1781578686.0,
+    "ast_hash": "75fefefcc097d7faf813e2b73f3136d3",
+    "semantic_hash": "75fefefcc097d7faf813e2b73f3136d3"
   },
-  "/home/doruciocanu/EiC/eic-next/src/lib/useColorizer.ts": {
+  "src/lib/useColorizer.ts": {
     "mtime": 1780531366.0,
     "ast_hash": "4f7cf0e352f98102068b8f4dfed7f03d",
     "semantic_hash": "4f7cf0e352f98102068b8f4dfed7f03d"
   },
-  "/home/doruciocanu/EiC/eic-next/tsconfig.json": {
+  "tsconfig.json": {
     "mtime": 1779783480.2472973,
     "ast_hash": "77cde76abc2f77404a39eb82c83f93f2",
     "semantic_hash": "77cde76abc2f77404a39eb82c83f93f2"
   },
-  "/home/doruciocanu/EiC/eic-next/PROJECT_CONTEXT.md": {
+  "PROJECT_CONTEXT.md": {
     "mtime": 1780647307.7530773,
     "ast_hash": "41c1ee13eb3c4182ad1a3c805a2c2f46",
     "semantic_hash": "41c1ee13eb3c4182ad1a3c805a2c2f46"
   },
-  "/home/doruciocanu/EiC/eic-next/README.md": {
+  "README.md": {
     "mtime": 1779677188.0,
     "ast_hash": "857680cd426f43c674d336464203a34a",
     "semantic_hash": "857680cd426f43c674d336464203a34a"
   },
-  "/home/doruciocanu/EiC/eic-next/WORDRENDERER_LINE_BY_LINE_GUIDE.md": {
+  "WORDRENDERER_LINE_BY_LINE_GUIDE.md": {
     "mtime": 1780293821.8126774,
     "ast_hash": "54fe88874c10c70bb66460eed016b415",
     "semantic_hash": "54fe88874c10c70bb66460eed016b415"
   },
-  "/home/doruciocanu/EiC/eic-next/WORDRENDERER_RULES_GUIDE.md": {
+  "WORDRENDERER_RULES_GUIDE.md": {
     "mtime": 1780647307.4530523,
     "ast_hash": "5a52198f7a9c540429db0941244f40d9",
     "semantic_hash": "5a52198f7a9c540429db0941244f40d9"

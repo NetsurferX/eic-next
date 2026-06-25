@@ -347,10 +347,31 @@ function processIpa(word, rawIpa) {
     const ipa = [
         ...rawIpa
     ].filter((c)=>!STRIP.has(c)).join('').trim();
-    // 2. Find primary stress position
+    // 2. Find primary stress position (anchor according to rules):
+    // - If the character after the stress marker is a vowel (or vowel group),
+    //   the target accent starts at that vowel/group.
+    // - If the character after the stress marker is a consonant (or group),
+    //   the target accent is the first vowel/group that follows that consonant group.
     const stressAt = ipa.indexOf('ˈ');
     const clean = ipa.replace(/ˈ/g, '');
-    const stressPos = stressAt > 0 ? stressAt - 1 : stressAt === 0 ? 0 : -1;
+    let stressPos = -1;
+    if (stressAt >= 0) {
+        // position in `ipa` immediately after the marker
+        let j = stressAt + 1;
+        // guard
+        if (j < ipa.length) {
+            // If next char is vowel-like, anchor there; otherwise scan forward to first vowel-like
+            const isVowelChar = (ch)=>ch && VOWEL_CHARS.has(ch);
+            if (isVowelChar(ipa[j])) {
+                // map to index in `clean` (one stress marker removed before j)
+                stressPos = j - 1;
+            } else {
+                let k = j;
+                while(k < ipa.length && !isVowelChar(ipa[k]))k++;
+                if (k < ipa.length) stressPos = k - 1;
+            }
+        }
+    }
     // 3. Segment IPA into phonemes
     const segs = segment(clean, stressPos);
     // 4. Map segments onto word letters

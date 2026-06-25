@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { RenderNode } from '@/lib/renderNode'
 import { COLOR_SILENT, COLOR_CONSONANT, SYLLABIC_MARKER } from '@/lib/renderNode'
 import { DEFAULT_CONFIG, applyRegexOverrides } from '@/lib/ruleConfig'
@@ -111,9 +112,11 @@ function buildUnderlined(
     // Doar un nucleu vocalic sau semivocalic real poate ancora accentul/sublinierea —
     // cu excepția unui rule regex 'force', care poate ancora pe orice grafem.
     const isStressedVowel = !denied && n.u && isVowel(n) && !shouldBeMute(n)
-    const isStressedSemi  = !denied && n.u && isSemivowel(n) && n.t.length > 0
 
-    if (forced || isStressedVowel || isStressedSemi) {
+    // Anchor only on a real vowel (or a forced override). Semivowel anchors
+    // can cause the underline to pick the semivowel colour instead of the
+    // vowel colour; avoid that to match the standardised rule set.
+    if (forced || isStressedVowel) {
       if (!denied) result.add(i)
       let j = i + 1
       while (j < nodes.length) {
@@ -153,6 +156,28 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
 
   const underlined = buildUnderlined(renderNodes, allow, diphthongGlide)
 
+  // Build a per-node underline color map: each contiguous underline run
+  // is anchored to its first underlined node's visual colour.
+  const underlineColor = new Map<number, string>()
+  let runStart: number | null = null
+  for (let i = 0; i <= renderNodes.length; i++) {
+    const hit = i < renderNodes.length && underlined.has(i)
+    if (hit && runStart === null) runStart = i
+    if ((!hit || i === renderNodes.length) && runStart !== null) {
+      const anchor = runStart
+      // Prefer the first real vowel in the run as the colour anchor. Fall back
+      // to the run start's colour if no vowel found.
+      let anchorColor: string | undefined = undefined
+      for (let k = runStart; k < i; k++) {
+        const rn = renderNodes[k]
+        if (isVowel(rn) && !shouldBeMute(rn)) { anchorColor = rn.c; break }
+      }
+      if (!anchorColor) anchorColor = renderNodes[anchor].c && renderNodes[anchor].c !== '' ? renderNodes[anchor].c : COLOR_CONSONANT
+      for (let j = runStart; j < i; j++) underlineColor.set(j, anchorColor)
+      runStart = null
+    }
+  }
+
   return (
     <span className="eic-word">
       {renderNodes.map((n, i) => {
@@ -166,25 +191,41 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
         const semi          = isSemivowel(n) && n.t.length > 0 && !isGlide
 
         let color: string
-        let style: React.CSSProperties = {}
+        let style: CSSProperties = {}
+
+        // anchor colour for this node's underline run (if any)
+        const runAnchor = underlineColor.get(i)
 
         if (isTrueSyl) {
           color = COLOR_CONSONANT
         } else if (isDiphNode) {
-          style = {
-            background:          `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor:  'transparent',
-            backgroundClip:      'text',
+          // If this diphthong node is underlined, prefer a solid anchor colour
+          // for both the glyph and the underline so the run looks unified.
+          if (isUnderlined && !isTrueSyl && !mute) {
+            color = runAnchor ?? (n.c && n.c !== '' ? n.c : COLOR_CONSONANT)
+          } else {
+            style = {
+              background:          `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor:  'transparent',
+              backgroundClip:      'text',
+            }
+            color = 'transparent'
           }
-          color = 'transparent'
         } else if (mute) {
           color = COLOR_SILENT
         } else if (semi) {
           color = COLOR_CONSONANT
         } else {
-          // Soluția pentru fallback: dacă culoarea din DB este goală sau invalidă, aplicăm negru implicit (consoană)
+          // Fallback: if DB colour is empty/invalid, use consonant colour
           color = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
+        }
+
+        // If underlined, set a unified colour for both text and the underline
+        if (isUnderlined && !isTrueSyl && !mute) {
+          const finalCol = runAnchor ?? color
+          style = { ...style, textDecoration: 'underline', textDecorationColor: finalCol, textUnderlineOffset: '6px', textDecorationThickness: '2.5px' }
+          color = finalCol
         }
 
         const classes = [
@@ -195,10 +236,12 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
           semi                       ? 'eic-semivowel' : '',
         ].filter(Boolean).join(' ')
 
+        const spanStyle = isDiphNode ? style : { ...style, color }
+
         return (
           <span
             key={i}
-            style={isDiphNode ? style : { color }}
+            style={spanStyle}
             className={classes}
             title={n.s && n.s !== SYLLABIC_MARKER ? n.s : undefined}
           >

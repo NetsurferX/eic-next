@@ -5,6 +5,7 @@ export interface RenderNode {
   c: string   // culoare hex
   u: boolean  // isStressed — silabă accentuată
   x: boolean  // isConsonant
+  underlineOverride?: 'force' | 'deny'
 }
 
 // Zero-width joiner — marker pentru consoana silabică în DB

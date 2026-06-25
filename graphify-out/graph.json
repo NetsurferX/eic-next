@@ -9,9 +9,9 @@
       "source_file": "next-env.d.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "next_env_d",
       "community": 15,
-      "norm_label": "next-env.d.ts"
+      "norm_label": "next-env.d.ts",
+      "id": "next_env_d"
     },
     {
       "label": "next.config.ts",
@@ -19,9 +19,9 @@
       "source_file": "next.config.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "next_config",
       "community": 10,
-      "norm_label": "next.config.ts"
+      "norm_label": "next.config.ts",
+      "id": "next_config"
     },
     {
       "label": "config",
@@ -29,9 +29,9 @@
       "source_file": "next.config.ts",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "next_config_config",
       "community": 10,
-      "norm_label": "config"
+      "norm_label": "config",
+      "id": "next_config_config"
     },
     {
       "label": "package.json",
@@ -39,9 +39,9 @@
       "source_file": "package.json",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "package",
       "community": 3,
-      "norm_label": "package.json"
+      "norm_label": "package.json",
+      "id": "package"
     },
     {
       "label": "name",
@@ -49,9 +49,9 @@
       "source_file": "package.json",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "package_name",
       "community": 3,
-      "norm_label": "name"
+      "norm_label": "name",
+      "id": "package_name"
     },
     {
       "label": "version",
@@ -59,9 +59,9 @@
       "source_file": "package.json",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "package_version",
       "community": 3,
-      "norm_label": "version"
+      "norm_label": "version",
+      "id": "package_version"
     },
     {
       "label": "private",
@@ -69,9 +69,9 @@
       "source_file": "package.json",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "package_private",
       "community": 3,
-      "norm_label": "private"
+      "norm_label": "private",
+      "id": "package_private"
     },
     {
       "label": "scripts",
@@ -79,9 +79,9 @@
       "source_file": "package.json",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "package_scripts",
       "community": 3,
-      "norm_label": "scripts"
+      "norm_label": "scripts",
+      "id": "package_scripts"
     },
     {
       "label": "dev",
@@ -89,9 +89,9 @@
       "source_file": "package.json",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "package_scripts_dev",
       "community": 3,
-      "norm_label": "dev"
+      "norm_label": "dev",
+      "id": "package_scripts_dev"
     },
     {
       "label": "build",
@@ -99,9 +99,9 @@
       "source_file": "package.json",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "package_scripts_build",
       "community": 3,
-      "norm_label": "build"
+      "norm_label": "build",
+      "id": "package_scripts_build"
     },
     {
       "label": "start",
@@ -109,9 +109,9 @@
       "source_file": "package.json",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "package_scripts_start",
       "community": 3,
-      "norm_label": "start"
+      "norm_label": "start",
+      "id": "package_scripts_start"
     },
     {
       "label": "dependencies",
@@ -119,9 +119,9 @@
       "source_file": "package.json",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "package_dependencies",
       "community": 3,
-      "norm_label": "dependencies"
+      "norm_label": "dependencies",
+      "id": "package_dependencies"
     },
     {
       "label": "better-sqlite3",
@@ -129,9 +129,9 @@
       "source_file": "package.json",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "package_dependencies_better_sqlite3",
       "community": 3,
-      "norm_label": "better-sqlite3"
+      "norm_label": "better-sqlite3",
+      "id": "package_dependencies_better_sqlite3"
     },
     {
       "label": "d3",
@@ -139,9 +139,9 @@
       "source_file": "package.json",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "package_dependencies_d3",
       "community": 3,
-      "norm_label": "d3"
+      "norm_label": "d3",
+      "id": "package_dependencies_d3"
     },
     {
       "label": "next",
@@ -149,9 +149,9 @@
       "source_file": "package.json",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "package_dependencies_next",
       "community": 3,
-      "norm_label": "next"
+      "norm_label": "next",
+      "id": "package_dependencies_next"
     },
     {
       "label": "react",
@@ -159,9 +159,9 @@
       "source_file": "package.json",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "package_dependencies_react",
       "community": 3,
-      "norm_label": "react"
+      "norm_label": "react",
+      "id": "package_dependencies_react"
     },
     {
       "label": "react-dom",
@@ -169,9 +169,9 @@
       "source_file": "package.json",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "package_dependencies_react_dom",
       "community": 3,
-      "norm_label": "react-dom"
+      "norm_label": "react-dom",
+      "id": "package_dependencies_react_dom"
     },
     {
       "label": "devDependencies",
@@ -179,9 +179,9 @@
       "source_file": "package.json",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "package_devdependencies",
       "community": 3,
-      "norm_label": "devdependencies"
+      "norm_label": "devdependencies",
+      "id": "package_devdependencies"
     },
     {
       "label": "@types/better-sqlite3",
@@ -189,9 +189,9 @@
       "source_file": "package.json",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "package_devdependencies_types_better_sqlite3",
       "community": 3,
-      "norm_label": "@types/better-sqlite3"
+      "norm_label": "@types/better-sqlite3",
+      "id": "package_devdependencies_types_better_sqlite3"
     },
     {
       "label": "@types/d3",
@@ -199,9 +199,9 @@
       "source_file": "package.json",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "package_devdependencies_types_d3",
       "community": 3,
-      "norm_label": "@types/d3"
+      "norm_label": "@types/d3",
+      "id": "package_devdependencies_types_d3"
     },
     {
       "label": "@types/node",
@@ -209,9 +209,9 @@
       "source_file": "package.json",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "package_devdependencies_types_node",
       "community": 3,
-      "norm_label": "@types/node"
+      "norm_label": "@types/node",
+      "id": "package_devdependencies_types_node"
     },
     {
       "label": "@types/react",
@@ -219,9 +219,9 @@
       "source_file": "package.json",
       "source_location": "L21",
       "_origin": "ast",
-      "id": "package_devdependencies_types_react",
       "community": 3,
-      "norm_label": "@types/react"
+      "norm_label": "@types/react",
+      "id": "package_devdependencies_types_react"
     },
     {
       "label": "@types/react-dom",
@@ -229,9 +229,9 @@
       "source_file": "package.json",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "package_devdependencies_types_react_dom",
       "community": 3,
-      "norm_label": "@types/react-dom"
+      "norm_label": "@types/react-dom",
+      "id": "package_devdependencies_types_react_dom"
     },
     {
       "label": "typescript",
@@ -239,9 +239,9 @@
       "source_file": "package.json",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "package_devdependencies_typescript",
       "community": 3,
-      "norm_label": "typescript"
+      "norm_label": "typescript",
+      "id": "package_devdependencies_typescript"
     },
     {
       "label": "route.ts",
@@ -249,9 +249,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "game_route",
       "community": 1,
-      "norm_label": "route.ts"
+      "norm_label": "route.ts",
+      "id": "game_route"
     },
     {
       "label": "GRAPHIC_CONS",
@@ -259,9 +259,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "game_route_graphic_cons",
       "community": 1,
-      "norm_label": "graphic_cons"
+      "norm_label": "graphic_cons",
+      "id": "game_route_graphic_cons"
     },
     {
       "label": "GameNode",
@@ -269,9 +269,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "game_route_gamenode",
       "community": 1,
-      "norm_label": "gamenode"
+      "norm_label": "gamenode",
+      "id": "game_route_gamenode"
     },
     {
       "label": "isGraphicCons()",
@@ -279,9 +279,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "game_route_isgraphiccons",
       "community": 1,
-      "norm_label": "isgraphiccons()"
+      "norm_label": "isgraphiccons()",
+      "id": "game_route_isgraphiccons"
     },
     {
       "label": "dominantColor()",
@@ -289,9 +289,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "game_route_dominantcolor",
       "community": 1,
-      "norm_label": "dominantcolor()"
+      "norm_label": "dominantcolor()",
+      "id": "game_route_dominantcolor"
     },
     {
       "label": "hasSilentLetters()",
@@ -299,9 +299,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "game_route_hassilentletters",
       "community": 1,
-      "norm_label": "hassilentletters()"
+      "norm_label": "hassilentletters()",
+      "id": "game_route_hassilentletters"
     },
     {
       "label": "hasStress()",
@@ -309,9 +309,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L27",
       "_origin": "ast",
-      "id": "game_route_hasstress",
       "community": 1,
-      "norm_label": "hasstress()"
+      "norm_label": "hasstress()",
+      "id": "game_route_hasstress"
     },
     {
       "label": "shuffle()",
@@ -319,9 +319,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "game_route_shuffle",
       "community": 1,
-      "norm_label": "shuffle()"
+      "norm_label": "shuffle()",
+      "id": "game_route_shuffle"
     },
     {
       "label": "GET()",
@@ -329,9 +329,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L39",
       "_origin": "ast",
-      "id": "game_route_get",
       "community": 1,
-      "norm_label": "get()"
+      "norm_label": "get()",
+      "id": "game_route_get"
     },
     {
       "label": "route.ts",
@@ -339,9 +339,9 @@
       "source_file": "src/app/api/search/route.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "search_route",
       "community": 1,
-      "norm_label": "route.ts"
+      "norm_label": "route.ts",
+      "id": "search_route"
     },
     {
       "label": "GET()",
@@ -349,9 +349,9 @@
       "source_file": "src/app/api/search/route.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "search_route_get",
       "community": 1,
-      "norm_label": "get()"
+      "norm_label": "get()",
+      "id": "search_route_get"
     },
     {
       "label": "route.ts",
@@ -359,9 +359,9 @@
       "source_file": "src/app/api/speak/route.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "speak_route",
       "community": 9,
-      "norm_label": "route.ts"
+      "norm_label": "route.ts",
+      "id": "speak_route"
     },
     {
       "label": "execAsync",
@@ -369,9 +369,9 @@
       "source_file": "src/app/api/speak/route.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "speak_route_execasync",
       "community": 9,
-      "norm_label": "execasync"
+      "norm_label": "execasync",
+      "id": "speak_route_execasync"
     },
     {
       "label": "POST()",
@@ -379,9 +379,9 @@
       "source_file": "src/app/api/speak/route.ts",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "speak_route_post",
       "community": 9,
-      "norm_label": "post()"
+      "norm_label": "post()",
+      "id": "speak_route_post"
     },
     {
       "label": "route.ts",
@@ -389,9 +389,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "words_route",
       "community": 1,
-      "norm_label": "route.ts"
+      "norm_label": "route.ts",
+      "id": "words_route"
     },
     {
       "label": "POST()",
@@ -399,9 +399,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "words_route_post",
       "community": 1,
-      "norm_label": "post()"
+      "norm_label": "post()",
+      "id": "words_route_post"
     },
     {
       "label": "DELETE()",
@@ -409,9 +409,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L32",
       "_origin": "ast",
-      "id": "words_route_delete",
       "community": 1,
-      "norm_label": "delete()"
+      "norm_label": "delete()",
+      "id": "words_route_delete"
     },
     {
       "label": "layout.tsx",
@@ -419,9 +419,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_layout",
       "community": 8,
-      "norm_label": "layout.tsx"
+      "norm_label": "layout.tsx",
+      "id": "app_layout"
     },
     {
       "label": "inter",
@@ -429,9 +429,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "app_layout_inter",
       "community": 8,
-      "norm_label": "inter"
+      "norm_label": "inter",
+      "id": "app_layout_inter"
     },
     {
       "label": "lora",
@@ -439,9 +439,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "app_layout_lora",
       "community": 8,
-      "norm_label": "lora"
+      "norm_label": "lora",
+      "id": "app_layout_lora"
     },
     {
       "label": "metadata",
@@ -449,9 +449,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "app_layout_metadata",
       "community": 8,
-      "norm_label": "metadata"
+      "norm_label": "metadata",
+      "id": "app_layout_metadata"
     },
     {
       "label": "RootLayout()",
@@ -459,9 +459,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "app_layout_rootlayout",
       "community": 8,
-      "norm_label": "rootlayout()"
+      "norm_label": "rootlayout()",
+      "id": "app_layout_rootlayout"
     },
     {
       "label": "page.tsx",
@@ -469,9 +469,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "learn_page",
       "community": 2,
-      "norm_label": "page.tsx"
+      "norm_label": "page.tsx",
+      "id": "learn_page"
     },
     {
       "label": "fetchWords()",
@@ -479,9 +479,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "learn_page_fetchwords",
       "community": 2,
-      "norm_label": "fetchwords()"
+      "norm_label": "fetchwords()",
+      "id": "learn_page_fetchwords"
     },
     {
       "label": "LearnPage()",
@@ -489,9 +489,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "learn_page_learnpage",
       "community": 2,
-      "norm_label": "learnpage()"
+      "norm_label": "learnpage()",
+      "id": "learn_page_learnpage"
     },
     {
       "label": "page.tsx",
@@ -499,9 +499,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_page",
       "community": 0,
-      "norm_label": "page.tsx"
+      "norm_label": "page.tsx",
+      "id": "app_page"
     },
     {
       "label": "ConstellationView",
@@ -509,9 +509,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "app_page_constellationview",
       "community": 0,
-      "norm_label": "constellationview"
+      "norm_label": "constellationview",
+      "id": "app_page_constellationview"
     },
     {
       "label": "SAMPLES",
@@ -519,9 +519,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "app_page_samples",
       "community": 0,
-      "norm_label": "samples"
+      "norm_label": "samples",
+      "id": "app_page_samples"
     },
     {
       "label": "ViewMode",
@@ -529,9 +529,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L32",
       "_origin": "ast",
-      "id": "app_page_viewmode",
       "community": 0,
-      "norm_label": "viewmode"
+      "norm_label": "viewmode",
+      "id": "app_page_viewmode"
     },
     {
       "label": "TABS",
@@ -539,9 +539,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "app_page_tabs",
       "community": 0,
-      "norm_label": "tabs"
+      "norm_label": "tabs",
+      "id": "app_page_tabs"
     },
     {
       "label": "Home()",
@@ -549,9 +549,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L41",
       "_origin": "ast",
-      "id": "app_page_home",
       "community": 0,
-      "norm_label": "home()"
+      "norm_label": "home()",
+      "id": "app_page_home"
     },
     {
       "label": "page.tsx",
@@ -559,9 +559,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "rules_page",
       "community": 5,
-      "norm_label": "page.tsx"
+      "norm_label": "page.tsx",
+      "id": "rules_page"
     },
     {
       "label": "clone()",
@@ -569,9 +569,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "rules_page_clone",
       "community": 5,
-      "norm_label": "clone()"
+      "norm_label": "clone()",
+      "id": "rules_page_clone"
     },
     {
       "label": "renderWord()",
@@ -579,9 +579,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "rules_page_renderword",
       "community": 5,
-      "norm_label": "renderword()"
+      "norm_label": "renderword()",
+      "id": "rules_page_renderword"
     },
     {
       "label": "resolveColor()",
@@ -589,9 +589,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "rules_page_resolvecolor",
       "community": 5,
-      "norm_label": "resolvecolor()"
+      "norm_label": "resolvecolor()",
+      "id": "rules_page_resolvecolor"
     },
     {
       "label": "NodePreview",
@@ -599,9 +599,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L42",
       "_origin": "ast",
-      "id": "rules_page_nodepreview",
       "community": 5,
-      "norm_label": "nodepreview"
+      "norm_label": "nodepreview",
+      "id": "rules_page_nodepreview"
     },
     {
       "label": "RulesPage()",
@@ -609,9 +609,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L44",
       "_origin": "ast",
-      "id": "rules_page_rulespage",
       "community": 5,
-      "norm_label": "rulespage()"
+      "norm_label": "rulespage()",
+      "id": "rules_page_rulespage"
     },
     {
       "label": "ConstellationView.tsx",
@@ -619,9 +619,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_constellationview",
       "community": 0,
-      "norm_label": "constellationview.tsx"
+      "norm_label": "constellationview.tsx",
+      "id": "components_constellationview"
     },
     {
       "label": "Props",
@@ -629,9 +629,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "components_constellationview_props",
       "community": 0,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "components_constellationview_props"
     },
     {
       "label": "WordNode",
@@ -639,9 +639,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "components_constellationview_wordnode",
       "community": 0,
-      "norm_label": "wordnode"
+      "norm_label": "wordnode",
+      "id": "components_constellationview_wordnode"
     },
     {
       "label": "ConstellationView()",
@@ -649,9 +649,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "components_constellationview_constellationview",
       "community": 0,
-      "norm_label": "constellationview()"
+      "norm_label": "constellationview()",
+      "id": "components_constellationview_constellationview"
     },
     {
       "label": "KaraokeMode.tsx",
@@ -659,9 +659,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_karaokemode",
       "community": 0,
-      "norm_label": "karaokemode.tsx"
+      "norm_label": "karaokemode.tsx",
+      "id": "components_karaokemode"
     },
     {
       "label": "Props",
@@ -669,9 +669,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "components_karaokemode_props",
       "community": 0,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "components_karaokemode_props"
     },
     {
       "label": "SPEEDS",
@@ -679,9 +679,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "components_karaokemode_speeds",
       "community": 0,
-      "norm_label": "speeds"
+      "norm_label": "speeds",
+      "id": "components_karaokemode_speeds"
     },
     {
       "label": "audioCache",
@@ -689,9 +689,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "components_karaokemode_audiocache",
       "community": 0,
-      "norm_label": "audiocache"
+      "norm_label": "audiocache",
+      "id": "components_karaokemode_audiocache"
     },
     {
       "label": "speak()",
@@ -699,9 +699,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "components_karaokemode_speak",
       "community": 0,
-      "norm_label": "speak()"
+      "norm_label": "speak()",
+      "id": "components_karaokemode_speak"
     },
     {
       "label": "KaraokeMode()",
@@ -709,9 +709,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "components_karaokemode_karaokemode",
       "community": 0,
-      "norm_label": "karaokemode()"
+      "norm_label": "karaokemode()",
+      "id": "components_karaokemode_karaokemode"
     },
     {
       "label": "SoundSpectrum.tsx",
@@ -719,9 +719,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_soundspectrum",
       "community": 0,
-      "norm_label": "soundspectrum.tsx"
+      "norm_label": "soundspectrum.tsx",
+      "id": "components_soundspectrum"
     },
     {
       "label": "Props",
@@ -729,9 +729,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "components_soundspectrum_props",
       "community": 0,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "components_soundspectrum_props"
     },
     {
       "label": "VOWEL_COLORS",
@@ -739,9 +739,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "components_soundspectrum_vowel_colors",
       "community": 0,
-      "norm_label": "vowel_colors"
+      "norm_label": "vowel_colors",
+      "id": "components_soundspectrum_vowel_colors"
     },
     {
       "label": "LABELS",
@@ -749,9 +749,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "components_soundspectrum_labels",
       "community": 0,
-      "norm_label": "labels"
+      "norm_label": "labels",
+      "id": "components_soundspectrum_labels"
     },
     {
       "label": "SoundSpectrum()",
@@ -759,9 +759,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "components_soundspectrum_soundspectrum",
       "community": 0,
-      "norm_label": "soundspectrum()"
+      "norm_label": "soundspectrum()",
+      "id": "components_soundspectrum_soundspectrum"
     },
     {
       "label": "StatsBar.tsx",
@@ -769,9 +769,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_statsbar",
       "community": 0,
-      "norm_label": "statsbar.tsx"
+      "norm_label": "statsbar.tsx",
+      "id": "components_statsbar"
     },
     {
       "label": "LEGEND",
@@ -779,9 +779,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "components_statsbar_legend",
       "community": 0,
-      "norm_label": "legend"
+      "norm_label": "legend",
+      "id": "components_statsbar_legend"
     },
     {
       "label": "Props",
@@ -789,9 +789,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "components_statsbar_props",
       "community": 0,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "components_statsbar_props"
     },
     {
       "label": "StatsBar()",
@@ -799,9 +799,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "components_statsbar_statsbar",
       "community": 0,
-      "norm_label": "statsbar()"
+      "norm_label": "statsbar()",
+      "id": "components_statsbar_statsbar"
     },
     {
       "label": "TerrainView.tsx",
@@ -809,9 +809,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_terrainview",
       "community": 0,
-      "norm_label": "terrainview.tsx"
+      "norm_label": "terrainview.tsx",
+      "id": "components_terrainview"
     },
     {
       "label": "Props",
@@ -819,9 +819,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "components_terrainview_props",
       "community": 0,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "components_terrainview_props"
     },
     {
       "label": "WordPeak",
@@ -829,9 +829,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "components_terrainview_wordpeak",
       "community": 0,
-      "norm_label": "wordpeak"
+      "norm_label": "wordpeak",
+      "id": "components_terrainview_wordpeak"
     },
     {
       "label": "wordComplexity()",
@@ -839,9 +839,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "components_terrainview_wordcomplexity",
       "community": 0,
-      "norm_label": "wordcomplexity()"
+      "norm_label": "wordcomplexity()",
+      "id": "components_terrainview_wordcomplexity"
     },
     {
       "label": "TerrainView()",
@@ -849,9 +849,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L51",
       "_origin": "ast",
-      "id": "components_terrainview_terrainview",
       "community": 0,
-      "norm_label": "terrainview()"
+      "norm_label": "terrainview()",
+      "id": "components_terrainview_terrainview"
     },
     {
       "label": "WordRenderer.tsx",
@@ -859,9 +859,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_wordrenderer",
       "community": 7,
-      "norm_label": "wordrenderer.tsx"
+      "norm_label": "wordrenderer.tsx",
+      "id": "components_wordrenderer"
     },
     {
       "label": "Props",
@@ -869,9 +869,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "components_wordrenderer_props",
       "community": 0,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "components_wordrenderer_props"
     },
     {
       "label": "GRAPHIC_CONSONANTS",
@@ -879,9 +879,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "components_wordrenderer_graphic_consonants",
       "community": 7,
-      "norm_label": "graphic_consonants"
+      "norm_label": "graphic_consonants",
+      "id": "components_wordrenderer_graphic_consonants"
     },
     {
       "label": "SEMIVOWEL_SOUNDS",
@@ -889,9 +889,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "components_wordrenderer_semivowel_sounds",
       "community": 7,
-      "norm_label": "semivowel_sounds"
+      "norm_label": "semivowel_sounds",
+      "id": "components_wordrenderer_semivowel_sounds"
     },
     {
       "label": "isGraphicConsonant()",
@@ -899,9 +899,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "components_wordrenderer_isgraphicconsonant",
       "community": 7,
-      "norm_label": "isgraphicconsonant()"
+      "norm_label": "isgraphicconsonant()",
+      "id": "components_wordrenderer_isgraphicconsonant"
     },
     {
       "label": "shouldBeMute()",
@@ -909,9 +909,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "components_wordrenderer_shouldbemute",
       "community": 7,
-      "norm_label": "shouldbemute()"
+      "norm_label": "shouldbemute()",
+      "id": "components_wordrenderer_shouldbemute"
     },
     {
       "label": "isVowel()",
@@ -919,9 +919,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "components_wordrenderer_isvowel",
       "community": 7,
-      "norm_label": "isvowel()"
+      "norm_label": "isvowel()",
+      "id": "components_wordrenderer_isvowel"
     },
     {
       "label": "isSemivowel()",
@@ -929,9 +929,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L41",
       "_origin": "ast",
-      "id": "components_wordrenderer_issemivowel",
       "community": 7,
-      "norm_label": "issemivowel()"
+      "norm_label": "issemivowel()",
+      "id": "components_wordrenderer_issemivowel"
     },
     {
       "label": "Classification",
@@ -939,9 +939,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L47",
       "_origin": "ast",
-      "id": "components_wordrenderer_classification",
       "community": 7,
-      "norm_label": "classification"
+      "norm_label": "classification",
+      "id": "components_wordrenderer_classification"
     },
     {
       "label": "classifyNodes()",
@@ -949,9 +949,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L52",
       "_origin": "ast",
-      "id": "components_wordrenderer_classifynodes",
       "community": 7,
-      "norm_label": "classifynodes()"
+      "norm_label": "classifynodes()",
+      "id": "components_wordrenderer_classifynodes"
     },
     {
       "label": "buildDiphthongGradients()",
@@ -959,9 +959,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L68",
       "_origin": "ast",
-      "id": "components_wordrenderer_builddiphthonggradients",
       "community": 7,
-      "norm_label": "builddiphthonggradients()"
+      "norm_label": "builddiphthonggradients()",
+      "id": "components_wordrenderer_builddiphthonggradients"
     },
     {
       "label": "isMonosyllabic()",
@@ -969,9 +969,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L85",
       "_origin": "ast",
-      "id": "components_wordrenderer_ismonosyllabic",
       "community": 7,
-      "norm_label": "ismonosyllabic()"
+      "norm_label": "ismonosyllabic()",
+      "id": "components_wordrenderer_ismonosyllabic"
     },
     {
       "label": "hasTrueSyllabic()",
@@ -979,9 +979,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L89",
       "_origin": "ast",
-      "id": "components_wordrenderer_hastruesyllabic",
       "community": 7,
-      "norm_label": "hastruesyllabic()"
+      "norm_label": "hastruesyllabic()",
+      "id": "components_wordrenderer_hastruesyllabic"
     },
     {
       "label": "buildUnderlined()",
@@ -989,9 +989,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L95",
       "_origin": "ast",
-      "id": "components_wordrenderer_buildunderlined",
       "community": 7,
-      "norm_label": "buildunderlined()"
+      "norm_label": "buildunderlined()",
+      "id": "components_wordrenderer_buildunderlined"
     },
     {
       "label": "WordRenderer()",
@@ -999,9 +999,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L136",
       "_origin": "ast",
-      "id": "components_wordrenderer_wordrenderer",
       "community": 7,
-      "norm_label": "wordrenderer()"
+      "norm_label": "wordrenderer()",
+      "id": "components_wordrenderer_wordrenderer"
     },
     {
       "label": "ColourGame.tsx",
@@ -1009,9 +1009,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "game_colourgame",
       "community": 2,
-      "norm_label": "colourgame.tsx"
+      "norm_label": "colourgame.tsx",
+      "id": "game_colourgame"
     },
     {
       "label": "Props",
@@ -1019,9 +1019,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "game_colourgame_props",
       "community": 2,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "game_colourgame_props"
     },
     {
       "label": "shuffle()",
@@ -1029,9 +1029,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "game_colourgame_shuffle",
       "community": 2,
-      "norm_label": "shuffle()"
+      "norm_label": "shuffle()",
+      "id": "game_colourgame_shuffle"
     },
     {
       "label": "ColourGame()",
@@ -1039,9 +1039,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "game_colourgame_colourgame",
       "community": 2,
-      "norm_label": "colourgame()"
+      "norm_label": "colourgame()",
+      "id": "game_colourgame_colourgame"
     },
     {
       "label": "GameProgress.tsx",
@@ -1049,9 +1049,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "game_gameprogress",
       "community": 2,
-      "norm_label": "gameprogress.tsx"
+      "norm_label": "gameprogress.tsx",
+      "id": "game_gameprogress"
     },
     {
       "label": "Props",
@@ -1059,9 +1059,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "game_gameprogress_props",
       "community": 2,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "game_gameprogress_props"
     },
     {
       "label": "GameProgress()",
@@ -1069,9 +1069,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "game_gameprogress_gameprogress",
       "community": 2,
-      "norm_label": "gameprogress()"
+      "norm_label": "gameprogress()",
+      "id": "game_gameprogress_gameprogress"
     },
     {
       "label": "SilentGame.tsx",
@@ -1079,9 +1079,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "game_silentgame",
       "community": 2,
-      "norm_label": "silentgame.tsx"
+      "norm_label": "silentgame.tsx",
+      "id": "game_silentgame"
     },
     {
       "label": "Props",
@@ -1089,9 +1089,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "game_silentgame_props",
       "community": 2,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "game_silentgame_props"
     },
     {
       "label": "GRAPHIC_CONS",
@@ -1099,9 +1099,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "game_silentgame_graphic_cons",
       "community": 2,
-      "norm_label": "graphic_cons"
+      "norm_label": "graphic_cons",
+      "id": "game_silentgame_graphic_cons"
     },
     {
       "label": "isGraphicCons()",
@@ -1109,9 +1109,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "game_silentgame_isgraphiccons",
       "community": 2,
-      "norm_label": "isgraphiccons()"
+      "norm_label": "isgraphiccons()",
+      "id": "game_silentgame_isgraphiccons"
     },
     {
       "label": "SilentGame()",
@@ -1119,9 +1119,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "game_silentgame_silentgame",
       "community": 2,
-      "norm_label": "silentgame()"
+      "norm_label": "silentgame()",
+      "id": "game_silentgame_silentgame"
     },
     {
       "label": "StressGame.tsx",
@@ -1129,9 +1129,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "game_stressgame",
       "community": 2,
-      "norm_label": "stressgame.tsx"
+      "norm_label": "stressgame.tsx",
+      "id": "game_stressgame"
     },
     {
       "label": "Props",
@@ -1139,9 +1139,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "game_stressgame_props",
       "community": 2,
-      "norm_label": "props"
+      "norm_label": "props",
+      "id": "game_stressgame_props"
     },
     {
       "label": "GRAPHIC_CONS",
@@ -1149,9 +1149,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "game_stressgame_graphic_cons",
       "community": 2,
-      "norm_label": "graphic_cons"
+      "norm_label": "graphic_cons",
+      "id": "game_stressgame_graphic_cons"
     },
     {
       "label": "isVowelNode()",
@@ -1159,9 +1159,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "game_stressgame_isvowelnode",
       "community": 2,
-      "norm_label": "isvowelnode()"
+      "norm_label": "isvowelnode()",
+      "id": "game_stressgame_isvowelnode"
     },
     {
       "label": "StressGroup",
@@ -1169,9 +1169,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L26",
       "_origin": "ast",
-      "id": "game_stressgame_stressgroup",
       "community": 2,
-      "norm_label": "stressgroup"
+      "norm_label": "stressgroup",
+      "id": "game_stressgame_stressgroup"
     },
     {
       "label": "StressGame()",
@@ -1179,9 +1179,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "game_stressgame_stressgame",
       "community": 2,
-      "norm_label": "stressgame()"
+      "norm_label": "stressgame()",
+      "id": "game_stressgame_stressgame"
     },
     {
       "label": "db.ts",
@@ -1189,9 +1189,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_db",
       "community": 1,
-      "norm_label": "db.ts"
+      "norm_label": "db.ts",
+      "id": "lib_db"
     },
     {
       "label": "LEXICON_PATH",
@@ -1199,9 +1199,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "lib_db_lexicon_path",
       "community": 1,
-      "norm_label": "lexicon_path"
+      "norm_label": "lexicon_path",
+      "id": "lib_db_lexicon_path"
     },
     {
       "label": "CACHE_PATH",
@@ -1209,9 +1209,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "lib_db_cache_path",
       "community": 1,
-      "norm_label": "cache_path"
+      "norm_label": "cache_path",
+      "id": "lib_db_cache_path"
     },
     {
       "label": "getLexicon()",
@@ -1219,9 +1219,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "lib_db_getlexicon",
       "community": 1,
-      "norm_label": "getlexicon()"
+      "norm_label": "getlexicon()",
+      "id": "lib_db_getlexicon"
     },
     {
       "label": "getCache()",
@@ -1229,9 +1229,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "lib_db_getcache",
       "community": 1,
-      "norm_label": "getcache()"
+      "norm_label": "getcache()",
+      "id": "lib_db_getcache"
     },
     {
       "label": "getDb()",
@@ -1239,9 +1239,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L63",
       "_origin": "ast",
-      "id": "lib_db_getdb",
       "community": 1,
-      "norm_label": "getdb()"
+      "norm_label": "getdb()",
+      "id": "lib_db_getdb"
     },
     {
       "label": "stmtCacheGet()",
@@ -1249,9 +1249,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L69",
       "_origin": "ast",
-      "id": "lib_db_stmtcacheget",
       "community": 1,
-      "norm_label": "stmtcacheget()"
+      "norm_label": "stmtcacheget()",
+      "id": "lib_db_stmtcacheget"
     },
     {
       "label": "stmtCacheSet()",
@@ -1259,9 +1259,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L79",
       "_origin": "ast",
-      "id": "lib_db_stmtcacheset",
       "community": 1,
-      "norm_label": "stmtcacheset()"
+      "norm_label": "stmtcacheset()",
+      "id": "lib_db_stmtcacheset"
     },
     {
       "label": "stmtUk()",
@@ -1269,9 +1269,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L97",
       "_origin": "ast",
-      "id": "lib_db_stmtuk",
       "community": 1,
-      "norm_label": "stmtuk()"
+      "norm_label": "stmtuk()",
+      "id": "lib_db_stmtuk"
     },
     {
       "label": "stmtUs()",
@@ -1279,9 +1279,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L102",
       "_origin": "ast",
-      "id": "lib_db_stmtus",
       "community": 1,
-      "norm_label": "stmtus()"
+      "norm_label": "stmtus()",
+      "id": "lib_db_stmtus"
     },
     {
       "label": "WordResult",
@@ -1289,9 +1289,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L110",
       "_origin": "ast",
-      "id": "lib_db_wordresult",
       "community": 1,
-      "norm_label": "wordresult"
+      "norm_label": "wordresult",
+      "id": "lib_db_wordresult"
     },
     {
       "label": "getBestNodes()",
@@ -1299,9 +1299,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L117",
       "_origin": "ast",
-      "id": "lib_db_getbestnodes",
       "community": 1,
-      "norm_label": "getbestnodes()"
+      "norm_label": "getbestnodes()",
+      "id": "lib_db_getbestnodes"
     },
     {
       "label": "getBestNodesMany()",
@@ -1309,9 +1309,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L172",
       "_origin": "ast",
-      "id": "lib_db_getbestnodesmany",
       "community": 1,
-      "norm_label": "getbestnodesmany()"
+      "norm_label": "getbestnodesmany()",
+      "id": "lib_db_getbestnodesmany"
     },
     {
       "label": "selectBest()",
@@ -1319,9 +1319,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L183",
       "_origin": "ast",
-      "id": "lib_db_selectbest",
       "community": 1,
-      "norm_label": "selectbest()"
+      "norm_label": "selectbest()",
+      "id": "lib_db_selectbest"
     },
     {
       "label": "searchPrefix()",
@@ -1329,9 +1329,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L203",
       "_origin": "ast",
-      "id": "lib_db_searchprefix",
       "community": 1,
-      "norm_label": "searchprefix()"
+      "norm_label": "searchprefix()",
+      "id": "lib_db_searchprefix"
     },
     {
       "label": "getCacheStats()",
@@ -1339,9 +1339,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L234",
       "_origin": "ast",
-      "id": "lib_db_getcachestats",
       "community": 1,
-      "norm_label": "getcachestats()"
+      "norm_label": "getcachestats()",
+      "id": "lib_db_getcachestats"
     },
     {
       "label": "gameTypes.ts",
@@ -1349,9 +1349,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_gametypes",
       "community": 2,
-      "norm_label": "gametypes.ts"
+      "norm_label": "gametypes.ts",
+      "id": "lib_gametypes"
     },
     {
       "label": "GameNode",
@@ -1359,9 +1359,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_gametypes_gamenode",
       "community": 2,
-      "norm_label": "gamenode"
+      "norm_label": "gamenode",
+      "id": "lib_gametypes_gamenode"
     },
     {
       "label": "GameWord",
@@ -1369,9 +1369,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "lib_gametypes_gameword",
       "community": 2,
-      "norm_label": "gameword"
+      "norm_label": "gameword",
+      "id": "lib_gametypes_gameword"
     },
     {
       "label": "GameLevel",
@@ -1379,9 +1379,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "lib_gametypes_gamelevel",
       "community": 2,
-      "norm_label": "gamelevel"
+      "norm_label": "gamelevel",
+      "id": "lib_gametypes_gamelevel"
     },
     {
       "label": "GameState",
@@ -1389,9 +1389,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "lib_gametypes_gamestate",
       "community": 2,
-      "norm_label": "gamestate"
+      "norm_label": "gamestate",
+      "id": "lib_gametypes_gamestate"
     },
     {
       "label": "COLOR_LABELS",
@@ -1399,9 +1399,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "lib_gametypes_color_labels",
       "community": 2,
-      "norm_label": "color_labels"
+      "norm_label": "color_labels",
+      "id": "lib_gametypes_color_labels"
     },
     {
       "label": "LEVEL_INFO",
@@ -1409,9 +1409,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L42",
       "_origin": "ast",
-      "id": "lib_gametypes_level_info",
       "community": 2,
-      "norm_label": "level_info"
+      "norm_label": "level_info",
+      "id": "lib_gametypes_level_info"
     },
     {
       "label": "pipeline.ts",
@@ -1419,9 +1419,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_pipeline",
       "community": 6,
-      "norm_label": "pipeline.ts"
+      "norm_label": "pipeline.ts",
+      "id": "lib_pipeline"
     },
     {
       "label": "RenderNode",
@@ -1429,9 +1429,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "lib_pipeline_rendernode",
       "community": 1,
-      "norm_label": "rendernode"
+      "norm_label": "rendernode",
+      "id": "lib_pipeline_rendernode"
     },
     {
       "label": "COLOR_MAP",
@@ -1439,9 +1439,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "lib_pipeline_color_map",
       "community": 6,
-      "norm_label": "color_map"
+      "norm_label": "color_map",
+      "id": "lib_pipeline_color_map"
     },
     {
       "label": "getColor()",
@@ -1449,9 +1449,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "lib_pipeline_getcolor",
       "community": 6,
-      "norm_label": "getcolor()"
+      "norm_label": "getcolor()",
+      "id": "lib_pipeline_getcolor"
     },
     {
       "label": "VOWEL_CHARS",
@@ -1459,9 +1459,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L39",
       "_origin": "ast",
-      "id": "lib_pipeline_vowel_chars",
       "community": 6,
-      "norm_label": "vowel_chars"
+      "norm_label": "vowel_chars",
+      "id": "lib_pipeline_vowel_chars"
     },
     {
       "label": "isVowelSound()",
@@ -1469,9 +1469,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L41",
       "_origin": "ast",
-      "id": "lib_pipeline_isvowelsound",
       "community": 6,
-      "norm_label": "isvowelsound()"
+      "norm_label": "isvowelsound()",
+      "id": "lib_pipeline_isvowelsound"
     },
     {
       "label": "TRANSFORMS",
@@ -1479,9 +1479,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L47",
       "_origin": "ast",
-      "id": "lib_pipeline_transforms",
       "community": 6,
-      "norm_label": "transforms"
+      "norm_label": "transforms",
+      "id": "lib_pipeline_transforms"
     },
     {
       "label": "STRIP",
@@ -1489,9 +1489,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L80",
       "_origin": "ast",
-      "id": "lib_pipeline_strip",
       "community": 6,
-      "norm_label": "strip"
+      "norm_label": "strip",
+      "id": "lib_pipeline_strip"
     },
     {
       "label": "VOWEL_FALLBACK",
@@ -1499,9 +1499,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L81",
       "_origin": "ast",
-      "id": "lib_pipeline_vowel_fallback",
       "community": 6,
-      "norm_label": "vowel_fallback"
+      "norm_label": "vowel_fallback",
+      "id": "lib_pipeline_vowel_fallback"
     },
     {
       "label": "Seg",
@@ -1509,9 +1509,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L83",
       "_origin": "ast",
-      "id": "lib_pipeline_seg",
       "community": 6,
-      "norm_label": "seg"
+      "norm_label": "seg",
+      "id": "lib_pipeline_seg"
     },
     {
       "label": "processIpa()",
@@ -1519,9 +1519,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L92",
       "_origin": "ast",
-      "id": "lib_pipeline_processipa",
       "community": 1,
-      "norm_label": "processipa()"
+      "norm_label": "processipa()",
+      "id": "lib_pipeline_processipa"
     },
     {
       "label": "segment()",
@@ -1529,9 +1529,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L112",
       "_origin": "ast",
-      "id": "lib_pipeline_segment",
       "community": 6,
-      "norm_label": "segment()"
+      "norm_label": "segment()",
+      "id": "lib_pipeline_segment"
     },
     {
       "label": "GRAPHIC_VOWELS",
@@ -1539,9 +1539,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L155",
       "_origin": "ast",
-      "id": "lib_pipeline_graphic_vowels",
       "community": 6,
-      "norm_label": "graphic_vowels"
+      "norm_label": "graphic_vowels",
+      "id": "lib_pipeline_graphic_vowels"
     },
     {
       "label": "SEMIVOWEL_DISPLAY",
@@ -1549,9 +1549,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L156",
       "_origin": "ast",
-      "id": "lib_pipeline_semivowel_display",
       "community": 6,
-      "norm_label": "semivowel_display"
+      "norm_label": "semivowel_display",
+      "id": "lib_pipeline_semivowel_display"
     },
     {
       "label": "isGraphicVowel()",
@@ -1559,9 +1559,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L158",
       "_origin": "ast",
-      "id": "lib_pipeline_isgraphicvowel",
       "community": 6,
-      "norm_label": "isgraphicvowel()"
+      "norm_label": "isgraphicvowel()",
+      "id": "lib_pipeline_isgraphicvowel"
     },
     {
       "label": "isGraphicCons()",
@@ -1569,9 +1569,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L159",
       "_origin": "ast",
-      "id": "lib_pipeline_isgraphiccons",
       "community": 6,
-      "norm_label": "isgraphiccons()"
+      "norm_label": "isgraphiccons()",
+      "id": "lib_pipeline_isgraphiccons"
     },
     {
       "label": "mapToWord()",
@@ -1579,9 +1579,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L171",
       "_origin": "ast",
-      "id": "lib_pipeline_maptoword",
       "community": 6,
-      "norm_label": "maptoword()"
+      "norm_label": "maptoword()",
+      "id": "lib_pipeline_maptoword"
     },
     {
       "label": "scoreNodes()",
@@ -1589,9 +1589,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L236",
       "_origin": "ast",
-      "id": "lib_pipeline_scorenodes",
       "community": 1,
-      "norm_label": "scorenodes()"
+      "norm_label": "scorenodes()",
+      "id": "lib_pipeline_scorenodes"
     },
     {
       "label": "WordProps",
@@ -1599,9 +1599,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L244",
       "_origin": "ast",
-      "id": "lib_pipeline_wordprops",
       "community": 6,
-      "norm_label": "wordprops"
+      "norm_label": "wordprops",
+      "id": "lib_pipeline_wordprops"
     },
     {
       "label": "extractProps()",
@@ -1609,9 +1609,9 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L251",
       "_origin": "ast",
-      "id": "lib_pipeline_extractprops",
       "community": 1,
-      "norm_label": "extractprops()"
+      "norm_label": "extractprops()",
+      "id": "lib_pipeline_extractprops"
     },
     {
       "label": "renderNode.ts",
@@ -1619,9 +1619,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_rendernode",
       "community": 0,
-      "norm_label": "rendernode.ts"
+      "norm_label": "rendernode.ts",
+      "id": "lib_rendernode"
     },
     {
       "label": "RenderNode",
@@ -1629,9 +1629,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "lib_rendernode_rendernode",
       "community": 0,
-      "norm_label": "rendernode"
+      "norm_label": "rendernode",
+      "id": "lib_rendernode_rendernode"
     },
     {
       "label": "isSyllabicConsonant()",
@@ -1639,9 +1639,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "lib_rendernode_issyllabicconsonant",
       "community": 0,
-      "norm_label": "issyllabicconsonant()"
+      "norm_label": "issyllabicconsonant()",
+      "id": "lib_rendernode_issyllabicconsonant"
     },
     {
       "label": "isMute()",
@@ -1649,9 +1649,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "lib_rendernode_ismute",
       "community": 0,
-      "norm_label": "ismute()"
+      "norm_label": "ismute()",
+      "id": "lib_rendernode_ismute"
     },
     {
       "label": "isVowelNode()",
@@ -1659,9 +1659,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "lib_rendernode_isvowelnode",
       "community": 0,
-      "norm_label": "isvowelnode()"
+      "norm_label": "isvowelnode()",
+      "id": "lib_rendernode_isvowelnode"
     },
     {
       "label": "GRAPHIC_CONSONANTS",
@@ -1669,9 +1669,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "lib_rendernode_graphic_consonants",
       "community": 0,
-      "norm_label": "graphic_consonants"
+      "norm_label": "graphic_consonants",
+      "id": "lib_rendernode_graphic_consonants"
     },
     {
       "label": "isGraphicConsonantString()",
@@ -1679,9 +1679,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "lib_rendernode_isgraphicconsonantstring",
       "community": 0,
-      "norm_label": "isgraphicconsonantstring()"
+      "norm_label": "isgraphicconsonantstring()",
+      "id": "lib_rendernode_isgraphicconsonantstring"
     },
     {
       "label": "ruleConfig.ts",
@@ -1689,9 +1689,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_ruleconfig",
       "community": 5,
-      "norm_label": "ruleconfig.ts"
+      "norm_label": "ruleconfig.ts",
+      "id": "lib_ruleconfig"
     },
     {
       "label": "ColorEntry",
@@ -1699,9 +1699,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "lib_ruleconfig_colorentry",
       "community": 5,
-      "norm_label": "colorentry"
+      "norm_label": "colorentry",
+      "id": "lib_ruleconfig_colorentry"
     },
     {
       "label": "UnderlineRules",
@@ -1709,9 +1709,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "lib_ruleconfig_underlinerules",
       "community": 5,
-      "norm_label": "underlinerules"
+      "norm_label": "underlinerules",
+      "id": "lib_ruleconfig_underlinerules"
     },
     {
       "label": "SilentRules",
@@ -1719,9 +1719,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "lib_ruleconfig_silentrules",
       "community": 5,
-      "norm_label": "silentrules"
+      "norm_label": "silentrules",
+      "id": "lib_ruleconfig_silentrules"
     },
     {
       "label": "VowelChars",
@@ -1729,9 +1729,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L26",
       "_origin": "ast",
-      "id": "lib_ruleconfig_vowelchars",
       "community": 5,
-      "norm_label": "vowelchars"
+      "norm_label": "vowelchars",
+      "id": "lib_ruleconfig_vowelchars"
     },
     {
       "label": "RuleConfig",
@@ -1739,9 +1739,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L32",
       "_origin": "ast",
-      "id": "lib_ruleconfig_ruleconfig",
       "community": 5,
-      "norm_label": "ruleconfig"
+      "norm_label": "ruleconfig",
+      "id": "lib_ruleconfig_ruleconfig"
     },
     {
       "label": "DEFAULT_CONFIG",
@@ -1749,9 +1749,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L41",
       "_origin": "ast",
-      "id": "lib_ruleconfig_default_config",
       "community": 5,
-      "norm_label": "default_config"
+      "norm_label": "default_config",
+      "id": "lib_ruleconfig_default_config"
     },
     {
       "label": "RuleDiff",
@@ -1759,9 +1759,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L76",
       "_origin": "ast",
-      "id": "lib_ruleconfig_rulediff",
       "community": 5,
-      "norm_label": "rulediff"
+      "norm_label": "rulediff",
+      "id": "lib_ruleconfig_rulediff"
     },
     {
       "label": "diffConfigs()",
@@ -1769,9 +1769,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L83",
       "_origin": "ast",
-      "id": "lib_ruleconfig_diffconfigs",
       "community": 5,
-      "norm_label": "diffconfigs()"
+      "norm_label": "diffconfigs()",
+      "id": "lib_ruleconfig_diffconfigs"
     },
     {
       "label": "TestCase",
@@ -1779,9 +1779,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L131",
       "_origin": "ast",
-      "id": "lib_ruleconfig_testcase",
       "community": 5,
-      "norm_label": "testcase"
+      "norm_label": "testcase",
+      "id": "lib_ruleconfig_testcase"
     },
     {
       "label": "generatePrompt()",
@@ -1789,9 +1789,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L138",
       "_origin": "ast",
-      "id": "lib_ruleconfig_generateprompt",
       "community": 5,
-      "norm_label": "generateprompt()"
+      "norm_label": "generateprompt()",
+      "id": "lib_ruleconfig_generateprompt"
     },
     {
       "label": "useColorizer.ts",
@@ -1799,9 +1799,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_usecolorizer",
       "community": 0,
-      "norm_label": "usecolorizer.ts"
+      "norm_label": "usecolorizer.ts",
+      "id": "lib_usecolorizer"
     },
     {
       "label": "TextToken",
@@ -1809,9 +1809,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "lib_usecolorizer_texttoken",
       "community": 0,
-      "norm_label": "texttoken"
+      "norm_label": "texttoken",
+      "id": "lib_usecolorizer_texttoken"
     },
     {
       "label": "Stats",
@@ -1819,9 +1819,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "lib_usecolorizer_stats",
       "community": 0,
-      "norm_label": "stats"
+      "norm_label": "stats",
+      "id": "lib_usecolorizer_stats"
     },
     {
       "label": "nodeCache",
@@ -1829,9 +1829,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "lib_usecolorizer_nodecache",
       "community": 0,
-      "norm_label": "nodecache"
+      "norm_label": "nodecache",
+      "id": "lib_usecolorizer_nodecache"
     },
     {
       "label": "tokenize()",
@@ -1839,9 +1839,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "lib_usecolorizer_tokenize",
       "community": 0,
-      "norm_label": "tokenize()"
+      "norm_label": "tokenize()",
+      "id": "lib_usecolorizer_tokenize"
     },
     {
       "label": "colorToLabel()",
@@ -1849,9 +1849,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L53",
       "_origin": "ast",
-      "id": "lib_usecolorizer_colortolabel",
       "community": 0,
-      "norm_label": "colortolabel()"
+      "norm_label": "colortolabel()",
+      "id": "lib_usecolorizer_colortolabel"
     },
     {
       "label": "computeStats()",
@@ -1859,9 +1859,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L62",
       "_origin": "ast",
-      "id": "lib_usecolorizer_computestats",
       "community": 0,
-      "norm_label": "computestats()"
+      "norm_label": "computestats()",
+      "id": "lib_usecolorizer_computestats"
     },
     {
       "label": "restoreCasing()",
@@ -1869,9 +1869,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L113",
       "_origin": "ast",
-      "id": "lib_usecolorizer_restorecasing",
       "community": 0,
-      "norm_label": "restorecasing()"
+      "norm_label": "restorecasing()",
+      "id": "lib_usecolorizer_restorecasing"
     },
     {
       "label": "useColorizer()",
@@ -1879,9 +1879,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L123",
       "_origin": "ast",
-      "id": "lib_usecolorizer_usecolorizer",
       "community": 0,
-      "norm_label": "usecolorizer()"
+      "norm_label": "usecolorizer()",
+      "id": "lib_usecolorizer_usecolorizer"
     },
     {
       "label": "tsconfig.json",
@@ -1889,9 +1889,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "tsconfig",
       "community": 4,
-      "norm_label": "tsconfig.json"
+      "norm_label": "tsconfig.json",
+      "id": "tsconfig"
     },
     {
       "label": "compilerOptions",
@@ -1899,9 +1899,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L2",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions",
       "community": 4,
-      "norm_label": "compileroptions"
+      "norm_label": "compileroptions",
+      "id": "tsconfig_compileroptions"
     },
     {
       "label": "target",
@@ -1909,9 +1909,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_target",
       "community": 4,
-      "norm_label": "target"
+      "norm_label": "target",
+      "id": "tsconfig_compileroptions_target"
     },
     {
       "label": "lib",
@@ -1919,9 +1919,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_lib",
       "community": 4,
-      "norm_label": "lib"
+      "norm_label": "lib",
+      "id": "tsconfig_compileroptions_lib"
     },
     {
       "label": "allowJs",
@@ -1929,9 +1929,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_allowjs",
       "community": 4,
-      "norm_label": "allowjs"
+      "norm_label": "allowjs",
+      "id": "tsconfig_compileroptions_allowjs"
     },
     {
       "label": "skipLibCheck",
@@ -1939,9 +1939,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_skiplibcheck",
       "community": 4,
-      "norm_label": "skiplibcheck"
+      "norm_label": "skiplibcheck",
+      "id": "tsconfig_compileroptions_skiplibcheck"
     },
     {
       "label": "strict",
@@ -1949,9 +1949,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_strict",
       "community": 4,
-      "norm_label": "strict"
+      "norm_label": "strict",
+      "id": "tsconfig_compileroptions_strict"
     },
     {
       "label": "noEmit",
@@ -1959,9 +1959,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_noemit",
       "community": 4,
-      "norm_label": "noemit"
+      "norm_label": "noemit",
+      "id": "tsconfig_compileroptions_noemit"
     },
     {
       "label": "esModuleInterop",
@@ -1969,9 +1969,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_esmoduleinterop",
       "community": 4,
-      "norm_label": "esmoduleinterop"
+      "norm_label": "esmoduleinterop",
+      "id": "tsconfig_compileroptions_esmoduleinterop"
     },
     {
       "label": "module",
@@ -1979,9 +1979,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_module",
       "community": 4,
-      "norm_label": "module"
+      "norm_label": "module",
+      "id": "tsconfig_compileroptions_module"
     },
     {
       "label": "moduleResolution",
@@ -1989,9 +1989,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_moduleresolution",
       "community": 4,
-      "norm_label": "moduleresolution"
+      "norm_label": "moduleresolution",
+      "id": "tsconfig_compileroptions_moduleresolution"
     },
     {
       "label": "resolveJsonModule",
@@ -1999,9 +1999,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_resolvejsonmodule",
       "community": 4,
-      "norm_label": "resolvejsonmodule"
+      "norm_label": "resolvejsonmodule",
+      "id": "tsconfig_compileroptions_resolvejsonmodule"
     },
     {
       "label": "isolatedModules",
@@ -2009,9 +2009,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_isolatedmodules",
       "community": 4,
-      "norm_label": "isolatedmodules"
+      "norm_label": "isolatedmodules",
+      "id": "tsconfig_compileroptions_isolatedmodules"
     },
     {
       "label": "jsx",
@@ -2019,9 +2019,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_jsx",
       "community": 4,
-      "norm_label": "jsx"
+      "norm_label": "jsx",
+      "id": "tsconfig_compileroptions_jsx"
     },
     {
       "label": "incremental",
@@ -2029,9 +2029,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_incremental",
       "community": 4,
-      "norm_label": "incremental"
+      "norm_label": "incremental",
+      "id": "tsconfig_compileroptions_incremental"
     },
     {
       "label": "plugins",
@@ -2039,9 +2039,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_plugins",
       "community": 4,
-      "norm_label": "plugins"
+      "norm_label": "plugins",
+      "id": "tsconfig_compileroptions_plugins"
     },
     {
       "label": "paths",
@@ -2049,9 +2049,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L25",
       "_origin": "ast",
-      "id": "tsconfig_compileroptions_paths",
       "community": 4,
-      "norm_label": "paths"
+      "norm_label": "paths",
+      "id": "tsconfig_compileroptions_paths"
     },
     {
       "label": "@/*",
@@ -2059,9 +2059,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L26",
       "_origin": "ast",
-      "id": "tsconfig_paths",
       "community": 4,
-      "norm_label": "@/*"
+      "norm_label": "@/*",
+      "id": "tsconfig_paths"
     },
     {
       "label": "include",
@@ -2069,9 +2069,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "tsconfig_include",
       "community": 4,
-      "norm_label": "include"
+      "norm_label": "include",
+      "id": "tsconfig_include"
     },
     {
       "label": "exclude",
@@ -2079,9 +2079,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "tsconfig_exclude",
       "community": 4,
-      "norm_label": "exclude"
+      "norm_label": "exclude",
+      "id": "tsconfig_exclude"
     },
     {
       "label": "Project Context",
@@ -2094,9 +2094,9 @@
       "summary": "Project metadata, directory structure, setup steps, and WordRenderer rules overview.",
       "confidence": 0.9,
       "file_type": "concept",
-      "id": "doc:PROJECT_CONTEXT.md",
       "community": 11,
-      "norm_label": "project context"
+      "norm_label": "project context",
+      "id": "doc:PROJECT_CONTEXT.md"
     },
     {
       "label": "README: Setup & Structure",
@@ -2109,9 +2109,9 @@
       "summary": "Install, dev/build/run instructions and high-level project structure (app, components, lib, data).",
       "confidence": 0.9,
       "file_type": "concept",
-      "id": "doc:README.md",
       "community": 12,
-      "norm_label": "readme: setup & structure"
+      "norm_label": "readme: setup & structure",
+      "id": "doc:README.md"
     },
     {
       "label": "WordRenderer Rules Guide",
@@ -2124,9 +2124,9 @@
       "summary": "Explains RenderNode shape, color mapping, and rules for mute, vowels, semivowels, syllabic consonants, and underlining.",
       "confidence": 0.95,
       "file_type": "concept",
-      "id": "doc:WORDRENDERER_RULES_GUIDE.md",
       "community": 14,
-      "norm_label": "wordrenderer rules guide"
+      "norm_label": "wordrenderer rules guide",
+      "id": "doc:WORDRENDERER_RULES_GUIDE.md"
     },
     {
       "label": "WordRenderer Line-by-Line Guide",
@@ -2139,9 +2139,39 @@
       "summary": "Precise line numbers and edit guidance for each rule in WordRenderer.tsx.",
       "confidence": 0.95,
       "file_type": "concept",
-      "id": "doc:WORDRENDERER_LINE_BY_LINE_GUIDE.md",
       "community": 13,
-      "norm_label": "wordrenderer line-by-line guide"
+      "norm_label": "wordrenderer line-by-line guide",
+      "id": "doc:WORDRENDERER_LINE_BY_LINE_GUIDE.md"
+    },
+    {
+      "label": "RegexRuleAction",
+      "file_type": "code",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L41",
+      "_origin": "ast",
+      "community": 5,
+      "norm_label": "regexruleaction",
+      "id": "lib_ruleconfig_regexruleaction"
+    },
+    {
+      "label": "RegexRule",
+      "file_type": "code",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L47",
+      "_origin": "ast",
+      "community": 5,
+      "norm_label": "regexrule",
+      "id": "lib_ruleconfig_regexrule"
+    },
+    {
+      "label": "applyRegexOverrides()",
+      "file_type": "code",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L135",
+      "_origin": "ast",
+      "community": 7,
+      "norm_label": "applyregexoverrides()",
+      "id": "lib_ruleconfig_applyregexoverrides"
     }
   ],
   "links": [
@@ -2151,9 +2181,9 @@
       "source_file": "next.config.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "next_config",
-      "target": "next_config_config",
-      "confidence_score": 1.0
+      "target": "next_config_config"
     },
     {
       "relation": "contains",
@@ -2161,9 +2191,9 @@
       "source_file": "package.json",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package",
-      "target": "package_dependencies",
-      "confidence_score": 1.0
+      "target": "package_dependencies"
     },
     {
       "relation": "contains",
@@ -2171,9 +2201,9 @@
       "source_file": "package.json",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package",
-      "target": "package_devdependencies",
-      "confidence_score": 1.0
+      "target": "package_devdependencies"
     },
     {
       "relation": "contains",
@@ -2181,9 +2211,9 @@
       "source_file": "package.json",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package",
-      "target": "package_name",
-      "confidence_score": 1.0
+      "target": "package_name"
     },
     {
       "relation": "contains",
@@ -2191,9 +2221,9 @@
       "source_file": "package.json",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package",
-      "target": "package_private",
-      "confidence_score": 1.0
+      "target": "package_private"
     },
     {
       "relation": "contains",
@@ -2201,9 +2231,9 @@
       "source_file": "package.json",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package",
-      "target": "package_scripts",
-      "confidence_score": 1.0
+      "target": "package_scripts"
     },
     {
       "relation": "contains",
@@ -2211,9 +2241,9 @@
       "source_file": "package.json",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package",
-      "target": "package_version",
-      "confidence_score": 1.0
+      "target": "package_version"
     },
     {
       "relation": "contains",
@@ -2221,9 +2251,9 @@
       "source_file": "package.json",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_scripts",
-      "target": "package_scripts_build",
-      "confidence_score": 1.0
+      "target": "package_scripts_build"
     },
     {
       "relation": "contains",
@@ -2231,9 +2261,9 @@
       "source_file": "package.json",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_scripts",
-      "target": "package_scripts_dev",
-      "confidence_score": 1.0
+      "target": "package_scripts_dev"
     },
     {
       "relation": "contains",
@@ -2241,9 +2271,9 @@
       "source_file": "package.json",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_scripts",
-      "target": "package_scripts_start",
-      "confidence_score": 1.0
+      "target": "package_scripts_start"
     },
     {
       "relation": "contains",
@@ -2251,9 +2281,9 @@
       "source_file": "package.json",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dependencies",
-      "target": "package_dependencies_better_sqlite3",
-      "confidence_score": 1.0
+      "target": "package_dependencies_better_sqlite3"
     },
     {
       "relation": "contains",
@@ -2261,9 +2291,9 @@
       "source_file": "package.json",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dependencies",
-      "target": "package_dependencies_d3",
-      "confidence_score": 1.0
+      "target": "package_dependencies_d3"
     },
     {
       "relation": "contains",
@@ -2271,9 +2301,9 @@
       "source_file": "package.json",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dependencies",
-      "target": "package_dependencies_next",
-      "confidence_score": 1.0
+      "target": "package_dependencies_next"
     },
     {
       "relation": "contains",
@@ -2281,9 +2311,9 @@
       "source_file": "package.json",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dependencies",
-      "target": "package_dependencies_react",
-      "confidence_score": 1.0
+      "target": "package_dependencies_react"
     },
     {
       "relation": "contains",
@@ -2291,9 +2321,9 @@
       "source_file": "package.json",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dependencies",
-      "target": "package_dependencies_react_dom",
-      "confidence_score": 1.0
+      "target": "package_dependencies_react_dom"
     },
     {
       "relation": "contains",
@@ -2301,9 +2331,9 @@
       "source_file": "package.json",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_devdependencies",
-      "target": "package_devdependencies_types_better_sqlite3",
-      "confidence_score": 1.0
+      "target": "package_devdependencies_types_better_sqlite3"
     },
     {
       "relation": "contains",
@@ -2311,9 +2341,9 @@
       "source_file": "package.json",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_devdependencies",
-      "target": "package_devdependencies_types_d3",
-      "confidence_score": 1.0
+      "target": "package_devdependencies_types_d3"
     },
     {
       "relation": "contains",
@@ -2321,9 +2351,9 @@
       "source_file": "package.json",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_devdependencies",
-      "target": "package_devdependencies_types_node",
-      "confidence_score": 1.0
+      "target": "package_devdependencies_types_node"
     },
     {
       "relation": "contains",
@@ -2331,9 +2361,9 @@
       "source_file": "package.json",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_devdependencies",
-      "target": "package_devdependencies_types_react",
-      "confidence_score": 1.0
+      "target": "package_devdependencies_types_react"
     },
     {
       "relation": "contains",
@@ -2341,9 +2371,9 @@
       "source_file": "package.json",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_devdependencies",
-      "target": "package_devdependencies_types_react_dom",
-      "confidence_score": 1.0
+      "target": "package_devdependencies_types_react_dom"
     },
     {
       "relation": "contains",
@@ -2351,9 +2381,9 @@
       "source_file": "package.json",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_devdependencies",
-      "target": "package_devdependencies_typescript",
-      "confidence_score": 1.0
+      "target": "package_devdependencies_typescript"
     },
     {
       "relation": "contains",
@@ -2361,9 +2391,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_dominantcolor",
-      "confidence_score": 1.0
+      "target": "game_route_dominantcolor"
     },
     {
       "relation": "contains",
@@ -2371,9 +2401,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_gamenode",
-      "confidence_score": 1.0
+      "target": "game_route_gamenode"
     },
     {
       "relation": "contains",
@@ -2381,9 +2411,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_get",
-      "confidence_score": 1.0
+      "target": "game_route_get"
     },
     {
       "relation": "contains",
@@ -2391,9 +2421,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_graphic_cons",
-      "confidence_score": 1.0
+      "target": "game_route_graphic_cons"
     },
     {
       "relation": "contains",
@@ -2401,9 +2431,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_hassilentletters",
-      "confidence_score": 1.0
+      "target": "game_route_hassilentletters"
     },
     {
       "relation": "contains",
@@ -2411,9 +2441,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_hasstress",
-      "confidence_score": 1.0
+      "target": "game_route_hasstress"
     },
     {
       "relation": "contains",
@@ -2421,9 +2451,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_isgraphiccons",
-      "confidence_score": 1.0
+      "target": "game_route_isgraphiccons"
     },
     {
       "relation": "contains",
@@ -2431,9 +2461,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "game_route_shuffle",
-      "confidence_score": 1.0
+      "target": "game_route_shuffle"
     },
     {
       "relation": "imports_from",
@@ -2442,9 +2472,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "lib_db",
-      "confidence_score": 1.0
+      "target": "lib_db"
     },
     {
       "relation": "imports",
@@ -2453,9 +2483,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "lib_db_getbestnodes",
-      "confidence_score": 1.0
+      "target": "lib_db_getbestnodes"
     },
     {
       "relation": "imports",
@@ -2464,9 +2494,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "lib_db_getcache",
-      "confidence_score": 1.0
+      "target": "lib_db_getcache"
     },
     {
       "relation": "imports",
@@ -2475,9 +2505,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route",
-      "target": "lib_db_getlexicon",
-      "confidence_score": 1.0
+      "target": "lib_db_getlexicon"
     },
     {
       "relation": "calls",
@@ -2486,9 +2516,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route_dominantcolor",
-      "target": "game_route_isgraphiccons",
-      "confidence_score": 1.0
+      "target": "game_route_isgraphiccons"
     },
     {
       "relation": "calls",
@@ -2497,9 +2527,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L82",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route_get",
-      "target": "game_route_dominantcolor",
-      "confidence_score": 1.0
+      "target": "game_route_dominantcolor"
     },
     {
       "relation": "calls",
@@ -2508,9 +2538,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L87",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route_get",
-      "target": "game_route_hassilentletters",
-      "confidence_score": 1.0
+      "target": "game_route_hassilentletters"
     },
     {
       "relation": "calls",
@@ -2519,9 +2549,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L88",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route_get",
-      "target": "game_route_hasstress",
-      "confidence_score": 1.0
+      "target": "game_route_hasstress"
     },
     {
       "relation": "calls",
@@ -2530,9 +2560,9 @@
       "source_file": "src/app/api/game/route.ts",
       "source_location": "L76",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_route_get",
-      "target": "game_route_shuffle",
-      "confidence_score": 1.0
+      "target": "game_route_shuffle"
     },
     {
       "relation": "calls",
@@ -2574,9 +2604,9 @@
       "source_file": "src/app/api/search/route.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "search_route",
-      "target": "lib_db",
-      "confidence_score": 1.0
+      "target": "lib_db"
     },
     {
       "relation": "imports",
@@ -2585,9 +2615,9 @@
       "source_file": "src/app/api/search/route.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "search_route",
-      "target": "lib_db_searchprefix",
-      "confidence_score": 1.0
+      "target": "lib_db_searchprefix"
     },
     {
       "relation": "contains",
@@ -2595,9 +2625,9 @@
       "source_file": "src/app/api/search/route.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "search_route",
-      "target": "search_route_get",
-      "confidence_score": 1.0
+      "target": "search_route_get"
     },
     {
       "relation": "calls",
@@ -2616,9 +2646,9 @@
       "source_file": "src/app/api/speak/route.ts",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "speak_route",
-      "target": "speak_route_execasync",
-      "confidence_score": 1.0
+      "target": "speak_route_execasync"
     },
     {
       "relation": "contains",
@@ -2626,9 +2656,9 @@
       "source_file": "src/app/api/speak/route.ts",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "speak_route",
-      "target": "speak_route_post",
-      "confidence_score": 1.0
+      "target": "speak_route_post"
     },
     {
       "relation": "calls",
@@ -2637,9 +2667,9 @@
       "source_file": "src/app/api/speak/route.ts",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "speak_route_post",
-      "target": "speak_route_execasync",
-      "confidence_score": 1.0
+      "target": "speak_route_execasync"
     },
     {
       "relation": "imports_from",
@@ -2648,9 +2678,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "words_route",
-      "target": "lib_db",
-      "confidence_score": 1.0
+      "target": "lib_db"
     },
     {
       "relation": "imports",
@@ -2659,9 +2689,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "words_route",
-      "target": "lib_db_getbestnodesmany",
-      "confidence_score": 1.0
+      "target": "lib_db_getbestnodesmany"
     },
     {
       "relation": "contains",
@@ -2669,9 +2699,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "words_route",
-      "target": "words_route_delete",
-      "confidence_score": 1.0
+      "target": "words_route_delete"
     },
     {
       "relation": "contains",
@@ -2679,9 +2709,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "words_route",
-      "target": "words_route_post",
-      "confidence_score": 1.0
+      "target": "words_route_post"
     },
     {
       "relation": "calls",
@@ -2701,9 +2731,9 @@
       "source_file": "src/app/api/words/route.ts",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "words_route_delete",
-      "target": "lib_db",
-      "confidence_score": 1.0
+      "target": "lib_db"
     },
     {
       "relation": "calls",
@@ -2722,9 +2752,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_layout",
-      "target": "app_layout_inter",
-      "confidence_score": 1.0
+      "target": "app_layout_inter"
     },
     {
       "relation": "contains",
@@ -2732,9 +2762,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_layout",
-      "target": "app_layout_lora",
-      "confidence_score": 1.0
+      "target": "app_layout_lora"
     },
     {
       "relation": "contains",
@@ -2742,9 +2772,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_layout",
-      "target": "app_layout_metadata",
-      "confidence_score": 1.0
+      "target": "app_layout_metadata"
     },
     {
       "relation": "contains",
@@ -2752,9 +2782,9 @@
       "source_file": "src/app/layout.tsx",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_layout",
-      "target": "app_layout_rootlayout",
-      "confidence_score": 1.0
+      "target": "app_layout_rootlayout"
     },
     {
       "relation": "imports_from",
@@ -2763,9 +2793,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "game_colourgame",
-      "confidence_score": 1.0
+      "target": "game_colourgame"
     },
     {
       "relation": "imports_from",
@@ -2774,9 +2804,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "game_gameprogress",
-      "confidence_score": 1.0
+      "target": "game_gameprogress"
     },
     {
       "relation": "imports_from",
@@ -2785,9 +2815,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "game_silentgame",
-      "confidence_score": 1.0
+      "target": "game_silentgame"
     },
     {
       "relation": "imports_from",
@@ -2796,9 +2826,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "game_stressgame",
-      "confidence_score": 1.0
+      "target": "game_stressgame"
     },
     {
       "relation": "imports",
@@ -2807,9 +2837,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "game_stressgame_stressgame",
-      "confidence_score": 1.0
+      "target": "game_stressgame_stressgame"
     },
     {
       "relation": "contains",
@@ -2817,9 +2847,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "learn_page_fetchwords",
-      "confidence_score": 1.0
+      "target": "learn_page_fetchwords"
     },
     {
       "relation": "contains",
@@ -2827,9 +2857,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "learn_page_learnpage",
-      "confidence_score": 1.0
+      "target": "learn_page_learnpage"
     },
     {
       "relation": "imports_from",
@@ -2838,9 +2868,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "lib_gametypes",
-      "confidence_score": 1.0
+      "target": "lib_gametypes"
     },
     {
       "relation": "imports",
@@ -2849,9 +2879,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "lib_gametypes_gamelevel",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamelevel"
     },
     {
       "relation": "imports",
@@ -2860,9 +2890,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "lib_gametypes_gamestate",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamestate"
     },
     {
       "relation": "imports",
@@ -2871,9 +2901,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "imports",
@@ -2882,9 +2912,9 @@
       "source_file": "src/app/learn/page.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "learn_page",
-      "target": "lib_gametypes_level_info",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_level_info"
     },
     {
       "relation": "contains",
@@ -2892,9 +2922,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "app_page_constellationview",
-      "confidence_score": 1.0
+      "target": "app_page_constellationview"
     },
     {
       "relation": "contains",
@@ -2902,9 +2932,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "app_page_home",
-      "confidence_score": 1.0
+      "target": "app_page_home"
     },
     {
       "relation": "contains",
@@ -2912,9 +2942,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "app_page_samples",
-      "confidence_score": 1.0
+      "target": "app_page_samples"
     },
     {
       "relation": "contains",
@@ -2922,9 +2952,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "app_page_tabs",
-      "confidence_score": 1.0
+      "target": "app_page_tabs"
     },
     {
       "relation": "contains",
@@ -2932,9 +2962,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "app_page_viewmode",
-      "confidence_score": 1.0
+      "target": "app_page_viewmode"
     },
     {
       "relation": "imports_from",
@@ -2943,9 +2973,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "components_karaokemode",
-      "confidence_score": 1.0
+      "target": "components_karaokemode"
     },
     {
       "relation": "imports_from",
@@ -2954,9 +2984,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "components_soundspectrum",
-      "confidence_score": 1.0
+      "target": "components_soundspectrum"
     },
     {
       "relation": "imports",
@@ -2965,9 +2995,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "components_soundspectrum_soundspectrum",
-      "confidence_score": 1.0
+      "target": "components_soundspectrum_soundspectrum"
     },
     {
       "relation": "imports_from",
@@ -2976,9 +3006,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "components_statsbar",
-      "confidence_score": 1.0
+      "target": "components_statsbar"
     },
     {
       "relation": "imports_from",
@@ -2987,9 +3017,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "components_terrainview",
-      "confidence_score": 1.0
+      "target": "components_terrainview"
     },
     {
       "relation": "imports_from",
@@ -2998,9 +3028,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "components_wordrenderer",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer"
     },
     {
       "relation": "imports_from",
@@ -3009,9 +3039,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "lib_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode"
     },
     {
       "relation": "imports_from",
@@ -3020,9 +3050,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "lib_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer"
     },
     {
       "relation": "imports",
@@ -3031,9 +3061,9 @@
       "source_file": "src/app/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_page",
-      "target": "lib_usecolorizer_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_usecolorizer"
     },
     {
       "relation": "calls",
@@ -3053,9 +3083,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig"
     },
     {
       "relation": "imports",
@@ -3064,9 +3094,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig_default_config",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_applyregexoverrides"
     },
     {
       "relation": "imports",
@@ -3075,9 +3105,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig_diffconfigs",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_default_config"
     },
     {
       "relation": "imports",
@@ -3086,9 +3116,20 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig_generateprompt",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_diffconfigs"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/rules/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "rules_page",
+      "target": "lib_ruleconfig_generateprompt"
     },
     {
       "relation": "imports",
@@ -3097,9 +3138,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig_ruleconfig",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_regexrule"
     },
     {
       "relation": "imports",
@@ -3108,9 +3149,9 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig_rulediff",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_regexruleaction"
     },
     {
       "relation": "imports",
@@ -3119,9 +3160,31 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "lib_ruleconfig_testcase",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_ruleconfig"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/rules/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "rules_page",
+      "target": "lib_ruleconfig_rulediff"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/rules/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "rules_page",
+      "target": "lib_ruleconfig_testcase"
     },
     {
       "relation": "contains",
@@ -3129,60 +3192,82 @@
       "source_file": "src/app/rules/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "rules_page_clone",
-      "confidence_score": 1.0
+      "target": "rules_page_clone"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L42",
+      "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "rules_page_nodepreview",
-      "confidence_score": 1.0
+      "target": "rules_page_nodepreview"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L12",
+      "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "rules_page_renderword",
-      "confidence_score": 1.0
+      "target": "rules_page_renderword"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L34",
+      "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "rules_page_resolvecolor",
-      "confidence_score": 1.0
+      "target": "rules_page_resolvecolor"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L44",
+      "source_location": "L54",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page",
-      "target": "rules_page_rulespage",
-      "confidence_score": 1.0
+      "target": "rules_page_rulespage"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L400",
+      "source_location": "L83",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "rules_page_renderword",
+      "target": "lib_ruleconfig_applyregexoverrides"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/rules/page.tsx",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "rules_page_renderword",
+      "target": "lib_ruleconfig_diffconfigs"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/rules/page.tsx",
+      "source_location": "L672",
+      "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "rules_page_rulespage",
-      "target": "rules_page_renderword",
-      "confidence_score": 1.0
+      "target": "rules_page_renderword"
     },
     {
       "relation": "calls",
@@ -3190,7 +3275,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L56",
+      "source_location": "L67",
       "weight": 1.0,
       "source": "rules_page_rulespage",
       "target": "lib_ruleconfig_diffconfigs"
@@ -3201,7 +3286,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/rules/page.tsx",
-      "source_location": "L77",
+      "source_location": "L91",
       "weight": 1.0,
       "source": "rules_page_rulespage",
       "target": "lib_ruleconfig_generateprompt"
@@ -3212,9 +3297,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview",
-      "target": "components_constellationview_constellationview",
-      "confidence_score": 1.0
+      "target": "components_constellationview_constellationview"
     },
     {
       "relation": "contains",
@@ -3222,9 +3307,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview",
-      "target": "components_constellationview_props",
-      "confidence_score": 1.0
+      "target": "components_constellationview_props"
     },
     {
       "relation": "contains",
@@ -3232,9 +3317,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview",
-      "target": "components_constellationview_wordnode",
-      "confidence_score": 1.0
+      "target": "components_constellationview_wordnode"
     },
     {
       "relation": "imports_from",
@@ -3243,9 +3328,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview",
-      "target": "lib_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode"
     },
     {
       "relation": "imports_from",
@@ -3254,9 +3339,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview",
-      "target": "lib_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer"
     },
     {
       "relation": "imports",
@@ -3265,9 +3350,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "references",
@@ -3276,9 +3361,9 @@
       "source_file": "src/components/ConstellationView.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_constellationview_props",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "contains",
@@ -3286,9 +3371,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "components_karaokemode_audiocache",
-      "confidence_score": 1.0
+      "target": "components_karaokemode_audiocache"
     },
     {
       "relation": "contains",
@@ -3296,9 +3381,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "components_karaokemode_karaokemode",
-      "confidence_score": 1.0
+      "target": "components_karaokemode_karaokemode"
     },
     {
       "relation": "contains",
@@ -3306,9 +3391,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "components_karaokemode_props",
-      "confidence_score": 1.0
+      "target": "components_karaokemode_props"
     },
     {
       "relation": "contains",
@@ -3316,9 +3401,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "components_karaokemode_speak",
-      "confidence_score": 1.0
+      "target": "components_karaokemode_speak"
     },
     {
       "relation": "contains",
@@ -3326,9 +3411,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "components_karaokemode_speeds",
-      "confidence_score": 1.0
+      "target": "components_karaokemode_speeds"
     },
     {
       "relation": "imports_from",
@@ -3337,9 +3422,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "components_wordrenderer",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer"
     },
     {
       "relation": "imports_from",
@@ -3348,9 +3433,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "lib_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer"
     },
     {
       "relation": "imports",
@@ -3359,9 +3444,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "references",
@@ -3370,9 +3455,9 @@
       "source_file": "src/components/KaraokeMode.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_karaokemode_props",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "contains",
@@ -3380,9 +3465,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "components_soundspectrum_labels",
-      "confidence_score": 1.0
+      "target": "components_soundspectrum_labels"
     },
     {
       "relation": "contains",
@@ -3390,9 +3475,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "components_soundspectrum_props",
-      "confidence_score": 1.0
+      "target": "components_soundspectrum_props"
     },
     {
       "relation": "contains",
@@ -3400,9 +3485,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "components_soundspectrum_soundspectrum",
-      "confidence_score": 1.0
+      "target": "components_soundspectrum_soundspectrum"
     },
     {
       "relation": "contains",
@@ -3410,9 +3495,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "components_soundspectrum_vowel_colors",
-      "confidence_score": 1.0
+      "target": "components_soundspectrum_vowel_colors"
     },
     {
       "relation": "imports_from",
@@ -3421,9 +3506,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "lib_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode"
     },
     {
       "relation": "imports_from",
@@ -3432,9 +3517,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "lib_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer"
     },
     {
       "relation": "imports",
@@ -3443,9 +3528,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "references",
@@ -3454,9 +3539,9 @@
       "source_file": "src/components/SoundSpectrum.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_soundspectrum_props",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "contains",
@@ -3464,9 +3549,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_statsbar",
-      "target": "components_statsbar_legend",
-      "confidence_score": 1.0
+      "target": "components_statsbar_legend"
     },
     {
       "relation": "contains",
@@ -3474,9 +3559,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_statsbar",
-      "target": "components_statsbar_props",
-      "confidence_score": 1.0
+      "target": "components_statsbar_props"
     },
     {
       "relation": "contains",
@@ -3484,9 +3569,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_statsbar",
-      "target": "components_statsbar_statsbar",
-      "confidence_score": 1.0
+      "target": "components_statsbar_statsbar"
     },
     {
       "relation": "imports_from",
@@ -3495,9 +3580,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_statsbar",
-      "target": "lib_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer"
     },
     {
       "relation": "imports",
@@ -3506,9 +3591,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_statsbar",
-      "target": "lib_usecolorizer_stats",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_stats"
     },
     {
       "relation": "references",
@@ -3517,9 +3602,9 @@
       "source_file": "src/components/StatsBar.tsx",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_statsbar_props",
-      "target": "lib_usecolorizer_stats",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_stats"
     },
     {
       "relation": "contains",
@@ -3527,9 +3612,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "components_terrainview_props",
-      "confidence_score": 1.0
+      "target": "components_terrainview_props"
     },
     {
       "relation": "contains",
@@ -3537,9 +3622,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "components_terrainview_terrainview",
-      "confidence_score": 1.0
+      "target": "components_terrainview_terrainview"
     },
     {
       "relation": "contains",
@@ -3547,9 +3632,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "components_terrainview_wordcomplexity",
-      "confidence_score": 1.0
+      "target": "components_terrainview_wordcomplexity"
     },
     {
       "relation": "contains",
@@ -3557,9 +3642,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "components_terrainview_wordpeak",
-      "confidence_score": 1.0
+      "target": "components_terrainview_wordpeak"
     },
     {
       "relation": "imports_from",
@@ -3568,9 +3653,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "lib_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode"
     },
     {
       "relation": "imports_from",
@@ -3579,9 +3664,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "lib_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer"
     },
     {
       "relation": "imports",
@@ -3590,9 +3675,9 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "references",
@@ -3601,119 +3686,49 @@
       "source_file": "src/components/TerrainView.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_terrainview_props",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L68",
+      "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_builddiphthonggradients",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_builddiphthonggradients"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L95",
+      "source_location": "L96",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_buildunderlined",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_buildunderlined"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_classification",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_classification"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L52",
+      "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_classifynodes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L11",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_graphic_consonants",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L89",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_hastruesyllabic",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L19",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_isgraphicconsonant",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L85",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_ismonosyllabic",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L41",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_issemivowel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L34",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_isvowel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "components_wordrenderer",
-      "target": "components_wordrenderer_props",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_classifynodes"
     },
     {
       "relation": "contains",
@@ -3721,29 +3736,99 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_semivowel_sounds",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_graphic_consonants"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L23",
+      "source_location": "L90",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_shouldbemute",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_hastruesyllabic"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L136",
+      "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "components_wordrenderer_wordrenderer",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_isgraphicconsonant"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L86",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_ismonosyllabic"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_issemivowel"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_isvowel"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_props"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_semivowel_sounds"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_shouldbemute"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L142",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "components_wordrenderer_wordrenderer"
     },
     {
       "relation": "imports_from",
@@ -3752,9 +3837,9 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "lib_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode"
     },
     {
       "relation": "imports",
@@ -3763,9 +3848,42 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer",
-      "target": "lib_rendernode_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_rendernode"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "lib_ruleconfig"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "lib_ruleconfig_applyregexoverrides"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer",
+      "target": "lib_ruleconfig_default_config"
     },
     {
       "relation": "imports_from",
@@ -3774,9 +3892,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "components_wordrenderer",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer"
     },
     {
       "relation": "references",
@@ -3785,119 +3903,86 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_props",
-      "target": "lib_rendernode_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_rendernode"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_shouldbemute",
-      "target": "components_wordrenderer_isgraphicconsonant",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_isgraphicconsonant"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L109",
+      "source_location": "L113",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_buildunderlined",
-      "target": "components_wordrenderer_shouldbemute",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_shouldbemute"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L36",
+      "source_location": "L37",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_isvowel",
-      "target": "components_wordrenderer_shouldbemute",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_shouldbemute"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_builddiphthonggradients",
-      "target": "components_wordrenderer_isvowel",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_isvowel"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L109",
+      "source_location": "L113",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_buildunderlined",
-      "target": "components_wordrenderer_isvowel",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_isvowel"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L110",
+      "source_location": "L114",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_buildunderlined",
-      "target": "components_wordrenderer_issemivowel",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_issemivowel"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L137",
+      "source_location": "L145",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_wordrenderer",
-      "target": "components_wordrenderer_classifynodes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L138",
-      "weight": 1.0,
-      "source": "components_wordrenderer_wordrenderer",
-      "target": "components_wordrenderer_builddiphthonggradients",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L140",
-      "weight": 1.0,
-      "source": "components_wordrenderer_wordrenderer",
-      "target": "components_wordrenderer_ismonosyllabic",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/WordRenderer.tsx",
-      "source_location": "L141",
-      "weight": 1.0,
-      "source": "components_wordrenderer_wordrenderer",
-      "target": "components_wordrenderer_hastruesyllabic",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_classifynodes"
     },
     {
       "relation": "calls",
@@ -3906,9 +3991,53 @@
       "source_file": "src/components/WordRenderer.tsx",
       "source_location": "L146",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_wordrenderer_wordrenderer",
-      "target": "components_wordrenderer_buildunderlined",
-      "confidence_score": 1.0
+      "target": "components_wordrenderer_builddiphthonggradients"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L148",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer_wordrenderer",
+      "target": "components_wordrenderer_ismonosyllabic"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L149",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer_wordrenderer",
+      "target": "components_wordrenderer_hastruesyllabic"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L154",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "components_wordrenderer_wordrenderer",
+      "target": "components_wordrenderer_buildunderlined"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/WordRenderer.tsx",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "components_wordrenderer_wordrenderer",
+      "target": "lib_ruleconfig_applyregexoverrides"
     },
     {
       "relation": "contains",
@@ -3916,9 +4045,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "game_colourgame_colourgame",
-      "confidence_score": 1.0
+      "target": "game_colourgame_colourgame"
     },
     {
       "relation": "contains",
@@ -3926,9 +4055,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "game_colourgame_props",
-      "confidence_score": 1.0
+      "target": "game_colourgame_props"
     },
     {
       "relation": "contains",
@@ -3936,9 +4065,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "game_colourgame_shuffle",
-      "confidence_score": 1.0
+      "target": "game_colourgame_shuffle"
     },
     {
       "relation": "imports_from",
@@ -3947,9 +4076,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "lib_gametypes",
-      "confidence_score": 1.0
+      "target": "lib_gametypes"
     },
     {
       "relation": "imports",
@@ -3958,9 +4087,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "lib_gametypes_color_labels",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_color_labels"
     },
     {
       "relation": "imports",
@@ -3969,9 +4098,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "references",
@@ -3980,9 +4109,9 @@
       "source_file": "src/components/game/ColourGame.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_colourgame_props",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "contains",
@@ -3990,9 +4119,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_gameprogress",
-      "target": "game_gameprogress_gameprogress",
-      "confidence_score": 1.0
+      "target": "game_gameprogress_gameprogress"
     },
     {
       "relation": "contains",
@@ -4000,9 +4129,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_gameprogress",
-      "target": "game_gameprogress_props",
-      "confidence_score": 1.0
+      "target": "game_gameprogress_props"
     },
     {
       "relation": "imports_from",
@@ -4011,9 +4140,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_gameprogress",
-      "target": "lib_gametypes",
-      "confidence_score": 1.0
+      "target": "lib_gametypes"
     },
     {
       "relation": "imports",
@@ -4022,9 +4151,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_gameprogress",
-      "target": "lib_gametypes_gamestate",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamestate"
     },
     {
       "relation": "imports",
@@ -4033,9 +4162,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_gameprogress",
-      "target": "lib_gametypes_level_info",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_level_info"
     },
     {
       "relation": "references",
@@ -4044,9 +4173,9 @@
       "source_file": "src/components/game/GameProgress.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_gameprogress_props",
-      "target": "lib_gametypes_gamestate",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamestate"
     },
     {
       "relation": "contains",
@@ -4054,9 +4183,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame",
-      "target": "game_silentgame_graphic_cons",
-      "confidence_score": 1.0
+      "target": "game_silentgame_graphic_cons"
     },
     {
       "relation": "contains",
@@ -4064,9 +4193,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame",
-      "target": "game_silentgame_isgraphiccons",
-      "confidence_score": 1.0
+      "target": "game_silentgame_isgraphiccons"
     },
     {
       "relation": "contains",
@@ -4074,9 +4203,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame",
-      "target": "game_silentgame_props",
-      "confidence_score": 1.0
+      "target": "game_silentgame_props"
     },
     {
       "relation": "contains",
@@ -4084,9 +4213,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame",
-      "target": "game_silentgame_silentgame",
-      "confidence_score": 1.0
+      "target": "game_silentgame_silentgame"
     },
     {
       "relation": "imports_from",
@@ -4095,9 +4224,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame",
-      "target": "lib_gametypes",
-      "confidence_score": 1.0
+      "target": "lib_gametypes"
     },
     {
       "relation": "imports",
@@ -4106,9 +4235,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "references",
@@ -4117,9 +4246,9 @@
       "source_file": "src/components/game/SilentGame.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_silentgame_props",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "contains",
@@ -4127,9 +4256,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "game_stressgame_graphic_cons",
-      "confidence_score": 1.0
+      "target": "game_stressgame_graphic_cons"
     },
     {
       "relation": "contains",
@@ -4137,9 +4266,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "game_stressgame_isvowelnode",
-      "confidence_score": 1.0
+      "target": "game_stressgame_isvowelnode"
     },
     {
       "relation": "contains",
@@ -4147,9 +4276,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "game_stressgame_props",
-      "confidence_score": 1.0
+      "target": "game_stressgame_props"
     },
     {
       "relation": "contains",
@@ -4157,9 +4286,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "game_stressgame_stressgame",
-      "confidence_score": 1.0
+      "target": "game_stressgame_stressgame"
     },
     {
       "relation": "contains",
@@ -4167,9 +4296,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "game_stressgame_stressgroup",
-      "confidence_score": 1.0
+      "target": "game_stressgame_stressgroup"
     },
     {
       "relation": "imports_from",
@@ -4178,9 +4307,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "lib_gametypes",
-      "confidence_score": 1.0
+      "target": "lib_gametypes"
     },
     {
       "relation": "imports",
@@ -4189,9 +4318,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "references",
@@ -4200,9 +4329,9 @@
       "source_file": "src/components/game/StressGame.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "game_stressgame_props",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "contains",
@@ -4210,9 +4339,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_cache_path",
-      "confidence_score": 1.0
+      "target": "lib_db_cache_path"
     },
     {
       "relation": "contains",
@@ -4220,9 +4349,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L117",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_getbestnodes",
-      "confidence_score": 1.0
+      "target": "lib_db_getbestnodes"
     },
     {
       "relation": "contains",
@@ -4230,9 +4359,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L172",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_getbestnodesmany",
-      "confidence_score": 1.0
+      "target": "lib_db_getbestnodesmany"
     },
     {
       "relation": "contains",
@@ -4240,9 +4369,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_getcache",
-      "confidence_score": 1.0
+      "target": "lib_db_getcache"
     },
     {
       "relation": "contains",
@@ -4250,9 +4379,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L234",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_getcachestats",
-      "confidence_score": 1.0
+      "target": "lib_db_getcachestats"
     },
     {
       "relation": "contains",
@@ -4260,9 +4389,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L63",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_getdb",
-      "confidence_score": 1.0
+      "target": "lib_db_getdb"
     },
     {
       "relation": "contains",
@@ -4270,9 +4399,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_getlexicon",
-      "confidence_score": 1.0
+      "target": "lib_db_getlexicon"
     },
     {
       "relation": "contains",
@@ -4280,9 +4409,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_lexicon_path",
-      "confidence_score": 1.0
+      "target": "lib_db_lexicon_path"
     },
     {
       "relation": "contains",
@@ -4290,9 +4419,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L203",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_searchprefix",
-      "confidence_score": 1.0
+      "target": "lib_db_searchprefix"
     },
     {
       "relation": "contains",
@@ -4300,9 +4429,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L183",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_selectbest",
-      "confidence_score": 1.0
+      "target": "lib_db_selectbest"
     },
     {
       "relation": "contains",
@@ -4310,9 +4439,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_stmtcacheget",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtcacheget"
     },
     {
       "relation": "contains",
@@ -4320,9 +4449,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L79",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_stmtcacheset",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtcacheset"
     },
     {
       "relation": "contains",
@@ -4330,9 +4459,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L97",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_stmtuk",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtuk"
     },
     {
       "relation": "contains",
@@ -4340,9 +4469,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L102",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_stmtus",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtus"
     },
     {
       "relation": "contains",
@@ -4350,9 +4479,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L110",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_db_wordresult",
-      "confidence_score": 1.0
+      "target": "lib_db_wordresult"
     },
     {
       "relation": "imports_from",
@@ -4361,9 +4490,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_pipeline",
-      "confidence_score": 1.0
+      "target": "lib_pipeline"
     },
     {
       "relation": "imports",
@@ -4372,9 +4501,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_pipeline_extractprops",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_extractprops"
     },
     {
       "relation": "imports",
@@ -4383,9 +4512,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_pipeline_processipa",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_processipa"
     },
     {
       "relation": "imports",
@@ -4394,9 +4523,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_pipeline_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_rendernode"
     },
     {
       "relation": "imports",
@@ -4405,9 +4534,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db",
-      "target": "lib_pipeline_scorenodes",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_scorenodes"
     },
     {
       "relation": "calls",
@@ -4416,9 +4545,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L63",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getdb",
-      "target": "lib_db_getlexicon",
-      "confidence_score": 1.0
+      "target": "lib_db_getlexicon"
     },
     {
       "relation": "calls",
@@ -4427,9 +4556,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L217",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_searchprefix",
-      "target": "lib_db_getlexicon",
-      "confidence_score": 1.0
+      "target": "lib_db_getlexicon"
     },
     {
       "relation": "calls",
@@ -4438,9 +4567,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L99",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_stmtuk",
-      "target": "lib_db_getlexicon",
-      "confidence_score": 1.0
+      "target": "lib_db_getlexicon"
     },
     {
       "relation": "calls",
@@ -4449,9 +4578,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L104",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_stmtus",
-      "target": "lib_db_getlexicon",
-      "confidence_score": 1.0
+      "target": "lib_db_getlexicon"
     },
     {
       "relation": "calls",
@@ -4460,9 +4589,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L235",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getcachestats",
-      "target": "lib_db_getcache",
-      "confidence_score": 1.0
+      "target": "lib_db_getcache"
     },
     {
       "relation": "calls",
@@ -4471,9 +4600,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L209",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_searchprefix",
-      "target": "lib_db_getcache",
-      "confidence_score": 1.0
+      "target": "lib_db_getcache"
     },
     {
       "relation": "calls",
@@ -4482,9 +4611,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L71",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_stmtcacheget",
-      "target": "lib_db_getcache",
-      "confidence_score": 1.0
+      "target": "lib_db_getcache"
     },
     {
       "relation": "calls",
@@ -4493,9 +4622,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_stmtcacheset",
-      "target": "lib_db_getcache",
-      "confidence_score": 1.0
+      "target": "lib_db_getcache"
     },
     {
       "relation": "calls",
@@ -4504,9 +4633,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L122",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getbestnodes",
-      "target": "lib_db_stmtcacheget",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtcacheget"
     },
     {
       "relation": "calls",
@@ -4515,9 +4644,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L151",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getbestnodes",
-      "target": "lib_db_stmtcacheset",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtcacheset"
     },
     {
       "relation": "calls",
@@ -4526,9 +4655,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L133",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getbestnodes",
-      "target": "lib_db_stmtuk",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtuk"
     },
     {
       "relation": "calls",
@@ -4537,9 +4666,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L134",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getbestnodes",
-      "target": "lib_db_stmtus",
-      "confidence_score": 1.0
+      "target": "lib_db_stmtus"
     },
     {
       "relation": "references",
@@ -4548,9 +4677,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_wordresult",
-      "target": "lib_pipeline_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_rendernode"
     },
     {
       "relation": "calls",
@@ -4559,9 +4688,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L143",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getbestnodes",
-      "target": "lib_db_selectbest",
-      "confidence_score": 1.0
+      "target": "lib_db_selectbest"
     },
     {
       "relation": "calls",
@@ -4592,9 +4721,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L175",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_getbestnodesmany",
-      "target": "lib_db_getbestnodes",
-      "confidence_score": 1.0
+      "target": "lib_db_getbestnodes"
     },
     {
       "relation": "calls",
@@ -4603,9 +4732,9 @@
       "source_file": "src/lib/db.ts",
       "source_location": "L188",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_db_selectbest",
-      "target": "lib_pipeline_scorenodes",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_scorenodes"
     },
     {
       "relation": "contains",
@@ -4613,9 +4742,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_gametypes",
-      "target": "lib_gametypes_color_labels",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_color_labels"
     },
     {
       "relation": "contains",
@@ -4623,9 +4752,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_gametypes",
-      "target": "lib_gametypes_gamelevel",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamelevel"
     },
     {
       "relation": "contains",
@@ -4633,9 +4762,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_gametypes",
-      "target": "lib_gametypes_gamenode",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamenode"
     },
     {
       "relation": "contains",
@@ -4643,9 +4772,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_gametypes",
-      "target": "lib_gametypes_gamestate",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gamestate"
     },
     {
       "relation": "contains",
@@ -4653,9 +4782,9 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_gametypes",
-      "target": "lib_gametypes_gameword",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_gameword"
     },
     {
       "relation": "contains",
@@ -4663,139 +4792,39 @@
       "source_file": "src/lib/gameTypes.ts",
       "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_gametypes",
-      "target": "lib_gametypes_level_info",
-      "confidence_score": 1.0
+      "target": "lib_gametypes_level_info"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_color_map",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_color_map"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L251",
+      "source_location": "L252",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_extractprops",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_extractprops"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_getcolor",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L155",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_graphic_vowels",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L159",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_isgraphiccons",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L158",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_isgraphicvowel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L41",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_isvowelsound",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L171",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_maptoword",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L92",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_processipa",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_rendernode",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L236",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_scorenodes",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L83",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_seg",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/pipeline.ts",
-      "source_location": "L112",
-      "weight": 1.0,
-      "source": "lib_pipeline",
-      "target": "lib_pipeline_segment",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_getcolor"
     },
     {
       "relation": "contains",
@@ -4803,39 +4832,109 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L156",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_semivowel_display",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_graphic_vowels"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L80",
+      "source_location": "L160",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_strip",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isgraphiccons"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L47",
+      "source_location": "L159",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_transforms",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isgraphicvowel"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L39",
+      "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_vowel_chars",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isvowelsound"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L172",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_maptoword"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L93",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_processipa"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_rendernode"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L237",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_scorenodes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_seg"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L113",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_segment"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L157",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_semivowel_display"
     },
     {
       "relation": "contains",
@@ -4843,96 +4942,126 @@
       "source_file": "src/lib/pipeline.ts",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_vowel_fallback",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_strip"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L244",
+      "source_location": "L48",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline",
-      "target": "lib_pipeline_wordprops",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_transforms"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_vowel_chars"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_vowel_fallback"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/pipeline.ts",
+      "source_location": "L245",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_pipeline",
+      "target": "lib_pipeline_wordprops"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L213",
+      "source_location": "L214",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_maptoword",
-      "target": "lib_pipeline_getcolor",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_getcolor"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L124",
+      "source_location": "L125",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_segment",
-      "target": "lib_pipeline_isvowelsound",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isvowelsound"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L109",
+      "source_location": "L110",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_processipa",
-      "target": "lib_pipeline_maptoword",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_maptoword"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L106",
+      "source_location": "L107",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_processipa",
-      "target": "lib_pipeline_segment",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_segment"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L200",
+      "source_location": "L201",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_maptoword",
-      "target": "lib_pipeline_isgraphicvowel",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isgraphicvowel"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L259",
+      "source_location": "L260",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_extractprops",
-      "target": "lib_pipeline_isgraphiccons",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isgraphiccons"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/pipeline.ts",
-      "source_location": "L192",
+      "source_location": "L193",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_pipeline_maptoword",
-      "target": "lib_pipeline_isgraphiccons",
-      "confidence_score": 1.0
+      "target": "lib_pipeline_isgraphiccons"
     },
     {
       "relation": "contains",
@@ -4940,9 +5069,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_rendernode",
-      "target": "lib_rendernode_graphic_consonants",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_graphic_consonants"
     },
     {
       "relation": "contains",
@@ -4950,9 +5079,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_rendernode",
-      "target": "lib_rendernode_isgraphicconsonantstring",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_isgraphicconsonantstring"
     },
     {
       "relation": "contains",
@@ -4960,9 +5089,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_rendernode",
-      "target": "lib_rendernode_ismute",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_ismute"
     },
     {
       "relation": "contains",
@@ -4970,9 +5099,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_rendernode",
-      "target": "lib_rendernode_issyllabicconsonant",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_issyllabicconsonant"
     },
     {
       "relation": "contains",
@@ -4980,9 +5109,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_rendernode",
-      "target": "lib_rendernode_isvowelnode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_isvowelnode"
     },
     {
       "relation": "contains",
@@ -4990,9 +5119,9 @@
       "source_file": "src/lib/renderNode.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_rendernode",
-      "target": "lib_rendernode_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_rendernode"
     },
     {
       "relation": "imports_from",
@@ -5001,9 +5130,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode"
     },
     {
       "relation": "imports",
@@ -5012,9 +5141,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_rendernode_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_rendernode"
     },
     {
       "relation": "references",
@@ -5023,9 +5152,19 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer_texttoken",
-      "target": "lib_rendernode_rendernode",
-      "confidence_score": 1.0
+      "target": "lib_rendernode_rendernode"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L135",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_ruleconfig",
+      "target": "lib_ruleconfig_applyregexoverrides"
     },
     {
       "relation": "contains",
@@ -5033,9 +5172,49 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_colorentry",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_colorentry"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_ruleconfig",
+      "target": "lib_ruleconfig_default_config"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L198",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_ruleconfig",
+      "target": "lib_ruleconfig_diffconfigs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L276",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_ruleconfig",
+      "target": "lib_ruleconfig_generateprompt"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/ruleConfig.ts",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_ruleconfig",
+      "target": "lib_ruleconfig_regexrule"
     },
     {
       "relation": "contains",
@@ -5043,49 +5222,29 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_default_config",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_regexruleaction"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/ruleConfig.ts",
-      "source_location": "L83",
+      "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_diffconfigs",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_ruleconfig"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/ruleConfig.ts",
-      "source_location": "L138",
+      "source_location": "L191",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_generateprompt",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/ruleConfig.ts",
-      "source_location": "L32",
-      "weight": 1.0,
-      "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_ruleconfig",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/ruleConfig.ts",
-      "source_location": "L76",
-      "weight": 1.0,
-      "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_rulediff",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_rulediff"
     },
     {
       "relation": "contains",
@@ -5093,19 +5252,19 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_silentrules",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_silentrules"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/lib/ruleConfig.ts",
-      "source_location": "L131",
+      "source_location": "L269",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_testcase",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_testcase"
     },
     {
       "relation": "contains",
@@ -5113,9 +5272,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_underlinerules",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_underlinerules"
     },
     {
       "relation": "contains",
@@ -5123,9 +5282,9 @@
       "source_file": "src/lib/ruleConfig.ts",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_ruleconfig",
-      "target": "lib_ruleconfig_vowelchars",
-      "confidence_score": 1.0
+      "target": "lib_ruleconfig_vowelchars"
     },
     {
       "relation": "contains",
@@ -5133,9 +5292,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_colortolabel",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_colortolabel"
     },
     {
       "relation": "contains",
@@ -5143,9 +5302,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_computestats",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_computestats"
     },
     {
       "relation": "contains",
@@ -5153,9 +5312,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_nodecache",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_nodecache"
     },
     {
       "relation": "contains",
@@ -5163,9 +5322,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L113",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_restorecasing",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_restorecasing"
     },
     {
       "relation": "contains",
@@ -5173,9 +5332,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_stats",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_stats"
     },
     {
       "relation": "contains",
@@ -5183,9 +5342,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_texttoken",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_texttoken"
     },
     {
       "relation": "contains",
@@ -5193,9 +5352,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_tokenize",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_tokenize"
     },
     {
       "relation": "contains",
@@ -5203,9 +5362,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L123",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer",
-      "target": "lib_usecolorizer_usecolorizer",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_usecolorizer"
     },
     {
       "relation": "calls",
@@ -5214,9 +5373,9 @@
       "source_file": "src/lib/useColorizer.ts",
       "source_location": "L104",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecolorizer_computestats",
-      "target": "lib_usecolorizer_colortolabel",
-      "confidence_score": 1.0
+      "target": "lib_usecolorizer_colortolabel"
     },
     {
       "relation": "contains",
@@ -5224,9 +5383,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig",
-      "target": "tsconfig_compileroptions",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions"
     },
     {
       "relation": "contains",
@@ -5234,9 +5393,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig",
-      "target": "tsconfig_exclude",
-      "confidence_score": 1.0
+      "target": "tsconfig_exclude"
     },
     {
       "relation": "contains",
@@ -5244,9 +5403,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig",
-      "target": "tsconfig_include",
-      "confidence_score": 1.0
+      "target": "tsconfig_include"
     },
     {
       "relation": "contains",
@@ -5254,9 +5413,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_allowjs",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_allowjs"
     },
     {
       "relation": "contains",
@@ -5264,9 +5423,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_esmoduleinterop",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_esmoduleinterop"
     },
     {
       "relation": "contains",
@@ -5274,9 +5433,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_incremental",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_incremental"
     },
     {
       "relation": "contains",
@@ -5284,9 +5443,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_isolatedmodules",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_isolatedmodules"
     },
     {
       "relation": "contains",
@@ -5294,9 +5453,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_jsx",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_jsx"
     },
     {
       "relation": "contains",
@@ -5304,9 +5463,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_lib",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_lib"
     },
     {
       "relation": "contains",
@@ -5314,9 +5473,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_module",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_module"
     },
     {
       "relation": "contains",
@@ -5324,9 +5483,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_moduleresolution",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_moduleresolution"
     },
     {
       "relation": "contains",
@@ -5334,9 +5493,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_noemit",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_noemit"
     },
     {
       "relation": "contains",
@@ -5344,9 +5503,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_paths",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_paths"
     },
     {
       "relation": "contains",
@@ -5354,9 +5513,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_plugins",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_plugins"
     },
     {
       "relation": "contains",
@@ -5364,9 +5523,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_resolvejsonmodule",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_resolvejsonmodule"
     },
     {
       "relation": "contains",
@@ -5374,9 +5533,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_skiplibcheck",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_skiplibcheck"
     },
     {
       "relation": "contains",
@@ -5384,9 +5543,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_strict",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_strict"
     },
     {
       "relation": "contains",
@@ -5394,9 +5553,9 @@
       "source_file": "tsconfig.json",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions",
-      "target": "tsconfig_compileroptions_target",
-      "confidence_score": 1.0
+      "target": "tsconfig_compileroptions_target"
     },
     {
       "relation": "contains",
@@ -5404,11 +5563,11 @@
       "source_file": "tsconfig.json",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tsconfig_compileroptions_paths",
-      "target": "tsconfig_paths",
-      "confidence_score": 1.0
+      "target": "tsconfig_paths"
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "23e870daa1db5c427a24035f65c910e8fa9c4187"
+  "built_at_commit": "ddc4cf5e1820f94f62db0845c0469c8cac96e5eb"
 }

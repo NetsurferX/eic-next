@@ -1,12 +1,17 @@
-# Graph Report - .  (2026-06-15)
+# Graph Report - /home/doruciocanu/EiC/eic-next  (2026-06-17)
 
 ## Corpus Check
-- Corpus is ~21,706 words - fits in a single context window. You may not need a graph.
+- cluster-only mode — file stats not available
 
 ## Summary
-- 212 nodes · 313 edges · 16 communities (10 shown, 6 thin omitted)
+- 215 nodes · 325 edges · 16 communities (10 shown, 6 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
-- Token cost: 1,200 input · 400 output
+- Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `ddc4cf5e`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_UI & Rendering|UI & Rendering]]
@@ -32,22 +37,22 @@
 4. `GET()` - 8 edges
 5. `getCache()` - 8 edges
 6. `GameWord` - 8 edges
-7. `getLexicon()` - 7 edges
-8. `WordRenderer()` - 6 edges
+7. `WordRenderer()` - 7 edges
+8. `getLexicon()` - 7 edges
 9. `buildUnderlined()` - 5 edges
 10. `searchPrefix()` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `GET()` --calls--> `searchPrefix()`  [EXTRACTED]
   src/app/api/search/route.ts → src/lib/db.ts
+- `renderWord()` --calls--> `applyRegexOverrides()`  [EXTRACTED]
+  src/app/rules/page.tsx → src/lib/ruleConfig.ts
 - `Props` --references--> `TextToken`  [EXTRACTED]
   src/components/ConstellationView.tsx → src/lib/useColorizer.ts
 - `Props` --references--> `TextToken`  [EXTRACTED]
   src/components/KaraokeMode.tsx → src/lib/useColorizer.ts
 - `Props` --references--> `TextToken`  [EXTRACTED]
   src/components/SoundSpectrum.tsx → src/lib/useColorizer.ts
-- `Props` --references--> `TextToken`  [EXTRACTED]
-  src/components/TerrainView.tsx → src/lib/useColorizer.ts
 
 ## Import Cycles
 - None detected.
@@ -76,15 +81,15 @@ Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModu
 
 ### Community 5 - "Rules & Config"
 Cohesion: 0.18
-Nodes (13): ColorEntry, DEFAULT_CONFIG, diffConfigs(), generatePrompt(), RuleConfig, RuleDiff, SilentRules, TestCase (+5 more)
+Nodes (15): ColorEntry, DEFAULT_CONFIG, diffConfigs(), generatePrompt(), RegexRule, RegexRuleAction, RuleConfig, RuleDiff (+7 more)
 
 ### Community 6 - "Phonetic Pipeline"
 Cohesion: 0.16
 Nodes (15): COLOR_MAP, getColor(), GRAPHIC_VOWELS, isGraphicCons(), isGraphicVowel(), isVowelSound(), mapToWord(), Seg (+7 more)
 
 ### Community 7 - "WordRenderer"
-Cohesion: 0.26
-Nodes (13): buildDiphthongGradients(), buildUnderlined(), Classification, classifyNodes(), GRAPHIC_CONSONANTS, hasTrueSyllabic(), isGraphicConsonant(), isMonosyllabic() (+5 more)
+Cohesion: 0.25
+Nodes (14): buildDiphthongGradients(), buildUnderlined(), Classification, classifyNodes(), GRAPHIC_CONSONANTS, hasTrueSyllabic(), isGraphicConsonant(), isMonosyllabic() (+6 more)
 
 ### Community 8 - "Layout & Metadata"
 Cohesion: 0.40
@@ -98,6 +103,8 @@ Nodes (3): inter, lora, metadata
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `applyRegexOverrides()` connect `WordRenderer` to `Rules & Config`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **What connects `config`, `name`, `version` to the rest of the system?**
   _76 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `UI & Rendering` be split into smaller, more focused modules?**

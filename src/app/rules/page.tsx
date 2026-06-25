@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import type { RuleConfig, TestCase, RuleDiff, RegexRule, RegexRuleAction } from '@/lib/ruleConfig'
+import type { RuleConfig, TestCase, RuleDiff } from '@/lib/ruleConfig'
 import { DEFAULT_CONFIG, diffConfigs, generatePrompt, applyRegexOverrides } from '@/lib/ruleConfig'
 
 // Deep clone
@@ -14,17 +14,24 @@ interface NodePreview {
   underlineOverride?: 'force' | 'deny'    // set by applyRegexOverrides() when an underline rule matches
 }
 
+// Resolves a node's actual display colour/silent/underline state — shared by
+// renderWord() and the Rule Bridge tab's clickable stage so they never drift.
+function nodeVisual(n: NodePreview, config: RuleConfig) {
+  const color = n.c ?? resolveColor(n.s, config)
+  const isSilent = n.isSilent || !color
+  const underlined =
+    n.underlineOverride === 'deny'  ? false :
+    n.underlineOverride === 'force' ? true  :
+    n.isStressed
+  return { color, isSilent, underlined }
+}
+
 // Mini word renderer using config colours — respects regex-rule overrides
 // already baked into the node (c / isSilent / underlineOverride) from
 // applyRegexOverrides(), falling back to the normal colour-map lookup.
 function renderWord(word: string, nodes: NodePreview[], config: RuleConfig) {
   return nodes.map((n, i) => {
-    const color = n.c ?? resolveColor(n.s, config)
-    const isSilent = n.isSilent || !color
-    const underlined =
-      n.underlineOverride === 'deny'  ? false :
-      n.underlineOverride === 'force' ? true  :
-      n.isStressed
+    const { color, isSilent, underlined } = nodeVisual(n, config)
     return (
       <span
         key={i}
@@ -43,6 +50,12 @@ function renderWord(word: string, nodes: NodePreview[], config: RuleConfig) {
   })
 }
 
+// Same "current state" string format used in the Test tab's test cases, so
+// entries created from the Bridge tab read identically in the generated prompt.
+function nodeToStr(n: NodePreview): string {
+  return `[${n.t}:${n.s}:${n.isSilent ? 'silent' : ''}]`
+}
+
 function resolveColor(sound: string, config: RuleConfig): string | null {
   for (const entry of config.colors) {
     if (entry.sounds.includes(sound)) return entry.hex
@@ -51,41 +64,85 @@ function resolveColor(sound: string, config: RuleConfig): string | null {
   return null
 }
 
+// Tied to the real modules in the codebase, so a flagged fix in the Bridge
+// tab routes to the right layer instead of guessing.
+const BRIDGE_LOCATIONS: Record<string, string> = {
+  '':         'Not sure — find the right layer',
+  colormap:   'Sound → colour mapping (pipeline.ts COLOR_MAP, ruleConfig.ts colors[])',
+  alignment:  'Grapheme/phoneme alignment (pipeline.ts mapToWord / segment / GRAPHIC_VOWELS)',
+  underline:  'Stress underline logic (WordRenderer.tsx buildUnderlined, ruleConfig.ts underline rules)',
+  regex:      'Needs a pattern override (ruleConfig.ts RegexRule)',
+}
+
+// The governing system, distilled from English_in_Colours.docx (Dorel's source
+// spec). Every Bridge flag should be traceable back to one of these — a fix
+// that can't be justified by a named principle is a guess, not a rule.
+const PRINCIPLES: Record<string, string> = {
+  '':        '— none selected —',
+  phonemeMute:
+    'Cu Fonem vs. Fără Fonem (Mută): a grapheme is coloured only if it expresses ' +
+    'a phoneme (e.g. "top"); a letter with no phoneme is mute and renders grey ' +
+    '(e.g. the "b" in "crumb"). Silent ≠ wrong colour — it\'s "no phoneme assigned".',
+  schwaFusion:
+    'Legea priorității schwa (forced fusion): /ək, əl, əm, ən, ər/ before c/l/m/n/r ' +
+    'force-fuse into a single white-with-black-border node — schwa never gets its ' +
+    'own colour when followed by one of these consonants.',
+  vrPriority:
+    'V+R artificial priority (poor/cure/near/bear/fire/hour sets): the vowel ' +
+    'phoneme immediately preceding a schwa+r takes priority and dictates the ' +
+    'colour for the whole V+R unit, not the schwa.',
+  diphthongGradient:
+    'Diphthong gradient rule: a true diphthong (aỷ, eỷ, aw, etc.) is a 2-colour ' +
+    'gradient between its component vowel colours, not a flat single hue — ' +
+    'flat colour on a diphthong node is itself a bug.',
+  syllabicConsonant:
+    'Syllabic consonant rule: a consonant carrying its own syllable (the l in ' +
+    '"bottle", the n in "button") renders black with a white border — distinct ' +
+    'from both a normal consonant and from schwa-fusion white.',
+}
+
 export default function RulesPage() {
   const [config, setConfig]         = useState<RuleConfig>(() => clone(DEFAULT_CONFIG))
-  const [testWord, setTestWord]     = useState('')
-  const [testNodes, setTestNodes]   = useState<{ word: string; nodes: NodePreview[] } | null>(null)
   const [testCases, setTestCases]   = useState<TestCase[]>([])
   const [copied, setCopied]         = useState(false)
-  const [activeTab, setActiveTab]   = useState<'colors'|'underline'|'silent'|'vowels'|'regex'|'test'>('colors')
-  const [loadingTest, setLoading]   = useState(false)
-  const [newPattern, setNewPattern] = useState('')
-  const [tcNote, setTcNote]         = useState('')
-  const [tcDesired, setTcDesired]   = useState('')
-  const [ruleTestWords, setRuleTestWords] = useState<Record<string, string>>({})
+  const [activeTab]                 = useState<'bridge'>('bridge')
+
+  // ── Rule Bridge tab state ─────────────────────────────────────────────────
+  const [bridgeWordInput, setBridgeWordInput]   = useState('knight')
+  const [bridgeWord, setBridgeWord]             = useState('')
+  const [bridgeNodes, setBridgeNodes]           = useState<NodePreview[] | null>(null)
+  const [bridgeLoading, setBridgeLoading]       = useState(false)
+  const [bridgeError, setBridgeError]           = useState<string | null>(null)
+  const [bridgeSelected, setBridgeSelected]     = useState<number[]>([])
+  const [bridgeColorIdx, setBridgeColorIdx]     = useState<number | null>(null)
+  const [bridgeSilent, setBridgeSilent]         = useState(false)
+  const [bridgeUnderline, setBridgeUnderline]   = useState<'' | 'force' | 'deny'>('')
+  const [bridgeLocation, setBridgeLocation]     = useState('')
+  const [bridgePrinciple, setBridgePrinciple]   = useState('')
+  const [bridgeHypothesis, setBridgeHypothesis] = useState('')
+  const [bridgeCounter, setBridgeCounter]       = useState('')
 
   const diffs: RuleDiff[] = diffConfigs(DEFAULT_CONFIG, config)
 
-  // ── Test word lookup ──────────────────────────────────────────────────────
-  const lookupWord = useCallback(async (w: string) => {
-    if (!w.trim()) return
-    setLoading(true)
-    const wl = w.toLowerCase().trim()
-    try {
-      const res  = await fetch('/api/words', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ words: [wl] }),
-      })
-      const data = await res.json() as { results: Record<string, NodePreview[]> }
-      const nodes = data.results?.[wl]
-      if (nodes) {
-        const withOverrides = applyRegexOverrides(wl, nodes, config.regexRules)
-        setTestNodes({ word: w, nodes: withOverrides })
-      } else setTestNodes(null)
-    } catch { setTestNodes(null) }
-    setLoading(false)
-  }, [config.regexRules])
+  // Seed the open items from the 2026-06-19 rule-change request so they live
+  // in the same Generated Prompt pipeline as anything flagged through Bridge.
+  useEffect(() => {
+    setTestCases(prev => prev.length > 0 ? prev : [
+      {
+        word:    'knight',
+        current: '"k" — [k:n:]',
+        desired: 'silent (grey)',
+        note:    'LIKELY LOCATION: Not sure — find the right layer | SCOPE: general rule only — no per-word branch or lookup entry | LIKELY PRINCIPLE: Cu Fonem vs. Fără Fonem — "k" before "n" expresses no phoneme',
+      },
+      {
+        word:    'length',
+        current: '"e" — [e:ɛ:]',
+        desired: 'underline: force',
+        note:    'LIKELY LOCATION: Not sure — find the right layer | SCOPE: general rule only — no per-word branch or lookup entry',
+      },
+    ])
+  }, [])
+
 
   // ── Prompt generation ─────────────────────────────────────────────────────
   const prompt = generatePrompt(diffs, testCases, config)
@@ -96,184 +153,110 @@ export default function RulesPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  function addTestCase() {
-    if (!testWord.trim()) return
-    const nodeStr = testNodes
-      ? testNodes.nodes.map(n => `[${n.t}:${n.s}:${n.isSilent?'silent':''}]`).join(' ')
-      : '(not found)'
-    setTestCases(prev => [...prev, {
-      word:    testWord.trim(),
-      current: nodeStr,
-      desired: tcDesired,
-      note:    tcNote,
-    }])
-    setTcNote('')
-    setTcDesired('')
-  }
-
   function removeTestCase(i: number) {
     setTestCases(prev => prev.filter((_, idx) => idx !== i))
   }
 
-  // ── Color entry helpers ───────────────────────────────────────────────────
-  function updateHex(idx: number, hex: string) {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.colors[idx].hex = hex
-      return next
-    })
-  }
-
-  function updateCategory(idx: number, cat: 'vowel' | 'semivowel' | 'consonant' | 'silent') {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.colors[idx].category = cat
-      return next
-    })
-  }
-
-  function updateSounds(idx: number, value: string) {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.colors[idx].sounds = value.split(',').map(s => s.trim()).filter(Boolean)
-      return next
-    })
-  }
-
-  function toggleUnderline(key: keyof typeof config.underline) {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.underline[key] = !next.underline[key]
-      return next
-    })
-  }
-
-  function addSilentPattern() {
-    if (!newPattern.trim()) return
-    setConfig(prev => {
-      const next = clone(prev)
-      if (!next.silent.alwaysSilentPatterns.includes(newPattern.trim()))
-        next.silent.alwaysSilentPatterns.push(newPattern.trim())
-      return next
-    })
-    setNewPattern('')
-  }
-
-  function removeSilentPattern(p: string) {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.silent.alwaysSilentPatterns = next.silent.alwaysSilentPatterns.filter(x => x !== p)
-      return next
-    })
-  }
-
-  function toggleVowelChar(char: string, from: 'vowels'|'semivowels', to: 'vowels'|'semivowels') {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.vowelChars[from] = next.vowelChars[from].filter(c => c !== char)
-      if (!next.vowelChars[to].includes(char))
-        next.vowelChars[to].push(char)
-      return next
-    })
-  }
-
-  // ── Regex rule helpers ────────────────────────────────────────────────────
-  function reindexPriorities(rules: RegexRule[]) {
-    rules.forEach((r, i) => { r.priority = i })
-  }
-
-  function addRegexRule() {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.regexRules.push({
-        id:       `rule-${Date.now()}`,
-        label:    'New rule',
-        enabled:  true,
-        pattern:  '',
-        flags:    'i',
-        group:    0,
-        action:   {},
-        priority: next.regexRules.length,
-        notes:    '',
-        testWords: [],
-      })
-      return next
-    })
-  }
-
-  function updateRegexRule(idx: number, patch: Partial<RegexRule>) {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.regexRules[idx] = { ...next.regexRules[idx], ...patch }
-      return next
-    })
-  }
-
-  function updateRegexAction(idx: number, patch: Partial<RegexRuleAction>) {
-    setConfig(prev => {
-      const next = clone(prev)
-      const action = { ...next.regexRules[idx].action, ...patch }
-      // Drop keys explicitly cleared (set to undefined) so JSON/diffs stay clean
-      for (const k of Object.keys(action) as (keyof RegexRuleAction)[]) {
-        if (action[k] === undefined) delete action[k]
-      }
-      next.regexRules[idx].action = action
-      return next
-    })
-  }
-
-  function removeRegexRule(idx: number) {
-    setConfig(prev => {
-      const next = clone(prev)
-      next.regexRules.splice(idx, 1)
-      reindexPriorities(next.regexRules)
-      return next
-    })
-  }
-
-  function moveRegexRule(idx: number, dir: -1 | 1) {
-    setConfig(prev => {
-      const next = clone(prev)
-      const j = idx + dir
-      if (j < 0 || j >= next.regexRules.length) return prev
-      const tmp = next.regexRules[idx]
-      next.regexRules[idx] = next.regexRules[j]
-      next.regexRules[j] = tmp
-      reindexPriorities(next.regexRules)
-      return next
-    })
-  }
-
-  // Pure client-side preview of what a rule would target — same matching
-  // semantics as applyRegexOverrides() in ruleConfig.ts, no DB lookup needed.
-  function testRulePattern(rule: RegexRule, word: string): {
-    matched: boolean; before: string; target: string; after: string; error?: string
-  } {
-    if (!word) return { matched: false, before: '', target: '', after: '' }
-    if (!rule.pattern) return { matched: false, before: word, target: '', after: '' }
+  // ── Rule Bridge: pull real current state for a word, no guessing ─────────
+  const loadBridgeWord = useCallback(async (w: string) => {
+    const wl = w.toLowerCase().trim()
+    if (!wl) return
+    setBridgeLoading(true)
+    setBridgeError(null)
+    setBridgeSelected([])
+    setBridgeColorIdx(null)
+    setBridgeSilent(false)
+    setBridgeUnderline('')
+    setBridgeHypothesis('')
+    setBridgeCounter('')
+    setBridgeLocation('')
+    setBridgePrinciple('')
     try {
-      const flags = Array.from(new Set([...(rule.flags ?? ''), 'd'])).join('')
-      const re = new RegExp(rule.pattern, flags)
-      const m = re.exec(word) as (RegExpExecArray & { indices?: Array<[number, number] | undefined> }) | null
-      if (!m?.indices) return { matched: false, before: word, target: '', after: '' }
-      const g = rule.group ?? 0
-      const span = m.indices[g]
-      if (!span) return { matched: false, before: word, target: '', after: '' }
-      const [s, e] = span
-      return { matched: true, before: word.slice(0, s), target: word.slice(s, e), after: word.slice(e) }
+      const res  = await fetch('/api/words', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ words: [wl] }),
+      })
+      const data = await res.json() as { results: Record<string, NodePreview[]> }
+      const nodes = data.results?.[wl]
+      setBridgeWord(wl)
+      if (nodes) {
+        setBridgeNodes(applyRegexOverrides(wl, nodes, config.regexRules))
+      } else {
+        setBridgeNodes(null)
+        setBridgeError('not in lexicon.db')
+      }
     } catch {
-      return { matched: false, before: word, target: '', after: '', error: 'Invalid regex' }
+      setBridgeNodes(null)
+      setBridgeError('lookup failed')
     }
+    setBridgeLoading(false)
+  }, [config.regexRules])
+
+  const toggleBridgeSelect = (i: number) =>
+    setBridgeSelected(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])
+
+  const cancelBridgeDraft = () => {
+    setBridgeSelected([])
+    setBridgeColorIdx(null)
+    setBridgeSilent(false)
+    setBridgeUnderline('')
   }
 
-  const TABS = [
-    { id: 'colors'   as const, label: '🎨 Colours' },
-    { id: 'underline'as const, label: '_ Underline' },
-    { id: 'silent'   as const, label: '○ Silent'   },
-    { id: 'vowels'   as const, label: 'V Vowels'   },
-    { id: 'regex'    as const, label: '⚡ Regex'    },
-    { id: 'test'     as const, label: '⚗ Test'     },
-  ]
+  // Pushes a TestCase built from real current state — same shape, same
+  // generatePrompt() pipeline as the Test tab. Never writes a regex rule
+  // itself: generalising the pattern is a judgment call for whoever actions
+  // the prompt, not something to guess from a single clicked example.
+  function flagBridgeFix() {
+    if (!bridgeNodes || bridgeSelected.length === 0) return
+    const sorted = [...bridgeSelected].sort((a, b) => a - b)
+    const chars  = sorted.map(i => bridgeNodes[i].t || '∅').join('')
+    const before = sorted.map(i => nodeToStr(bridgeNodes[i])).join(' ')
+
+    const wanted: string[] = []
+    if (bridgeSilent) {
+      wanted.push('silent (grey)')
+    } else if (bridgeColorIdx !== null) {
+      const c = config.colors[bridgeColorIdx]
+      wanted.push(`${c.label} (${c.hex})`)
+    }
+    if (bridgeUnderline) wanted.push(`underline: ${bridgeUnderline}`)
+    if (wanted.length === 0) return
+
+    const noteParts = [
+      bridgeHypothesis ? `WHY: ${bridgeHypothesis}` : null,
+      bridgeCounter    ? `COUNTER-EXAMPLE: ${bridgeCounter}` : null,
+      bridgePrinciple  ? `GOVERNING PRINCIPLE (English in Colours spec): ${PRINCIPLES[bridgePrinciple]}` : null,
+      `LIKELY LOCATION: ${BRIDGE_LOCATIONS[bridgeLocation]}`,
+      'SCOPE: general rule only — no per-word branch or lookup entry',
+    ].filter((p): p is string => p !== null)
+
+    setTestCases(prev => [...prev, {
+      word:    bridgeWord,
+      current: `"${chars}" — ${before}`,
+      desired: wanted.join(' + '),
+      note:    noteParts.join(' | '),
+    }])
+    cancelBridgeDraft()
+    setBridgeHypothesis('')
+    setBridgeCounter('')
+    setBridgeLocation('')
+    setBridgePrinciple('')
+  }
+
+  const testCasesList = testCases.length > 0 && (
+    <div className="test-cases-list">
+      <h3 className="tc-list-title">Added test cases ({testCases.length})</h3>
+      {testCases.map((tc, i) => (
+        <div key={i} className="tc-item">
+          <strong>"{tc.word}"</strong>
+          {tc.desired && <span className="tc-desired"> → {tc.desired}</span>}
+          {tc.note    && <span className="tc-note"> ({tc.note})</span>}
+          <button className="tc-remove" onClick={() => removeTestCase(i)}>×</button>
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <div className="rules-page">
@@ -290,435 +273,212 @@ export default function RulesPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="rules-tabs">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            className={`rules-tab ${activeTab === t.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
 
       <div className="rules-body">
 
-        {/* ── COLOURS ── */}
-        {activeTab === 'colors' && (
+        {/* ── RULE BRIDGE ── */}
+        {activeTab === 'bridge' && (
           <section className="rules-section">
-            <h2 className="rules-section-title">Colour Map</h2>
+            <h2 className="rules-section-title">Rule Bridge</h2>
             <p className="rules-section-desc">
-              Each row maps IPA sounds to a hex colour. Edit the hex, sounds list, or category.
+              Load a real word, click the grapheme(s) that are wrong, say what they should be.
+              Current state comes straight from lexicon.db via /api/words — nothing here is
+              guessed. Flagging a fix adds it to the test cases below, which feed the Generated
+              Prompt at the bottom of the page.
             </p>
-            <div className="color-table">
-              {config.colors.map((entry, i) => {
-                const changed = JSON.stringify(entry) !== JSON.stringify(DEFAULT_CONFIG.colors[i])
-                return (
-                  <div key={i} className={`color-row ${changed ? 'changed' : ''}`}>
-                    <input
-                      type="color"
-                      value={entry.hex}
-                      onChange={e => updateHex(i, e.target.value)}
-                      className="color-picker"
-                      title="Pick colour"
-                    />
-                    <span className="color-hex">{entry.hex}</span>
-                    <div className="color-swatch" style={{ background: entry.hex }} />
-                    <div className="color-sounds-wrap">
-                      <label className="color-label">{entry.label}</label>
-                      <input
-                        className="color-sounds-input"
-                        value={entry.sounds.join(', ')}
-                        onChange={e => updateSounds(i, e.target.value)}
-                        title="IPA sounds (comma separated)"
-                      />
-                    </div>
-                    <select
-                      className="color-cat-select"
-                      value={entry.category}
-                      onChange={e => updateCategory(i, e.target.value as 'vowel'|'semivowel'|'consonant'|'silent')}
-                    >
-                      <option value="vowel">vowel</option>
-                      <option value="semivowel">semivowel</option>
-                      <option value="consonant">consonant</option>
-                      <option value="silent">silent</option>
-                    </select>
-                    {changed && <span className="changed-badge">✎</span>}
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
 
-        {/* ── UNDERLINE ── */}
-        {activeTab === 'underline' && (
-          <section className="rules-section">
-            <h2 className="rules-section-title">Underline Rules</h2>
-            <p className="rules-section-desc">
-              Controls when and how the stress underline is drawn on vowel groups.
-            </p>
-            {([
-              ['monosyllabic',       'Underline in monosyllabic words',               'Default: OFF — monosilabicele nu se subliniază'],
-              ['withSyllabicCons',   'Underline when true syllabic consonant present', 'Default: OFF — apple, button nu se subliniază'],
-              ['extendThroughSemi',  'Extend underline through semivowels (j/w)',       'Default: ON — yesterday → ỷe subliniat'],
-              ['extendThroughGlide', 'Extend through diphthong glides (‍)',             'Default: ON — town → ow subliniat'],
-            ] as [keyof typeof config.underline, string, string][]).map(([key, label, note]) => {
-              const val     = config.underline[key]
-              const changed = val !== DEFAULT_CONFIG.underline[key]
-              return (
-                <div key={key} className={`toggle-row ${changed ? 'changed' : ''}`}>
-                  <button
-                    className={`toggle-btn ${val ? 'on' : 'off'}`}
-                    onClick={() => toggleUnderline(key)}
-                  >
-                    {val ? 'ON' : 'OFF'}
-                  </button>
-                  <div className="toggle-info">
-                    <span className="toggle-label">{label}</span>
-                    <span className="toggle-note">{note}</span>
-                  </div>
-                  {changed && <span className="changed-badge">✎</span>}
-                </div>
-              )
-            })}
-          </section>
-        )}
-
-        {/* ── SILENT ── */}
-        {activeTab === 'silent' && (
-          <section className="rules-section">
-            <h2 className="rules-section-title">Silent Letter Rules</h2>
-
-            <div className="rules-subsection">
-              <h3 className="rules-sub-title">Always-silent grapheme patterns</h3>
-              <p className="rules-section-desc">
-                These multi-letter patterns are always rendered grey regardless of DB data.
-              </p>
-              <div className="silent-patterns">
-                {config.silent.alwaysSilentPatterns.map(p => (
-                  <div key={p} className="silent-pill">
-                    <code>{p}</code>
-                    <button onClick={() => removeSilentPattern(p)} className="pill-remove">×</button>
-                  </div>
+            <details style={{ marginBottom: '16px', border: '1px solid #e7e5e4', borderRadius: '10px', padding: '10px 14px' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                📖 Governing principles (English in Colours spec)
+              </summary>
+              <ul style={{ fontSize: '0.8rem', color: '#57534e', lineHeight: 1.5, marginTop: '8px', paddingLeft: '18px' }}>
+                {Object.entries(PRINCIPLES).filter(([k]) => k).map(([key, label]) => (
+                  <li key={key} style={{ marginBottom: '6px' }}>{label}</li>
                 ))}
-              </div>
-              <div className="silent-add">
-                <input
-                  className="silent-input"
-                  placeholder="add pattern e.g. wh"
-                  value={newPattern}
-                  onChange={e => setNewPattern(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addSilentPattern()}
-                />
-                <button className="silent-add-btn" onClick={addSilentPattern}>Add</button>
-              </div>
-            </div>
-
-            <div className="rules-subsection">
-              <h3 className="rules-sub-title">Graphic consonant override</h3>
-              <div className={`toggle-row ${config.silent.graphicConsonantOverride !== DEFAULT_CONFIG.silent.graphicConsonantOverride ? 'changed' : ''}`}>
-                <button
-                  className={`toggle-btn ${config.silent.graphicConsonantOverride ? 'on' : 'off'}`}
-                  onClick={() => setConfig(prev => {
-                    const next = clone(prev)
-                    next.silent.graphicConsonantOverride = !next.silent.graphicConsonantOverride
-                    return next
-                  })}
-                >
-                  {config.silent.graphicConsonantOverride ? 'ON' : 'OFF'}
-                </button>
-                <div className="toggle-info">
-                  <span className="toggle-label">
-                    Force-grey graphemes that are pure consonant letters but DB assigns vowel colour
-                  </span>
-                  <span className="toggle-note">
-                    Example: "h" in "sigh" gets idx=4 (red) in DB — override forces it grey
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── VOWELS ── */}
-        {activeTab === 'vowels' && (
-          <section className="rules-section">
-            <h2 className="rules-section-title">Vowel / Semivowel Classification</h2>
-            <p className="rules-section-desc">
-              Click a character to move it between vowel and semivowel categories.
-              This affects underline logic and colour assignment.
-            </p>
-
-            {(['vowels', 'semivowels'] as const).map(cat => (
-              <div key={cat} className="vowel-group">
-                <h3 className="vowel-group-title">
-                  {cat === 'vowels' ? '🔵 Vowels' : '🟡 Semivowels'}
-                </h3>
-                <div className="vowel-chips">
-                  {config.vowelChars[cat].map(ch => (
-                    <button
-                      key={ch}
-                      className="vowel-chip"
-                      title={`Move to ${cat === 'vowels' ? 'semivowels' : 'vowels'}`}
-                      onClick={() => toggleVowelChar(
-                        ch, cat,
-                        cat === 'vowels' ? 'semivowels' : 'vowels'
-                      )}
-                    >
-                      {ch}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* ── REGEX ── */}
-        {activeTab === 'regex' && (
-          <section className="rules-section">
-            <h2 className="rules-section-title">Regex Override Rules</h2>
-            <p className="rules-section-desc">
-              Punctual, per-word overrides. Each rule is a regex matched against the word's
-              letters — the matched span (or a capture group within it) gets the action
-              applied (colour / force-silent / force-or-deny underline), bypassing the
-              general rules above for that grapheme only. Type a test word under any rule
-              to see exactly what it targets, no lookup needed.
-            </p>
-
-            <button className="silent-add-btn" onClick={addRegexRule} style={{ marginBottom: '12px' }}>
-              + Add rule
-            </button>
-
-            {config.regexRules.length === 0 && (
-              <p className="rules-section-desc" style={{ opacity: 0.6 }}>
-                No regex rules yet — click "+ Add rule" to define one.
-              </p>
-            )}
-
-            <div className="regex-rule-list">
-              {config.regexRules.map((rule, idx) => {
-                const orig    = DEFAULT_CONFIG.regexRules.find(r => r.id === rule.id)
-                const changed = !orig || JSON.stringify(orig) !== JSON.stringify(rule)
-                const tw      = ruleTestWords[rule.id] ?? (rule.testWords?.[0] ?? '')
-                const result  = testRulePattern(rule, tw)
-
-                return (
-                  <div key={rule.id} className={`regex-rule-card ${changed ? 'changed' : ''}`}>
-
-                    <div className="regex-rule-head">
-                      <button
-                        className={`toggle-btn ${rule.enabled ? 'on' : 'off'}`}
-                        onClick={() => updateRegexRule(idx, { enabled: !rule.enabled })}
-                      >
-                        {rule.enabled ? 'ON' : 'OFF'}
-                      </button>
-                      <input
-                        className="color-sounds-input"
-                        style={{ flex: 1 }}
-                        value={rule.label}
-                        onChange={e => updateRegexRule(idx, { label: e.target.value })}
-                        placeholder="Rule label"
-                      />
-                      <button className="pill-remove" title="Move up"
-                        onClick={() => moveRegexRule(idx, -1)} disabled={idx === 0}>↑</button>
-                      <button className="pill-remove" title="Move down"
-                        onClick={() => moveRegexRule(idx, 1)} disabled={idx === config.regexRules.length - 1}>↓</button>
-                      <button className="pill-remove" title="Delete rule"
-                        onClick={() => removeRegexRule(idx)}>×</button>
-                      {changed && <span className="changed-badge">✎</span>}
-                    </div>
-
-                    <div className="regex-rule-pattern-row">
-                      <code className="regex-rule-slash">/</code>
-                      <input
-                        className="silent-input"
-                        style={{ fontFamily: 'monospace', flex: 1 }}
-                        value={rule.pattern}
-                        onChange={e => updateRegexRule(idx, { pattern: e.target.value })}
-                        placeholder="e.g. ^i(s)land$"
-                      />
-                      <code className="regex-rule-slash">/</code>
-                      <input
-                        className="silent-input"
-                        style={{ width: '50px', fontFamily: 'monospace' }}
-                        value={rule.flags ?? ''}
-                        onChange={e => updateRegexRule(idx, { flags: e.target.value })}
-                        placeholder="flags"
-                        title="Regex flags, e.g. i for case-insensitive"
-                      />
-                      <label className="toggle-label" style={{ marginLeft: '8px' }}>group</label>
-                      <input
-                        type="number"
-                        className="silent-input"
-                        style={{ width: '50px' }}
-                        value={rule.group ?? 0}
-                        min={0}
-                        onChange={e => updateRegexRule(idx, { group: Math.max(0, parseInt(e.target.value) || 0) })}
-                      />
-                    </div>
-
-                    <div className="regex-rule-action-row">
-                      <label className="toggle-label">
-                        <input
-                          type="checkbox"
-                          checked={rule.action.color !== undefined}
-                          onChange={e => updateRegexAction(idx, { color: e.target.checked ? '#000000' : undefined })}
-                        />
-                        {' '}Colour
-                      </label>
-                      {rule.action.color !== undefined && (
-                        <>
-                          <input
-                            type="color"
-                            className="color-picker"
-                            value={rule.action.color}
-                            onChange={e => updateRegexAction(idx, { color: e.target.value })}
-                          />
-                          <span className="color-hex">{rule.action.color}</span>
-                        </>
-                      )}
-
-                      <label className="toggle-label" style={{ marginLeft: '16px' }}>
-                        <input
-                          type="checkbox"
-                          checked={!!rule.action.silent}
-                          onChange={e => updateRegexAction(idx, { silent: e.target.checked ? true : undefined })}
-                        />
-                        {' '}Silent
-                      </label>
-
-                      <label className="toggle-label" style={{ marginLeft: '16px' }}>Underline</label>
-                      <select
-                        className="color-cat-select"
-                        value={rule.action.underline ?? ''}
-                        onChange={e => updateRegexAction(idx, {
-                          underline: e.target.value === '' ? undefined : (e.target.value as 'force' | 'deny'),
-                        })}
-                      >
-                        <option value="">— no override —</option>
-                        <option value="force">force</option>
-                        <option value="deny">deny</option>
-                      </select>
-                    </div>
-
-                    <textarea
-                      className="silent-input"
-                      style={{ width: '100%', minHeight: '40px', marginTop: '6px', fontFamily: 'inherit', resize: 'vertical' }}
-                      value={rule.notes ?? ''}
-                      onChange={e => updateRegexRule(idx, { notes: e.target.value })}
-                      placeholder="Notes (why this rule exists, what it fixes)…"
-                    />
-
-                    <div className="regex-rule-test">
-                      <input
-                        className="test-word-input"
-                        placeholder="Type a word to test this pattern…"
-                        value={tw}
-                        onChange={e => setRuleTestWords(prev => ({ ...prev, [rule.id]: e.target.value }))}
-                      />
-                      <div className="regex-test-preview">
-                        {tw === '' ? (
-                          <span style={{ opacity: 0.5 }}>—</span>
-                        ) : result.error ? (
-                          <span style={{ color: '#c44' }}>{result.error}</span>
-                        ) : result.matched ? (
-                          <span>
-                            {result.before}
-                            <mark style={{ background: '#4E79A7', color: '#fff', borderRadius: '3px', padding: '0 2px' }}>
-                              {result.target || '∅'}
-                            </mark>
-                            {result.after}
-                          </span>
-                        ) : (
-                          <span style={{ opacity: 0.5 }}>no match</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ── TEST ── */}
-        {activeTab === 'test' && (
-          <section className="rules-section">
-            <h2 className="rules-section-title">Test Words</h2>
-            <p className="rules-section-desc">
-              Look up a word from the database. See its current render, note issues, and add test cases to the prompt.
-            </p>
+              </ul>
+            </details>
 
             <div className="test-input-row">
               <input
                 className="test-word-input"
                 placeholder="Type a word…"
-                value={testWord}
-                onChange={e => setTestWord(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && lookupWord(testWord)}
+                value={bridgeWordInput}
+                onChange={e => setBridgeWordInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && loadBridgeWord(bridgeWordInput)}
               />
-              <button className="test-lookup-btn" onClick={() => lookupWord(testWord)}>
-                {loadingTest ? '…' : 'Look up'}
+              <button className="test-lookup-btn" onClick={() => loadBridgeWord(bridgeWordInput)}>
+                {bridgeLoading ? '…' : 'Load'}
               </button>
+              <div style={{ display: 'flex', gap: '6px', marginLeft: '10px' }}>
+                {['island', 'gnome', 'colonel'].map(w => (
+                  <button
+                    key={w}
+                    onClick={() => loadBridgeWord(w)}
+                    style={{
+                      padding: '4px 12px', borderRadius: '999px', border: '1px solid #d6d3d1',
+                      background: '#fff', fontSize: '0.75rem', cursor: 'pointer', color: '#57534e',
+                    }}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {testNodes && (
-              <div className="test-result">
-                <div className="test-word-render">
-                  {renderWord(testNodes.word, testNodes.nodes, config)}
+            {bridgeError && (
+              <p className="rules-section-desc" style={{ color: '#c44' }}>{bridgeError}</p>
+            )}
+
+            {bridgeNodes && (
+              <>
+                <div
+                  style={{
+                    display: 'flex', flexWrap: 'wrap', gap: '2px', alignItems: 'flex-end',
+                    fontFamily: 'serif', fontSize: '2.25rem', padding: '24px',
+                    background: '#fafaf9', border: '1px solid #e7e5e4',
+                    borderRadius: '12px', marginBottom: '8px',
+                  }}
+                >
+                  {bridgeNodes.map((n, i) => {
+                    const { color, isSilent, underlined } = nodeVisual(n, config)
+                    const isSel = bridgeSelected.includes(i)
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => toggleBridgeSelect(i)}
+                        title={n.s || '(latent)'}
+                        style={{
+                          padding: '2px 4px 6px', borderRadius: '4px', border: 'none',
+                          background: isSel ? '#fef3c7' : 'transparent',
+                          outline: isSel ? '2px solid #fbbf24' : 'none',
+                          outlineOffset: '2px', cursor: 'pointer',
+                          color: isSilent ? '#000' : (color ?? '#000'),
+                          opacity: isSilent ? 0.45 : 1,
+                          fontStyle: isSilent ? 'italic' : 'normal',
+                          borderBottom: underlined && !isSilent ? '3px solid #3b82f6' : '3px solid transparent',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {n.t || '·'}
+                      </button>
+                    )
+                  })}
                 </div>
-                <div className="test-node-table">
-                  {testNodes.nodes.map((n, i) => (
-                    <div key={i} className="test-node-row">
-                      <span className="tn-grapheme">{n.t || '∅'}</span>
-                      <span className="tn-arrow">→</span>
-                      <span className="tn-sound">{n.s || '∅'}</span>
-                      <span className="tn-dot" style={{ background: resolveColor(n.s, config) ?? (n.isSilent ? '#ccc' : '#000') }} />
-                      <span className="tn-flags">
-                        {n.isStressed && <span className="tn-flag stress">stress</span>}
-                        {n.isSilent   && <span className="tn-flag silent">silent</span>}
-                      </span>
-                    </div>
+                <p className="rules-section-desc" style={{ marginTop: 0 }}>
+                  click the node(s) involved — each button is one grapheme node as the pipeline
+                  actually segmented it, not a raw letter
+                </p>
+              </>
+            )}
+
+            {bridgeSelected.length > 0 && bridgeNodes && (
+              <div style={{ border: '1px solid #e7e5e4', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+                <p className="rules-section-desc" style={{ marginTop: 0 }}>
+                  "{[...bridgeSelected].sort((a, b) => a - b).map(i => bridgeNodes[i].t || '∅').join('')}" should be —
+                </p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                  {config.colors.map((c, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => { setBridgeColorIdx(idx); setBridgeSilent(false) }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '4px 10px', borderRadius: '6px',
+                        border: bridgeColorIdx === idx ? '2px solid #111' : '1px solid #ccc',
+                        background: '#fff', cursor: 'pointer', fontSize: '0.85rem',
+                      }}
+                    >
+                      <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: c.hex, display: 'inline-block' }} />
+                      {c.label}
+                    </button>
                   ))}
+                  <button
+                    onClick={() => { setBridgeSilent(s => !s); setBridgeColorIdx(null) }}
+                    style={{
+                      padding: '4px 10px', borderRadius: '6px',
+                      border: bridgeSilent ? '2px solid #111' : '1px solid #ccc',
+                      background: bridgeSilent ? '#eee' : '#fff', cursor: 'pointer',
+                      fontSize: '0.85rem', fontStyle: 'italic',
+                    }}
+                  >
+                    Silent (grey)
+                  </button>
                 </div>
 
-                <div className="test-add-case">
-                  <input
-                    className="tc-input"
-                    placeholder="What should it look like? e.g. 'h' should be grey"
-                    value={tcDesired}
-                    onChange={e => setTcDesired(e.target.value)}
-                  />
-                  <input
-                    className="tc-input"
-                    placeholder="Additional note (optional)"
-                    value={tcNote}
-                    onChange={e => setTcNote(e.target.value)}
-                  />
-                  <button className="tc-add-btn" onClick={addTestCase}>
-                    + Add to prompt
+                <div style={{ marginBottom: '10px', fontSize: '0.85rem' }}>
+                  Underline{' '}
+                  <select
+                    className="color-cat-select"
+                    value={bridgeUnderline}
+                    onChange={e => setBridgeUnderline(e.target.value as '' | 'force' | 'deny')}
+                  >
+                    <option value="">— no override —</option>
+                    <option value="force">force</option>
+                    <option value="deny">deny</option>
+                  </select>
+                </div>
+
+                <textarea
+                  className="silent-input"
+                  style={{ width: '100%', minHeight: '40px', fontFamily: 'inherit', resize: 'vertical' }}
+                  value={bridgeHypothesis}
+                  onChange={e => setBridgeHypothesis(e.target.value)}
+                  placeholder="why, in your own words — e.g. this digraph is silent after a stressed vowel"
+                />
+                <input
+                  className="silent-input"
+                  style={{ width: '100%', marginTop: '6px' }}
+                  value={bridgeCounter}
+                  onChange={e => setBridgeCounter(e.target.value)}
+                  placeholder="optional — a word where this is NOT true"
+                />
+                <select
+                  className="color-cat-select"
+                  style={{ width: '100%', marginTop: '6px' }}
+                  value={bridgePrinciple}
+                  onChange={e => setBridgePrinciple(e.target.value)}
+                  title="Which rule from English_in_Colours.docx justifies this fix"
+                >
+                  {Object.entries(PRINCIPLES).map(([key, label]) => (
+                    <option key={key} value={key}>{key ? `Principle: ${label.slice(0, 60)}…` : label}</option>
+                  ))}
+                </select>
+                <select
+                  className="color-cat-select"
+                  style={{ width: '100%', marginTop: '6px' }}
+                  value={bridgeLocation}
+                  onChange={e => setBridgeLocation(e.target.value)}
+                >
+                  {Object.entries(BRIDGE_LOCATIONS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+                {bridgePrinciple && (
+                  <p className="rules-section-desc" style={{ marginTop: '6px', fontSize: '0.8rem' }}>
+                    {PRINCIPLES[bridgePrinciple]}
+                  </p>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                  <button
+                    onClick={cancelBridgeDraft}
+                    style={{ background: 'none', border: 'none', color: '#888', fontSize: '0.8rem', cursor: 'pointer' }}
+                  >
+                    cancel
+                  </button>
+                  <button
+                    className="silent-add-btn"
+                    disabled={!bridgeSilent && bridgeColorIdx === null && !bridgeUnderline}
+                    onClick={flagBridgeFix}
+                  >
+                    + Flag this fix
                   </button>
                 </div>
               </div>
             )}
 
-            {testCases.length > 0 && (
-              <div className="test-cases-list">
-                <h3 className="tc-list-title">Added test cases ({testCases.length})</h3>
-                {testCases.map((tc, i) => (
-                  <div key={i} className="tc-item">
-                    <strong>"{tc.word}"</strong>
-                    {tc.desired && <span className="tc-desired"> → {tc.desired}</span>}
-                    {tc.note    && <span className="tc-note"> ({tc.note})</span>}
-                    <button className="tc-remove" onClick={() => removeTestCase(i)}>×</button>
-                  </div>
-                ))}
-              </div>
-            )}
+            {testCasesList}
           </section>
         )}
 
