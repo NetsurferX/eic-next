@@ -47,22 +47,26 @@ const mod = __turbopack_context__.x("path", () => require("path"));
 
 module.exports = mod;
 }),
-"[project]/src/lib/pipeline.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-// Exact port of PhoneticPipeline.cs + ColorMap.cs
-// Used server-side only — processes IPA strings from lexicon.db
+// engine/colorMap.ts
+// Sound → colour. Nothing in this file knows about graphemes/letters — it
+// only ever looks at IPA display strings. Edit COLOR_MAP to change a colour;
+// you never need to touch align.ts to do that.
 __turbopack_context__.s([
     "COLOR_CONSONANT",
     ()=>COLOR_CONSONANT,
+    "COLOR_MAP",
+    ()=>COLOR_MAP,
     "COLOR_SILENT",
     ()=>COLOR_SILENT,
-    "extractProps",
-    ()=>extractProps,
-    "processIpa",
-    ()=>processIpa,
-    "scoreNodes",
-    ()=>scoreNodes
+    "VOWEL_CHARS",
+    ()=>VOWEL_CHARS,
+    "getColor",
+    ()=>getColor,
+    "isVowelSound",
+    ()=>isVowelSound
 ]);
 const COLOR_SILENT = '#000000';
 const COLOR_CONSONANT = '#000000';
@@ -114,7 +118,23 @@ const VOWEL_CHARS = new Set([
 function isVowelSound(s) {
     return s.length > 0 && VOWEL_CHARS.has(s[0]);
 }
-// ── Transforms (priority order — longest first) ───────────────────────────────
+}),
+"[project]/src/lib/engine/segment.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// engine/segment.ts
+// Turns a raw IPA string into Seg[] — phoneme-sized chunks with a display
+// form, vowel flag, and whether the chunk carries primary stress.
+//
+// TRANSFORMS is intentionally a flat priority list, longest-pattern-first:
+// to change how a sound is displayed, edit one line here. Nothing else in
+// the engine needs to change.
+__turbopack_context__.s([
+    "segment",
+    ()=>segment
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
+;
 const TRANSFORMS = [
     // Schwa+R
     [
@@ -278,7 +298,9 @@ const TRANSFORMS = [
         'ɹ',
         'r'
     ],
-    // Semivowels
+    // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
+    // isVowelSound() already returns true for these (see colorMap.ts);
+    // align.ts treats them exactly like any other vowel sound.
     [
         'j',
         'j'
@@ -331,53 +353,50 @@ const STRIP = new Set([
 const VOWEL_FALLBACK = new Set([
     ...'aeioujæɑɔəwɛɪʊʌyøœɒỷ'
 ]);
-function processIpa(word, rawIpa) {
-    if (!rawIpa?.trim()) {
-        return [
-            {
-                t: word,
-                s: '',
-                c: COLOR_SILENT,
-                u: false,
-                x: false
-            }
-        ];
-    }
-    // 1. Strip noise characters
+/**
+ * Stress anchoring needs a DIFFERENT notion of "vowel" than sound
+ * classification does. VOWEL_CHARS (colorMap.ts) correctly includes j/w/ỷ —
+ * they're vowel-adjacent sounds for coloring purposes. But a glide can never
+ * itself carry primary stress; only a true syllable nucleus can. Using
+ * VOWEL_CHARS here caused stress to land on a glide instead of skipping past
+ * it to the real vowel (e.g. "question" /ˈkwɛstʃən/ — stress marker before
+ * "kw" should skip both consonant 'k' AND glide 'w' to land on 'ɛ', but
+ * VOWEL_CHARS treats 'w' as a stop-here vowel and the scan halted early).
+ */ const STRESS_ANCHOR_CHARS = new Set([
+    ...__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["VOWEL_CHARS"]
+].filter((c)=>c !== 'j' && c !== 'w' && c !== 'ỷ' && c !== 'y'));
+function findStressPos(rawIpa) {
     const ipa = [
         ...rawIpa
     ].filter((c)=>!STRIP.has(c)).join('').trim();
-    // 2. Find primary stress position (anchor according to rules):
-    // - If the character after the stress marker is a vowel (or vowel group),
-    //   the target accent starts at that vowel/group.
-    // - If the character after the stress marker is a consonant (or group),
-    //   the target accent is the first vowel/group that follows that consonant group.
     const stressAt = ipa.indexOf('ˈ');
     const clean = ipa.replace(/ˈ/g, '');
-    let stressPos = -1;
-    if (stressAt >= 0) {
-        // position in `ipa` immediately after the marker
-        let j = stressAt + 1;
-        // guard
-        if (j < ipa.length) {
-            // If next char is vowel-like, anchor there; otherwise scan forward to first vowel-like
-            const isVowelChar = (ch)=>ch && VOWEL_CHARS.has(ch);
-            if (isVowelChar(ipa[j])) {
-                // map to index in `clean` (one stress marker removed before j)
-                stressPos = j - 1;
-            } else {
-                let k = j;
-                while(k < ipa.length && !isVowelChar(ipa[k]))k++;
-                if (k < ipa.length) stressPos = k - 1;
-            }
-        }
-    }
-    // 3. Segment IPA into phonemes
-    const segs = segment(clean, stressPos);
-    // 4. Map segments onto word letters
-    return mapToWord(word, segs);
+    if (stressAt < 0) return {
+        clean,
+        stressPos: -1
+    };
+    // If the char right after the marker is a true vowel, anchor there.
+    // Otherwise scan forward (skipping consonants AND glides) to the first
+    // true vowel.
+    let j = stressAt + 1;
+    if (j >= ipa.length) return {
+        clean,
+        stressPos: -1
+    };
+    const isAnchorChar = (ch)=>ch && STRESS_ANCHOR_CHARS.has(ch);
+    if (isAnchorChar(ipa[j])) return {
+        clean,
+        stressPos: j - 1
+    };
+    let k = j;
+    while(k < ipa.length && !isAnchorChar(ipa[k]))k++;
+    return {
+        clean,
+        stressPos: k < ipa.length ? k - 1 : -1
+    };
 }
-function segment(clean, stressPos) {
+function segment(rawIpa) {
+    const { clean, stressPos } = findStressPos(rawIpa);
     const result = [];
     let i = 0;
     while(i < clean.length){
@@ -389,7 +408,7 @@ function segment(clean, stressPos) {
             result.push({
                 ipa: pat,
                 display: rep,
-                isVowel: isVowelSound(rep),
+                isVowel: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isVowelSound"])(rep),
                 accented
             });
             i += pat.length;
@@ -425,14 +444,55 @@ function segment(clean, stressPos) {
     }
     return result;
 }
-// ── Grapheme classification ───────────────────────────────────────────────────
-const GRAPHIC_VOWELS = new Set([
-    ...'aeiouAEIOU'
+}),
+"[project]/src/lib/engine/align.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// engine/align.ts
+// Maps Seg[] (phonemes) onto the word's letters, left to right.
+//
+// VOWEL CLASSIFICATION: there is no "semivowel" type anywhere in this engine.
+// j/w/ỷ are vowel SOUNDS (see colorMap.ts's isVowelSound/VOWEL_CHARS, which
+// already returns true for them) — same isVowel flag, same color category,
+// same eligibility for stress, as any other vowel.
+//
+// CONSUMPTION WIDTH (the one place glides differ from a/e/i/o/u): a true
+// vowel sound consumes the entire run of adjacent vowel-letters ("ea" in
+// "bread" is one run for one sound). A glide sound (j/w/ỷ) consumes exactly
+// one letter, because the glide letter itself (y/w) sits next to letters
+// belonging to a DIFFERENT phoneme — e.g. in "way" the w-sound and the
+// eɪ-sound are two separate phonemes that happen to be letter-adjacent.
+// Treating y/w as part of the vowel-letter-run set causes one phoneme to
+// swallow letters that belong to the next one (tested: broke "way", "yellow",
+// "happy" by making the w/y-segment eat the following vowel letters too).
+// So GRAPHIC_VOWELS stays a/e/i/o/u only — that set defines run *boundaries*,
+// not "what counts as a vowel sound."
+__turbopack_context__.s([
+    "GRAPHIC_VOWELS",
+    ()=>GRAPHIC_VOWELS,
+    "align",
+    ()=>align,
+    "isGraphicCons",
+    ()=>isGraphicCons,
+    "isGraphicVowel",
+    ()=>isGraphicVowel
 ]);
-const SEMIVOWEL_DISPLAY = new Set([
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
+;
+const GLIDE_DISPLAYS = new Set([
     'j',
     'w',
     'ỷ'
+]);
+const TRAILING_GLIDE_LETTERS = new Set([
+    'w',
+    'y',
+    'W',
+    'Y'
+]);
+const GRAPHIC_VOWELS = new Set([
+    ...'aeiou',
+    ...'AEIOU'
 ]);
 function isGraphicVowel(c) {
     return GRAPHIC_VOWELS.has(c);
@@ -440,21 +500,12 @@ function isGraphicVowel(c) {
 function isGraphicCons(c) {
     return !GRAPHIC_VOWELS.has(c);
 }
-// ── mapToWord v4 — strict left-to-right vowel/consonant matching ──────────────
-//
-// Algorithm:
-//   Walk IPA segments and word characters strictly left-to-right.
-//   - Consonant IPA  → consume 1 consonant grapheme (2 for IPA digraph)
-//   - Vowel IPA      → consume entire consecutive vowel grapheme run
-//   - Semivowel IPA  → consume 1 consonant grapheme if available, else empty
-//   - Empty display  → latent phoneme, no grapheme consumed
-//   - Remaining word letters after all segs → silent
-function mapToWord(word, segs) {
+function align(word, segs) {
     if (segs.length === 0) return [
         {
             t: word,
             s: '',
-            c: COLOR_SILENT,
+            c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
             u: false,
             x: false
         }
@@ -469,56 +520,82 @@ function mapToWord(word, segs) {
             nodes.push({
                 t: '',
                 s: display ?? '',
-                c: COLOR_CONSONANT,
+                c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"],
                 u: false,
                 x: true
             });
             continue;
         }
         let consumed = '';
-        if (SEMIVOWEL_DISPLAY.has(display)) {
-            // Semivowel: take 1 consonant grapheme if current position is consonant
-            if (pos < wLen && isGraphicCons(word[pos])) {
-                consumed = word[pos++];
+        if (isVowel) {
+            if (GLIDE_DISPLAYS.has(display)) {
+                // Glide sound: consume exactly 1 letter, whatever it is — it does
+                // not extend into a neighboring vowel-letter run (that run belongs
+                // to the next phoneme).
+                if (pos < wLen) consumed = word[pos++];
+            } else {
+                // True vowel sound → consume the consecutive vowel-letter run, plus
+                // one trailing w/y if present. The trailing grab handles digraphs
+                // where a SINGLE diphthong phoneme is spelled with a true-vowel
+                // letter followed by w/y (ow, aw, ew, ay, oy, ey — "power", "brown",
+                // "day", "boy"). It only fires after at least one true vowel letter
+                // was already consumed, so it never touches a glide-onset w/y at the
+                // START of a run (that's the separate branch above) — only a w/y
+                // immediately completing a vowel digraph that already started.
+                const start = pos;
+                while(pos < wLen && isGraphicVowel(word[pos]))pos++;
+                if (pos > start && pos < wLen && TRAILING_GLIDE_LETTERS.has(word[pos])) pos++;
+                consumed = word.slice(start, pos);
             }
-        // else: latent semivowel — no grapheme shown
-        } else if (isVowel) {
-            // Vowel: consume the entire consecutive vowel grapheme run
-            const start = pos;
-            while(pos < wLen && isGraphicVowel(word[pos]))pos++;
-            consumed = word.slice(start, pos);
         } else {
             // Consonant: take 1 consonant grapheme (2 for IPA digraphs)
             if (pos < wLen && isGraphicCons(word[pos])) {
                 consumed = word[pos++];
-                // IPA digraph → try to take a second adjacent consonant
                 if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos])) consumed += word[pos++];
             }
         }
-        const color = getColor(display);
+        const color = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getColor"])(display);
         const isStressed = accented && isVowel;
         const isSilent = !color && !isVowel;
         const isCons = !color && !isVowel;
         nodes.push({
             t: consumed,
             s: display,
-            c: color ?? (isSilent ? COLOR_SILENT : COLOR_CONSONANT),
+            c: color ?? (isSilent ? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"] : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]),
             u: isStressed,
-            x: isCons || color === COLOR_CONSONANT
+            x: isCons || color === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]
         });
     }
     // Remaining word letters → silent
     if (pos < wLen) nodes.push({
         t: word.slice(pos),
         s: '',
-        c: COLOR_SILENT,
+        c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
         u: false,
         x: false
     });
     return nodes;
 }
+}),
+"[project]/src/lib/engine/score.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// engine/score.ts
+// Word-level properties derived from a finished RenderNode[] — used to pick
+// UK vs US variant and to populate cache.db's summary columns. Pure
+// functions, no dependency on align.ts/segment.ts internals.
+__turbopack_context__.s([
+    "extractProps",
+    ()=>extractProps,
+    "scoreNodes",
+    ()=>scoreNodes
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/align.ts [app-route] (ecmascript)");
+;
+;
 function scoreNodes(nodes) {
-    return nodes.filter((n)=>n.t && n.c !== COLOR_SILENT && n.c !== COLOR_CONSONANT).reduce((sum, n)=>sum + n.t.length, 0);
+    return nodes.filter((n)=>n.t && n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"] && n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]).reduce((sum, n)=>sum + n.t.length, 0);
 }
 function extractProps(nodes) {
     const colorCounts = {};
@@ -526,18 +603,14 @@ function extractProps(nodes) {
     let hasStress = false;
     let syllableCount = 0;
     for (const n of nodes){
-        // Silent: grey AND graphic consonant grapheme
-        if (n.c === COLOR_SILENT && n.t && isGraphicCons(n.t)) hasSilent = true;
-        // Stress
+        if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"] && n.t && (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isGraphicCons"])(n.t)) hasSilent = true;
         if (n.u) hasStress = true;
-        // Syllable count — each stressed or schwa vowel = 1 syllable (approximation)
-        if (n.c !== COLOR_SILENT && n.c !== COLOR_CONSONANT && n.t) {
+        if (n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"] && n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.t) {
             syllableCount++;
             const c = colorCounts[n.c] ?? 0;
             colorCounts[n.c] = c + n.t.length;
         }
     }
-    // Dominant colour
     const entries = Object.entries(colorCounts);
     const dominantColor = entries.length > 0 ? entries.sort((a, b)=>b[1] - a[1])[0][0] : null;
     return {
@@ -547,6 +620,46 @@ function extractProps(nodes) {
         syllableCount: Math.max(1, syllableCount)
     };
 }
+}),
+"[project]/src/lib/engine/index.ts [app-route] (ecmascript) <locals>", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "processIpa",
+    ()=>processIpa
+]);
+// engine/index.ts
+// PUBLIC API — the only file other modules should import from.
+// `import { processIpa, scoreNodes, extractProps } from './engine'`
+// `import type { RenderNode } from './engine'`
+//
+// Signature-compatible with the old pipeline.ts on purpose: db.ts only needs
+// its import path changed, nothing else.
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$segment$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/segment.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/align.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/score.ts [app-route] (ecmascript)");
+;
+;
+;
+function processIpa(word, rawIpa) {
+    if (!rawIpa?.trim()) {
+        return [
+            {
+                t: word,
+                s: '',
+                c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
+                u: false,
+                x: false
+            }
+        ];
+    }
+    const segs = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$segment$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["segment"])(rawIpa);
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["align"])(word, segs);
+}
+;
+;
+;
 }),
 "[project]/src/lib/db.ts [app-route] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
@@ -573,7 +686,8 @@ __turbopack_context__.s([
 //   cache.db    (B) — read-write, processed results cache
 var __TURBOPACK__imported__module__$5b$externals$5d2f$better$2d$sqlite3__$5b$external$5d$__$28$better$2d$sqlite3$2c$__cjs$2c$__$5b$project$5d2f$node_modules$2f$better$2d$sqlite3$29$__ = __turbopack_context__.i("[externals]/better-sqlite3 [external] (better-sqlite3, cjs, [project]/node_modules/better-sqlite3)");
 var __TURBOPACK__imported__module__$5b$externals$5d2f$path__$5b$external$5d$__$28$path$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/path [external] (path, cjs)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$pipeline$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/pipeline.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/src/lib/engine/index.ts [app-route] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/score.ts [app-route] (ecmascript)");
 ;
 ;
 ;
@@ -680,13 +794,13 @@ function getBestNodes(word) {
     const usRow = stmtUs().get(word);
     if (!ukRow && !usRow) return null;
     // 3. Process through pipeline
-    const ukNodes = ukRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$pipeline$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["processIpa"])(word, ukRow.ipa) : null;
-    const usNodes = usRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$pipeline$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["processIpa"])(word, usRow.ipa) : null;
+    const ukNodes = ukRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["processIpa"])(word, ukRow.ipa) : null;
+    const usNodes = usRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["processIpa"])(word, usRow.ipa) : null;
     // 4. Select best variant
     const result = selectBest(ukNodes, usNodes);
     if (!result) return null;
     // 5. Extract properties
-    const props = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$pipeline$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["extractProps"])(result.nodes);
+    const props = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["extractProps"])(result.nodes);
     // 6. Save to cache (B)
     try {
         stmtCacheSet().run(word, result.variant, JSON.stringify(result.nodes), ukRow?.ipa ?? null, usRow?.ipa ?? null, props.dominantColor, props.hasSilent ? 1 : 0, props.hasStress ? 1 : 0, props.syllableCount, word.length, new Date().toISOString());
@@ -715,8 +829,8 @@ function selectBest(uk, us) {
         nodes: uk,
         variant: 'uk'
     };
-    const ukScore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$pipeline$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["scoreNodes"])(uk);
-    const usScore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$pipeline$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["scoreNodes"])(us);
+    const ukScore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["scoreNodes"])(uk);
+    const usScore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["scoreNodes"])(us);
     if (ukScore > usScore) return {
         nodes: uk,
         variant: 'uk'
@@ -828,4 +942,4 @@ async function DELETE() {
 }),
 ];
 
-//# sourceMappingURL=%5Broot-of-the-server%5D__04~37.3._.js.map
+//# sourceMappingURL=%5Broot-of-the-server%5D__0h.eubs._.js.map

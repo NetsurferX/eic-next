@@ -5,8 +5,8 @@
 
 import Database from 'better-sqlite3'
 import path from 'path'
-import { processIpa, scoreNodes, extractProps } from './pipeline'
-import type { RenderNode } from './pipeline'
+import { processIpa, scoreNodes, extractProps } from './engine'
+import type { RenderNode } from './engine'
 
 const LEXICON_PATH = path.join(process.cwd(), 'data', 'lexicon.db')
 const CACHE_PATH   = path.join(process.cwd(), 'data', 'cache.db')

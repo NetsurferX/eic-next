@@ -236,7 +236,7 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
           semi                       ? 'eic-semivowel' : '',
         ].filter(Boolean).join(' ')
 
-        const spanStyle = isDiphNode ? style : { ...style, color }
+        const spanStyle = { ...style, color }
 
         return (
           <span

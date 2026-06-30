@@ -674,7 +674,7 @@ function WordRenderer({ nodes, wordStr }) {
                 mute && !isTrueSyl ? 'eic-silent' : '',
                 semi ? 'eic-semivowel' : ''
             ].filter(Boolean).join(' ');
-            const spanStyle = isDiphNode ? style : {
+            const spanStyle = {
                 ...style,
                 color
             };
