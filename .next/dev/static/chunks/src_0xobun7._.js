@@ -483,12 +483,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$
 ;
 ;
 // ── Constants ─────────────────────────────────────────────────────────────────
-const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
-const SEMIVOWEL_SOUNDS = new Set([
-    'j',
-    'w',
-    'ỷ'
-]);
+const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvwxyz');
 const DIPHTHONG_START = '#FF3399';
 const DIPHTHONG_END = '#CC0000';
 // ── Node classification helpers ───────────────────────────────────────────────
@@ -500,7 +495,6 @@ function isGraphicConsonant(t) {
 function shouldBeMute(n) {
     if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
     if (!n.t || n.t.length === 0) return false;
-    // Modificare critică: O consoană este mută doar dacă are o culoare explicită de vocală (nu goală, nu neagră)
     const hasActiveVowelColor = n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.c !== '' && n.c !== undefined;
     if (hasActiveVowelColor && isGraphicConsonant(n.t)) return true;
     return false;
@@ -510,9 +504,6 @@ function isVowel(n) {
     if (shouldBeMute(n)) return false;
     if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] || n.x || n.c === '') return false;
     return true;
-}
-function isSemivowel(n) {
-    return SEMIVOWEL_SOUNDS.has(n.s) && n.c === '#E57373';
 }
 function classifyNodes(nodes) {
     const SCHWA = '#888888';
@@ -541,15 +532,8 @@ function buildDiphthongGradients(nodes, diphthongGlide) {
     }
     return result;
 }
-// ── Monosyllabic / syllabic consonant detection ───────────────────────────────
-function isMonosyllabic(nodes) {
-    return !nodes.some((n)=>n.u === true);
-}
-function hasTrueSyllabic(trueSyllabic) {
-    return trueSyllabic.size > 0;
-}
 // ── Underline: stressed vowel + consecutive vowel run ─────────────────────────
-function buildUnderlined(nodes, allow, diphthongGlide) {
+function buildUnderlined(nodes, diphthongGlide) {
     const result = new Set();
     // Heuristic Override: Dacă baza de date nu trimite accente (cuvinte scurte/monosilabice),
     // dar vrem să corectăm randarea vizuală unde o consoană a primit accent din greșeală.
@@ -558,19 +542,14 @@ function buildUnderlined(nodes, allow, diphthongGlide) {
         const n = nodes[i];
         const denied = n.underlineOverride === 'deny';
         const forced = n.underlineOverride === 'force';
-        // Doar un nucleu vocalic sau semivocalic real poate ancora accentul/sublinierea —
-        // cu excepția unui rule regex 'force', care poate ancora pe orice grafem.
         const isStressedVowel = !denied && n.u && isVowel(n) && !shouldBeMute(n);
-        // Anchor only on a real vowel (or a forced override). Semivowel anchors
-        // can cause the underline to pick the semivowel colour instead of the
-        // vowel colour; avoid that to match the standardised rule set.
         if (forced || isStressedVowel) {
             if (!denied) result.add(i);
             let j = i + 1;
             while(j < nodes.length){
                 const next = nodes[j];
                 if (next.underlineOverride === 'deny') break;
-                if (next.underlineOverride === 'force' || isVowel(next) && !shouldBeMute(next) || isSemivowel(next) && next.t.length > 0 || diphthongGlide.has(j)) {
+                if (next.underlineOverride === 'force' || isVowel(next) && !shouldBeMute(next) || diphthongGlide.has(j)) {
                     result.add(j);
                     j++;
                 } else {
@@ -588,11 +567,7 @@ function WordRenderer({ nodes, wordStr }) {
     const renderNodes = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["applyRegexOverrides"])(wordStr, nodes, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DEFAULT_CONFIG"].regexRules);
     const { trueSyllabic, diphthongGlide } = classifyNodes(renderNodes);
     const diphthongNodes = buildDiphthongGradients(renderNodes, diphthongGlide);
-    const mono = isMonosyllabic(renderNodes);
-    const hasSyl = hasTrueSyllabic(trueSyllabic);
-    // Permitem randarea liniei dacă există stări de accent precalculate valid
-    const allow = !mono && !hasSyl;
-    const underlined = buildUnderlined(renderNodes, allow, diphthongGlide);
+    const underlined = buildUnderlined(renderNodes, diphthongGlide);
     // Build a per-node underline color map: each contiguous underline run
     // is anchored to its first underlined node's visual colour.
     const underlineColor = new Map();
@@ -626,7 +601,6 @@ function WordRenderer({ nodes, wordStr }) {
             const isDiphNode = diphthongNodes.has(i);
             const isUnderlined = underlined.has(i);
             const mute = shouldBeMute(n) || isGlide && !isDiphNode;
-            const semi = isSemivowel(n) && n.t.length > 0 && !isGlide;
             let color;
             let style = {};
             // anchor colour for this node's underline run (if any)
@@ -649,8 +623,6 @@ function WordRenderer({ nodes, wordStr }) {
                 }
             } else if (mute) {
                 color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
-            } else if (semi) {
-                color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
             } else {
                 // Fallback: if DB colour is empty/invalid, use consonant colour
                 color = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
@@ -671,8 +643,7 @@ function WordRenderer({ nodes, wordStr }) {
                 'eic-seg',
                 isTrueSyl ? 'eic-syllabic' : '',
                 isUnderlined && !isTrueSyl ? 'eic-stressed' : '',
-                mute && !isTrueSyl ? 'eic-silent' : '',
-                semi ? 'eic-semivowel' : ''
+                mute && !isTrueSyl ? 'eic-silent' : ''
             ].filter(Boolean).join(' ');
             const spanStyle = {
                 ...style,
@@ -685,13 +656,13 @@ function WordRenderer({ nodes, wordStr }) {
                 children: n.t
             }, i, false, {
                 fileName: "[project]/src/components/WordRenderer.tsx",
-                lineNumber: 242,
+                lineNumber: 210,
                 columnNumber: 11
             }, this);
         })
     }, void 0, false, {
         fileName: "[project]/src/components/WordRenderer.tsx",
-        lineNumber: 182,
+        lineNumber: 154,
         columnNumber: 5
     }, this);
 }

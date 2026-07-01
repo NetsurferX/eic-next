@@ -10,8 +10,7 @@ interface Props {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz')
-const SEMIVOWEL_SOUNDS = new Set(['j', 'w', 'ỷ'])
+const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvwxyz')
 
 const DIPHTHONG_START = '#FF3399'
 const DIPHTHONG_END   = '#CC0000'
@@ -26,7 +25,6 @@ function shouldBeMute(n: RenderNode): boolean {
   if (n.c === COLOR_SILENT) return true
   if (!n.t || n.t.length === 0) return false
   
-  // Modificare critică: O consoană este mută doar dacă are o culoare explicită de vocală (nu goală, nu neagră)
   const hasActiveVowelColor = n.c !== COLOR_CONSONANT && n.c !== '' && n.c !== undefined
   if (hasActiveVowelColor && isGraphicConsonant(n.t)) return true
   
@@ -40,9 +38,7 @@ function isVowel(n: RenderNode): boolean {
   return true
 }
 
-function isSemivowel(n: RenderNode): boolean {
-  return SEMIVOWEL_SOUNDS.has(n.s) && n.c === '#E57373'
-}
+
 
 // ── Syllabic consonant classification ─────────────────────────────────────────
 
@@ -82,21 +78,10 @@ function buildDiphthongGradients(
   return result
 }
 
-// ── Monosyllabic / syllabic consonant detection ───────────────────────────────
-
-function isMonosyllabic(nodes: RenderNode[]): boolean {
-  return !nodes.some(n => n.u === true)
-}
-
-function hasTrueSyllabic(trueSyllabic: Set<number>): boolean {
-  return trueSyllabic.size > 0
-}
-
 // ── Underline: stressed vowel + consecutive vowel run ─────────────────────────
 
 function buildUnderlined(
   nodes: RenderNode[],
-  allow: boolean,
   diphthongGlide: Set<number>
 ): Set<number> {
   const result = new Set<number>()
@@ -109,13 +94,7 @@ function buildUnderlined(
     const denied = n.underlineOverride === 'deny'
     const forced = n.underlineOverride === 'force'
 
-    // Doar un nucleu vocalic sau semivocalic real poate ancora accentul/sublinierea —
-    // cu excepția unui rule regex 'force', care poate ancora pe orice grafem.
     const isStressedVowel = !denied && n.u && isVowel(n) && !shouldBeMute(n)
-
-    // Anchor only on a real vowel (or a forced override). Semivowel anchors
-    // can cause the underline to pick the semivowel colour instead of the
-    // vowel colour; avoid that to match the standardised rule set.
     if (forced || isStressedVowel) {
       if (!denied) result.add(i)
       let j = i + 1
@@ -124,7 +103,6 @@ function buildUnderlined(
         if (next.underlineOverride === 'deny') break
         if (next.underlineOverride === 'force'
           || (isVowel(next) && !shouldBeMute(next))
-          || (isSemivowel(next) && next.t.length > 0)
           || diphthongGlide.has(j)) {
           result.add(j)
           j++
@@ -148,13 +126,7 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
   const { trueSyllabic, diphthongGlide } = classifyNodes(renderNodes)
   const diphthongNodes = buildDiphthongGradients(renderNodes, diphthongGlide)
 
-  const mono   = isMonosyllabic(renderNodes)
-  const hasSyl = hasTrueSyllabic(trueSyllabic)
-  
-  // Permitem randarea liniei dacă există stări de accent precalculate valid
-  const allow  = !mono && !hasSyl
-
-  const underlined = buildUnderlined(renderNodes, allow, diphthongGlide)
+  const underlined = buildUnderlined(renderNodes, diphthongGlide)
 
   // Build a per-node underline color map: each contiguous underline run
   // is anchored to its first underlined node's visual colour.
@@ -188,7 +160,6 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
         const isDiphNode    = diphthongNodes.has(i)
         const isUnderlined  = underlined.has(i)
         const mute          = shouldBeMute(n) || (isGlide && !isDiphNode)
-        const semi          = isSemivowel(n) && n.t.length > 0 && !isGlide
 
         let color: string
         let style: CSSProperties = {}
@@ -214,8 +185,6 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
           }
         } else if (mute) {
           color = COLOR_SILENT
-        } else if (semi) {
-          color = COLOR_CONSONANT
         } else {
           // Fallback: if DB colour is empty/invalid, use consonant colour
           color = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
@@ -233,7 +202,6 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
           isTrueSyl                  ? 'eic-syllabic' : '',
           isUnderlined && !isTrueSyl ? 'eic-stressed' : '',
           mute && !isTrueSyl         ? 'eic-silent'   : '',
-          semi                       ? 'eic-semivowel' : '',
         ].filter(Boolean).join(' ')
 
         const spanStyle = { ...style, color }
