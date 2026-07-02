@@ -1,48 +1,4 @@
 (globalThis["TURBOPACK"] || (globalThis["TURBOPACK"] = [])).push([typeof document === "object" ? document.currentScript : undefined,
-"[project]/src/lib/renderNode.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
-"use strict";
-
-// Schema exactă din words.db RenderJson
-__turbopack_context__.s([
-    "COLOR_CONSONANT",
-    ()=>COLOR_CONSONANT,
-    "COLOR_SILENT",
-    ()=>COLOR_SILENT,
-    "GRAPHIC_CONSONANTS",
-    ()=>GRAPHIC_CONSONANTS,
-    "SYLLABIC_MARKER",
-    ()=>SYLLABIC_MARKER,
-    "isGraphicConsonantString",
-    ()=>isGraphicConsonantString,
-    "isMute",
-    ()=>isMute,
-    "isSyllabicConsonant",
-    ()=>isSyllabicConsonant,
-    "isVowelNode",
-    ()=>isVowelNode
-]);
-const SYLLABIC_MARKER = '\u200d';
-const COLOR_SILENT = '#000000';
-const COLOR_CONSONANT = '#000000';
-function isSyllabicConsonant(node) {
-    return node.s === SYLLABIC_MARKER;
-}
-function isMute(node) {
-    return node.c === COLOR_SILENT;
-}
-function isVowelNode(node) {
-    return !node.x && node.c !== COLOR_SILENT && node.t.length > 0;
-}
-const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
-function isGraphicConsonantString(t) {
-    return t.length > 0 && [
-        ...t.toLowerCase()
-    ].every((c)=>GRAPHIC_CONSONANTS.has(c));
-}
-if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
-    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
-}
-}),
 "[project]/src/lib/ruleConfig.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
@@ -469,48 +425,912 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
 }),
-"[project]/src/components/WordRenderer.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
+"[project]/src/lib/engine/colorMap.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
+// engine/colorMap.ts
+// Sound → colour. Nothing in this file knows about graphemes/letters — it
+// only ever looks at IPA display strings. Edit COLOR_MAP to change a colour;
+// you never need to touch align.ts to do that.
 __turbopack_context__.s([
-    "default",
-    ()=>WordRenderer
+    "COLOR_CONSONANT",
+    ()=>COLOR_CONSONANT,
+    "COLOR_MAP",
+    ()=>COLOR_MAP,
+    "COLOR_SILENT",
+    ()=>COLOR_SILENT,
+    "VOWEL_CHARS",
+    ()=>VOWEL_CHARS,
+    "getColor",
+    ()=>getColor,
+    "isVowelSound",
+    ()=>isVowelSound
 ]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/renderNode.ts [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/ruleConfig.ts [app-client] (ecmascript)");
+const COLOR_SILENT = '#999999' // mute letters: grey, distinct from a normal pronounced consonant
+;
+const COLOR_CONSONANT = '#000000';
+const COLOR_MAP = {
+    'æ': '#00b0f0',
+    'ʌ': '#008E40',
+    'a': '#008E40',
+    'ɑ': '#008E40',
+    'ə': '#888888',
+    'ɜ': '#888888',
+    'ər': '#888888',
+    'er': '#888888',
+    'e': '#EE5B00',
+    'ɛ': '#EE5B00',
+    'eɪ': '#EE5B00',
+    'eỷ': '#EE5B00',
+    'ɪ': '#CC0000',
+    'i': '#CC0000',
+    'iː': '#CC0000',
+    'ɒ': '#FF3399',
+    'ɔ': '#FF3399',
+    'o': '#FF3399',
+    'oʊ': '#FF3399',
+    'əw': '#FF3399',
+    'ʊ': '#7030A0',
+    'u': '#7030A0',
+    'uː': '#7030A0',
+    'aɪ': '#4472C4',
+    'aỷ': '#4472C4',
+    'aw': '#4472C4',
+    'aʊ': '#4472C4',
+    'oɪ': '#4472C4',
+    'oỷ': '#4472C4',
+    'ɔɪ': '#4472C4',
+    'j': '#E57373',
+    'w': '#E57373',
+    'ỷ': '#E57373'
+};
+function getColor(sound) {
+    if (!sound) return null;
+    const k = sound.toLowerCase();
+    if (COLOR_MAP[k]) return COLOR_MAP[k];
+    if (k.length > 1 && COLOR_MAP[k[0]]) return COLOR_MAP[k[0]];
+    return null;
+}
+const VOWEL_CHARS = new Set([
+    ...'aeioujæɑɔəwɛɪʊʌyøœɒɝɚɜỷ'
+]);
+function isVowelSound(s) {
+    return s.length > 0 && VOWEL_CHARS.has(s[0]);
+}
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/lib/engine/segment.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// engine/segment.ts
+// Turns a raw IPA string into Seg[] — phoneme-sized chunks with a display
+// form, vowel flag, and whether the chunk carries primary stress.
+//
+// TRANSFORMS is intentionally a flat priority list, longest-pattern-first:
+// to change how a sound is displayed, edit one line here. Nothing else in
+// the engine needs to change.
+__turbopack_context__.s([
+    "segment",
+    ()=>segment
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-client] (ecmascript)");
+;
+const TRANSFORMS = [
+    // Schwa+R
+    [
+        'ɜːr',
+        'ər'
+    ],
+    [
+        'ɝːr',
+        'ər'
+    ],
+    [
+        'ɚːr',
+        'ər'
+    ],
+    [
+        'ɜr',
+        'ər'
+    ],
+    [
+        'ɝr',
+        'ər'
+    ],
+    [
+        'ɚr',
+        'ər'
+    ],
+    [
+        'ɜː',
+        'ər'
+    ],
+    [
+        'ɝː',
+        'ər'
+    ],
+    [
+        'ɚː',
+        'ər'
+    ],
+    [
+        'ɜ',
+        'ər'
+    ],
+    [
+        'ɝ',
+        'ər'
+    ],
+    [
+        'ɚ',
+        'ər'
+    ],
+    // OR
+    [
+        'ɔːr',
+        'or'
+    ],
+    [
+        'ɔr',
+        'or'
+    ],
+    [
+        'ɔɹ',
+        'or'
+    ],
+    // Diphthongs
+    [
+        'ɔɪ',
+        'oỷ'
+    ],
+    [
+        'oɪ',
+        'oỷ'
+    ],
+    [
+        'aɪ',
+        'aỷ'
+    ],
+    [
+        'eɪ',
+        'eỷ'
+    ],
+    [
+        'aʊ',
+        'aw'
+    ],
+    [
+        'əʊ',
+        'əw'
+    ],
+    [
+        'oʊ',
+        'əw'
+    ],
+    // ER
+    [
+        'ɛːr',
+        'er'
+    ],
+    [
+        'ɛr',
+        'er'
+    ],
+    [
+        'ɛɹ',
+        'er'
+    ],
+    // Long vowels
+    [
+        'iː',
+        'i'
+    ],
+    [
+        'uː',
+        'u'
+    ],
+    [
+        'ɑː',
+        'ɑ'
+    ],
+    [
+        'ɔː',
+        'ɔ'
+    ],
+    [
+        'æː',
+        'æ'
+    ],
+    [
+        'eː',
+        'e'
+    ],
+    // Consonant digraphs
+    [
+        'tʃ',
+        'ch'
+    ],
+    [
+        'dʒ',
+        'j'
+    ],
+    [
+        'ŋg',
+        'ng'
+    ],
+    [
+        'ŋ',
+        'ng'
+    ],
+    [
+        'θ',
+        'th'
+    ],
+    [
+        'ð',
+        'dh'
+    ],
+    [
+        'ʃ',
+        'sh'
+    ],
+    [
+        'ɹ',
+        'r'
+    ],
+    // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
+    // isVowelSound() already returns true for these (see colorMap.ts);
+    // align.ts treats them exactly like any other vowel sound.
+    [
+        'j',
+        'j'
+    ],
+    [
+        'w',
+        'w'
+    ],
+    [
+        'ỷ',
+        'ỷ'
+    ],
+    // Simple vowels
+    [
+        'æ',
+        'æ'
+    ],
+    [
+        'ɪ',
+        'ɪ'
+    ],
+    [
+        'ɑ',
+        'ɑ'
+    ],
+    [
+        'ɒ',
+        'ɒ'
+    ],
+    [
+        'ɛ',
+        'ɛ'
+    ],
+    [
+        'ʌ',
+        'ʌ'
+    ],
+    [
+        'ʊ',
+        'ʊ'
+    ],
+    [
+        'ə',
+        'ə'
+    ]
+];
+const STRIP = new Set([
+    ...'/,.ˌːˑ'
+]);
+const VOWEL_FALLBACK = new Set([
+    ...'aeioujæɑɔəwɛɪʊʌyøœɒỷ'
+]);
+/**
+ * Stress anchoring needs a DIFFERENT notion of "vowel" than sound
+ * classification does. VOWEL_CHARS (colorMap.ts) correctly includes j/w/ỷ —
+ * they're vowel-adjacent sounds for coloring purposes. But a glide can never
+ * itself carry primary stress; only a true syllable nucleus can. Using
+ * VOWEL_CHARS here caused stress to land on a glide instead of skipping past
+ * it to the real vowel (e.g. "question" /ˈkwɛstʃən/ — stress marker before
+ * "kw" should skip both consonant 'k' AND glide 'w' to land on 'ɛ', but
+ * VOWEL_CHARS treats 'w' as a stop-here vowel and the scan halted early).
+ */ const STRESS_ANCHOR_CHARS = new Set([
+    ...__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["VOWEL_CHARS"]
+].filter((c)=>c !== 'j' && c !== 'w' && c !== 'ỷ' && c !== 'y'));
+function findStressPos(rawIpa) {
+    const ipa = [
+        ...rawIpa
+    ].filter((c)=>!STRIP.has(c)).join('').trim();
+    const stressAt = ipa.indexOf('ˈ');
+    const clean = ipa.replace(/ˈ/g, '');
+    if (stressAt < 0) return {
+        clean,
+        stressPos: -1
+    };
+    // If the char right after the marker is a true vowel, anchor there.
+    // Otherwise scan forward (skipping consonants AND glides) to the first
+    // true vowel.
+    let j = stressAt + 1;
+    if (j >= ipa.length) return {
+        clean,
+        stressPos: -1
+    };
+    const isAnchorChar = (ch)=>ch && STRESS_ANCHOR_CHARS.has(ch);
+    if (isAnchorChar(ipa[j])) return {
+        clean,
+        stressPos: j - 1
+    };
+    let k = j;
+    while(k < ipa.length && !isAnchorChar(ipa[k]))k++;
+    return {
+        clean,
+        stressPos: k < ipa.length ? k - 1 : -1
+    };
+}
+function segment(rawIpa) {
+    const { clean, stressPos } = findStressPos(rawIpa);
+    const result = [];
+    let i = 0;
+    while(i < clean.length){
+        let matched = false;
+        for (const [pat, rep] of TRANSFORMS){
+            if (i + pat.length > clean.length) continue;
+            if (clean.slice(i, i + pat.length) !== pat) continue;
+            const accented = stressPos >= 0 && stressPos >= i && stressPos < i + pat.length;
+            result.push({
+                ipa: pat,
+                display: rep,
+                isVowel: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isVowelSound"])(rep),
+                accented
+            });
+            i += pat.length;
+            matched = true;
+            break;
+        }
+        if (!matched) {
+            const c = clean[i];
+            const accented = stressPos === i;
+            const isVowel = VOWEL_FALLBACK.has(c.toLowerCase());
+            result.push({
+                ipa: c,
+                display: c,
+                isVowel,
+                accented
+            });
+            i++;
+        }
+    }
+    // Fallback: accent first vowel if nothing caught the stress marker
+    if (stressPos >= 0 && result.every((s)=>!s.accented)) {
+        let cum = 0;
+        for(let k = 0; k < result.length; k++){
+            if (cum >= stressPos && result[k].isVowel) {
+                result[k] = {
+                    ...result[k],
+                    accented: true
+                };
+                break;
+            }
+            cum += result[k].ipa.length;
+        }
+    }
+    return result;
+}
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/lib/engine/align.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// engine/align.ts
+// Maps Seg[] (IPA phonemes after transforms) onto the word's letters.
+//
+// TWO RULES drive this, not a dictionary:
+//
+// 1. CONSONANT_SPELLINGS table: each IPA display (e.g. 'sh', 'k', 'r') lists
+//    every letter sequence that can spell it in English, longest first.
+//    Handles: ti/ci→sh ("nation"), ch→k ("school"), rr/ll/nn/tt ("current",
+//    "better"), ph/gh→f ("phone","enough"), kn/gn→n ("knight"), tch→ch, etc.
+//
+// 2. R-CONTROLLED VOWEL rule: after consuming vowel letters, if the next
+//    letter is 'r' AND the next phoneme is NOT /r/, absorb the 'r' into this
+//    vowel node. Handles: er/ir/or/ur/ar as single phoneme ("inter-", "her").
+//
+// With these two rules almost all English spelling irregularities are covered
+// without touching a word list.
+__turbopack_context__.s([
+    "GRAPHIC_VOWELS",
+    ()=>GRAPHIC_VOWELS,
+    "align",
+    ()=>align,
+    "isGraphicCons",
+    ()=>isGraphicCons,
+    "isGraphicVowel",
+    ()=>isGraphicVowel
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-client] (ecmascript)");
+;
+const GRAPHIC_VOWELS = new Set([
+    ...'aeiou',
+    ...'AEIOU'
+]);
+function isGraphicVowel(c) {
+    return GRAPHIC_VOWELS.has(c);
+}
+function isGraphicCons(c) {
+    return !GRAPHIC_VOWELS.has(c);
+}
+// ── Glide sounds ──────────────────────────────────────────────────────────────
+const GLIDE_DISPLAYS = new Set([
+    'j',
+    'w',
+    'ỷ'
+]);
+// IPA displays that are vowel sounds (used to decide vowel-run width)
+const VOWEL_DISPLAY_STARTS = new Set([
+    ...'aeiouæɑɔəɛɪʊʌỷyw'
+]);
+function isVowelDisplay(d) {
+    return d.length > 0 && VOWEL_DISPLAY_STARTS.has(d[0]);
+}
+// ── Consonant spelling table ──────────────────────────────────────────────────
+// Key   = IPA display string (after TRANSFORMS in segment.ts)
+// Value = letter sequences that spell it, LONGEST FIRST (greedy match wins)
+//
+// Adding a new rule: just add a line here. No other file needs to change.
+const CONSONANT_SPELLINGS = new Map([
+    // Affricates & fricatives
+    [
+        'sh',
+        [
+            'tsch',
+            'sch',
+            'ssh',
+            'sh',
+            'ti',
+            'ci',
+            'si'
+        ]
+    ],
+    [
+        'ch',
+        [
+            'tch',
+            'ch'
+        ]
+    ],
+    [
+        'j',
+        [
+            'dge',
+            'dg',
+            'j'
+        ]
+    ],
+    [
+        'zh',
+        [
+            'si',
+            'zi',
+            'z'
+        ]
+    ],
+    [
+        'ng',
+        [
+            'ngg',
+            'ng'
+        ]
+    ],
+    [
+        'th',
+        [
+            'th'
+        ]
+    ],
+    [
+        'dh',
+        [
+            'th'
+        ]
+    ],
+    // Stops
+    [
+        'k',
+        [
+            'ck',
+            'kk',
+            'ch',
+            'kh',
+            'k',
+            'c',
+            'q'
+        ]
+    ],
+    [
+        'g',
+        [
+            'gg',
+            'gh',
+            'g'
+        ]
+    ],
+    [
+        't',
+        [
+            'tt',
+            't'
+        ]
+    ],
+    [
+        'd',
+        [
+            'dd',
+            'd'
+        ]
+    ],
+    [
+        'p',
+        [
+            'pp',
+            'p'
+        ]
+    ],
+    [
+        'b',
+        [
+            'bb',
+            'b'
+        ]
+    ],
+    // Fricatives
+    [
+        'f',
+        [
+            'ph',
+            'gh',
+            'ff',
+            'f'
+        ]
+    ],
+    [
+        'v',
+        [
+            'vv',
+            'v'
+        ]
+    ],
+    [
+        's',
+        [
+            'ss',
+            's'
+        ]
+    ],
+    [
+        'z',
+        [
+            'zz',
+            'z',
+            's'
+        ]
+    ],
+    [
+        'h',
+        [
+            'wh',
+            'h'
+        ]
+    ],
+    // Nasals & liquids
+    [
+        'n',
+        [
+            'kn',
+            'gn',
+            'nn',
+            'n'
+        ]
+    ],
+    [
+        'm',
+        [
+            'mm',
+            'm'
+        ]
+    ],
+    [
+        'l',
+        [
+            'll',
+            'l'
+        ]
+    ],
+    [
+        'r',
+        [
+            'rr',
+            'wr',
+            'rh',
+            'r'
+        ]
+    ],
+    // Glides (as graphic consonants — position-based edge cases)
+    [
+        'w',
+        [
+            'wh',
+            'w'
+        ]
+    ]
+]);
+function tryConsSpellings(display, word, pos) {
+    const spellings = CONSONANT_SPELLINGS.get(display);
+    if (!spellings) return '';
+    const wLow = word.toLowerCase();
+    for (const sp of spellings){
+        if (wLow.startsWith(sp, pos)) return word.slice(pos, pos + sp.length);
+    }
+    return '';
+}
+// ── Vowel consumption ─────────────────────────────────────────────────────────
+function consumeVowel(display, word, pos, nextDisplay) {
+    const wLen = word.length;
+    // Glide sound: consume exactly 1 letter (it may be a consonant-looking letter
+    // like 'u' in "queen" or 'o' in "one") — never extend into the adjacent vowel run
+    if (GLIDE_DISPLAYS.has(display)) {
+        const consumed = pos < wLen ? word[pos] : '';
+        return {
+            consumed,
+            muteTail: '',
+            newPos: pos + (consumed ? 1 : 0)
+        };
+    }
+    // True vowel: consume the consecutive vowel-letter run.
+    // If the NEXT phoneme is also a vowel, take only 1 letter — the remaining
+    // vowel letters belong to that next phoneme ("ia" in "association" = i+eɪ,
+    // not a single two-letter run for one phoneme).
+    const start = pos;
+    if (nextDisplay && isVowelDisplay(nextDisplay)) {
+        // Two consecutive vowel phonemes: each gets exactly 1 letter
+        if (pos < wLen && isGraphicVowel(word[pos])) pos++;
+    } else {
+        while(pos < wLen && isGraphicVowel(word[pos]))pos++;
+    }
+    // Trailing w/y that completes a digraph (ow/aw/ay/oy/ey in "power","day","boy")
+    if (pos > start && pos < wLen && 'wyWY'.includes(word[pos])) pos++;
+    // R-controlled vowel: "er","ir","or","ur","ar" spell ONE phoneme. The 'r'
+    // here genuinely carries part of THIS sound, so it stays merged into the
+    // pronounced span (never split off as mute). If the next letter is 'r' and
+    // the next PHONEME is not /r/, absorb it. Fixes "inter-" in
+    // "international", "er" in "current", the "our" boundary in "power", etc.
+    if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
+        pos++;
+    }
+    const pronounced = word.slice(start, pos);
+    // Silent 'gh' right after the pronounced run: real letters with NO phoneme
+    // of their own ("night","high","eight","caught","though"...). Per the
+    // mute-letter principle these render as their OWN grey node — never widen
+    // the vowel's coloured/underlined span. Only absorb when the next phoneme
+    // isn't one 'gh' could itself spell (f as in "enough", g as in "ghost"),
+    // in which case 'gh' belongs to the FOLLOWING consonant node instead.
+    let muteTail = '';
+    if (pos > start && pos + 1 < wLen && (word[pos] === 'g' || word[pos] === 'G') && (word[pos + 1] === 'h' || word[pos + 1] === 'H') && nextDisplay !== 'f' && nextDisplay !== 'g') {
+        muteTail = word.slice(pos, pos + 2);
+        pos += 2;
+    }
+    return {
+        consumed: pronounced,
+        muteTail,
+        newPos: pos
+    };
+}
+function align(word, segs) {
+    if (segs.length === 0) return [
+        {
+            t: word,
+            s: '',
+            c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
+            u: false,
+            x: false
+        }
+    ];
+    const nodes = [];
+    let pos = 0;
+    const wLen = word.length;
+    for(let si = 0; si < segs.length; si++){
+        const { ipa, display, isVowel, accented } = segs[si];
+        const nextDisplay = si + 1 < segs.length ? segs[si + 1].display : undefined;
+        // Latent phoneme — no letters consumed (syllabic marker, zero-width joiner)
+        if (!display || display === '\u200d') {
+            nodes.push({
+                t: '',
+                s: display ?? '',
+                c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"],
+                u: false,
+                x: true
+            });
+            continue;
+        }
+        let consumed = '';
+        let muteTail = '';
+        if (isVowel) {
+            const r = consumeVowel(display, word, pos, nextDisplay);
+            consumed = r.consumed;
+            muteTail = r.muteTail;
+            pos = r.newPos;
+        } else {
+            // 1. Try spelling table (handles ti→sh, rr→r, ch→k, ph→f, kn→n, etc.)
+            const fromTable = tryConsSpellings(display, word, pos);
+            if (fromTable) {
+                consumed = fromTable;
+                pos += fromTable.length;
+            } else if (pos < wLen && isGraphicCons(word[pos])) {
+                // 2. Generic fallback: 1 letter (2 for IPA digraphs like th, ng)
+                consumed = word[pos++];
+                if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos])) consumed += word[pos++];
+            }
+        // 3. Nothing matched → consumed stays '' (truly latent phoneme)
+        }
+        const color = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getColor"])(display);
+        const isCons = !color;
+        const isStressed = accented && isVowel;
+        nodes.push({
+            t: consumed,
+            s: display,
+            c: color ?? (isCons ? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]),
+            u: isStressed,
+            x: isCons
+        });
+        // Silent 'gh' split off consumeVowel: its own mute node, no phoneme,
+        // never coloured/underlined as part of the preceding vowel.
+        if (muteTail) {
+            nodes.push({
+                t: muteTail,
+                s: '',
+                c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
+                u: false,
+                x: false
+            });
+        }
+    }
+    // Remaining letters → silent tail
+    if (pos < wLen) nodes.push({
+        t: word.slice(pos),
+        s: '',
+        c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
+        u: false,
+        x: false
+    });
+    return nodes;
+}
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/lib/engine/score.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// engine/score.ts
+// Word-level properties derived from a finished RenderNode[] — used to pick
+// UK vs US variant and to populate cache.db's summary columns. Pure
+// functions, no dependency on align.ts/segment.ts internals.
+__turbopack_context__.s([
+    "extractProps",
+    ()=>extractProps,
+    "scoreNodes",
+    ()=>scoreNodes
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/align.ts [app-client] (ecmascript)");
 ;
 ;
+function scoreNodes(nodes) {
+    return nodes.filter((n)=>n.t && n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"] && n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]).reduce((sum, n)=>sum + n.t.length, 0);
+}
+function extractProps(nodes) {
+    const colorCounts = {};
+    let hasSilent = false;
+    let hasStress = false;
+    let syllableCount = 0;
+    for (const n of nodes){
+        if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"] && n.t && (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["isGraphicCons"])(n.t)) hasSilent = true;
+        if (n.u) hasStress = true;
+        if (n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"] && n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.t) {
+            syllableCount++;
+            const c = colorCounts[n.c] ?? 0;
+            colorCounts[n.c] = c + n.t.length;
+        }
+    }
+    const entries = Object.entries(colorCounts);
+    const dominantColor = entries.length > 0 ? entries.sort((a, b)=>b[1] - a[1])[0][0] : null;
+    return {
+        dominantColor,
+        hasSilent,
+        hasStress,
+        syllableCount: Math.max(1, syllableCount)
+    };
+}
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/lib/engine/display.ts [app-client] (ecmascript) <locals>", ((__turbopack_context__) => {
+"use strict";
+
+// engine/display.ts
+// The ONLY place that decides what a node looks like on screen.
+// WordRenderer calls resolveDisplay() and just renders the result —
+// no classification logic should live in the component at all.
+//
+// Input:  RenderNode[] after applyRegexOverrides() has run
+// Output: DisplayNode[] — one entry per node, all display decisions made
+__turbopack_context__.s([
+    "DIPHTHONG_END",
+    ()=>DIPHTHONG_END,
+    "DIPHTHONG_START",
+    ()=>DIPHTHONG_START,
+    "SYLLABIC_MARKER",
+    ()=>SYLLABIC_MARKER,
+    "resolveDisplay",
+    ()=>resolveDisplay
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-client] (ecmascript)");
 ;
-// ── Constants ─────────────────────────────────────────────────────────────────
-const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvwxyz');
+;
+const SYLLABIC_MARKER = '\u200d' // must match renderNode.ts
+;
 const DIPHTHONG_START = '#FF3399';
 const DIPHTHONG_END = '#CC0000';
-// ── Node classification helpers ───────────────────────────────────────────────
+const SCHWA = '#888888';
+// Letters that are graphically consonants — used to detect the
+// "silent consonant in vowel position" case (e.g. the 'k' in 'knight'
+// gets a vowel color from the engine but its letters are all consonants,
+// meaning it is mute, not a vowel).
+// w/y included: they can appear as graphic letters inside consonant
+// positions and should not be mistaken for real vowel runs there.
+const GRAPHIC_CONSONANT_LETTERS = new Set('bcdfghjklmnpqrstvwxyz');
 function isGraphicConsonant(t) {
     return t.length > 0 && [
         ...t.toLowerCase()
-    ].every((c)=>GRAPHIC_CONSONANTS.has(c));
+    ].every((c)=>GRAPHIC_CONSONANT_LETTERS.has(c));
 }
-function shouldBeMute(n) {
-    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
+function isMute(n) {
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
     if (!n.t || n.t.length === 0) return false;
-    const hasActiveVowelColor = n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.c !== '' && n.c !== undefined;
-    if (hasActiveVowelColor && isGraphicConsonant(n.t)) return true;
+    // A node is mute when the engine gave it a vowel color (meaning it carries
+    // a vowel phoneme) but its letters are all graphic consonants — classic
+    // "silent consonant" case, e.g. 'k' in 'knight'.
+    const hasVowelColor = n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.c !== '' && n.c !== undefined;
+    if (hasVowelColor && isGraphicConsonant(n.t)) return true;
     return false;
 }
-function isVowel(n) {
+function isVowelNode(n) {
     if (!n.t || n.t.length === 0) return false;
-    if (shouldBeMute(n)) return false;
-    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] || n.x || n.c === '') return false;
+    if (isMute(n)) return false;
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] || n.x || n.c === '') return false;
     return true;
 }
-function classifyNodes(nodes) {
-    const SCHWA = '#888888';
+// ── Syllabic / diphthong glide classification ─────────────────────────────────
+// Nodes with SYLLABIC_MARKER as their sound are either:
+//   trueSyllabic  — a syllabic consonant (preceded by schwa colour)
+//   diphthongGlide — the glide part of a diphthong
+function classifySyllabic(nodes) {
     const trueSyllabic = new Set();
     const diphthongGlide = new Set();
     for(let i = 0; i < nodes.length; i++){
-        if (nodes[i].s !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SYLLABIC_MARKER"]) continue;
+        if (nodes[i].s !== SYLLABIC_MARKER) continue;
         const prev = i > 0 ? nodes[i - 1] : null;
         if (prev && prev.c === SCHWA) trueSyllabic.add(i);
         else diphthongGlide.add(i);
@@ -520,36 +1340,39 @@ function classifyNodes(nodes) {
         diphthongGlide
     };
 }
-// ── Diphthong gradient detection ──────────────────────────────────────────────
-function buildDiphthongGradients(nodes, diphthongGlide) {
+// ── Diphthong gradient ────────────────────────────────────────────────────────
+// A diphthong glide and the vowel immediately before it both get the gradient.
+function buildDiphthongSet(nodes, diphthongGlide) {
     const result = new Set();
     for(let i = 0; i < nodes.length; i++){
         if (!diphthongGlide.has(i)) continue;
-        if (i > 0 && isVowel(nodes[i - 1]) && nodes[i].t.length > 0) {
+        if (i > 0 && isVowelNode(nodes[i - 1]) && nodes[i].t.length > 0) {
             result.add(i - 1);
             result.add(i);
         }
     }
     return result;
 }
-// ── Underline: stressed vowel + consecutive vowel run ─────────────────────────
-function buildUnderlined(nodes, diphthongGlide) {
+// ── Underline run ─────────────────────────────────────────────────────────────
+// Starts at a stressed vowel node (n.u === true) and extends rightward
+// through consecutive vowels, glides, and diphthong glides.
+// Monosyllabic words never have n.u === true from the engine, so they
+// naturally produce no underline here — no explicit monosyllabic check needed.
+function buildUnderlineSet(nodes, diphthongGlide) {
     const result = new Set();
-    // Heuristic Override: Dacă baza de date nu trimite accente (cuvinte scurte/monosilabice),
-    // dar vrem să corectăm randarea vizuală unde o consoană a primit accent din greșeală.
     let i = 0;
     while(i < nodes.length){
         const n = nodes[i];
         const denied = n.underlineOverride === 'deny';
         const forced = n.underlineOverride === 'force';
-        const isStressedVowel = !denied && n.u && isVowel(n) && !shouldBeMute(n);
+        const isStressedVowel = !denied && n.u && isVowelNode(n) && !isMute(n);
         if (forced || isStressedVowel) {
             if (!denied) result.add(i);
             let j = i + 1;
             while(j < nodes.length){
                 const next = nodes[j];
                 if (next.underlineOverride === 'deny') break;
-                if (next.underlineOverride === 'force' || isVowel(next) && !shouldBeMute(next) || diphthongGlide.has(j)) {
+                if (next.underlineOverride === 'force' || isVowelNode(next) && !isMute(next) || diphthongGlide.has(j)) {
                     result.add(j);
                     j++;
                 } else {
@@ -563,106 +1386,166 @@ function buildUnderlined(nodes, diphthongGlide) {
     }
     return result;
 }
-function WordRenderer({ nodes, wordStr }) {
-    const renderNodes = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["applyRegexOverrides"])(wordStr, nodes, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DEFAULT_CONFIG"].regexRules);
-    const { trueSyllabic, diphthongGlide } = classifyNodes(renderNodes);
-    const diphthongNodes = buildDiphthongGradients(renderNodes, diphthongGlide);
-    const underlined = buildUnderlined(renderNodes, diphthongGlide);
-    // Build a per-node underline color map: each contiguous underline run
-    // is anchored to its first underlined node's visual colour.
-    const underlineColor = new Map();
+function resolveDisplay(nodes) {
+    const { trueSyllabic, diphthongGlide } = classifySyllabic(nodes);
+    const diphthongSet = buildDiphthongSet(nodes, diphthongGlide);
+    const underlineSet = buildUnderlineSet(nodes, diphthongGlide);
+    // Build per-run underline color: anchor to first real vowel in the run.
+    const underlineColorMap = new Map();
     let runStart = null;
-    for(let i = 0; i <= renderNodes.length; i++){
-        const hit = i < renderNodes.length && underlined.has(i);
+    for(let i = 0; i <= nodes.length; i++){
+        const hit = i < nodes.length && underlineSet.has(i);
         if (hit && runStart === null) runStart = i;
-        if ((!hit || i === renderNodes.length) && runStart !== null) {
-            const anchor = runStart;
-            // Prefer the first real vowel in the run as the colour anchor. Fall back
-            // to the run start's colour if no vowel found.
-            let anchorColor = undefined;
+        if ((!hit || i === nodes.length) && runStart !== null) {
+            let anchorColor;
             for(let k = runStart; k < i; k++){
-                const rn = renderNodes[k];
-                if (isVowel(rn) && !shouldBeMute(rn)) {
+                const rn = nodes[k];
+                if (isVowelNode(rn) && !isMute(rn)) {
                     anchorColor = rn.c;
                     break;
                 }
             }
-            if (!anchorColor) anchorColor = renderNodes[anchor].c && renderNodes[anchor].c !== '' ? renderNodes[anchor].c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
-            for(let j = runStart; j < i; j++)underlineColor.set(j, anchorColor);
+            if (!anchorColor) {
+                const rn = nodes[runStart];
+                anchorColor = rn.c && rn.c !== '' ? rn.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+            }
+            for(let j = runStart; j < i; j++)underlineColorMap.set(j, anchorColor);
             runStart = null;
         }
     }
+    return nodes.map((n, i)=>{
+        const isTrueSyl = trueSyllabic.has(i);
+        const isGlide = diphthongGlide.has(i);
+        const isDiph = diphthongSet.has(i);
+        const isUnder = underlineSet.has(i);
+        const mute = isMute(n) || isGlide && !isDiph;
+        const runAnchor = underlineColorMap.get(i) ?? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+        // Final color decision — one place, one pass, explicit priority:
+        let color;
+        if (isTrueSyl) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]; // syllabic consonant
+        else if (isDiph) color = isUnder && !mute // diphthong with underline → solid
+         ? runAnchor : 'transparent'; // gradient handled via gradient flag
+        else if (mute) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
+        else color = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+        if (isUnder && !isTrueSyl && !mute) color = runAnchor;
+        return {
+            t: n.t ?? '',
+            color,
+            underline: isUnder && !isTrueSyl && !mute,
+            gradient: isDiph && !(isUnder && !mute),
+            mute,
+            syllabic: isTrueSyl,
+            underlineColor: runAnchor,
+            sound: n.s && n.s !== SYLLABIC_MARKER ? n.s : ''
+        };
+    });
+}
+;
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/lib/engine/index.ts [app-client] (ecmascript) <locals>", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "processIpa",
+    ()=>processIpa
+]);
+// engine/index.ts
+// PUBLIC API — the only file other modules should import from.
+// `import { processIpa, scoreNodes, extractProps } from './engine'`
+// `import type { RenderNode } from './engine'`
+//
+// Signature-compatible with the old pipeline.ts on purpose: db.ts only needs
+// its import path changed, nothing else.
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$segment$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/segment.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/align.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/score.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$display$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/src/lib/engine/display.ts [app-client] (ecmascript) <locals>");
+;
+;
+;
+function processIpa(word, rawIpa) {
+    if (!rawIpa?.trim()) {
+        return [
+            {
+                t: word,
+                s: '',
+                c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
+                u: false,
+                x: false
+            }
+        ];
+    }
+    const segs = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$segment$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["segment"])(rawIpa);
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["align"])(word, segs);
+}
+;
+;
+;
+;
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/components/WordRenderer.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>WordRenderer
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/ruleConfig.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/src/lib/engine/index.ts [app-client] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$display$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/src/lib/engine/display.ts [app-client] (ecmascript) <locals>");
+;
+;
+;
+function WordRenderer({ nodes, wordStr }) {
+    const renderNodes = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["applyRegexOverrides"])(wordStr, nodes, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$ruleConfig$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DEFAULT_CONFIG"].regexRules);
+    const displayNodes = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$display$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["resolveDisplay"])(renderNodes);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
         className: "eic-word",
-        children: renderNodes.map((n, i)=>{
-            if (!n.t) return null;
-            const isTrueSyl = trueSyllabic.has(i);
-            const isGlide = diphthongGlide.has(i);
-            const isDiphNode = diphthongNodes.has(i);
-            const isUnderlined = underlined.has(i);
-            const mute = shouldBeMute(n) || isGlide && !isDiphNode;
-            let color;
-            let style = {};
-            // anchor colour for this node's underline run (if any)
-            const runAnchor = underlineColor.get(i);
-            if (isTrueSyl) {
-                color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
-            } else if (isDiphNode) {
-                // If this diphthong node is underlined, prefer a solid anchor colour
-                // for both the glyph and the underline so the run looks unified.
-                if (isUnderlined && !isTrueSyl && !mute) {
-                    color = runAnchor ?? (n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]);
-                } else {
-                    style = {
-                        background: `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text'
-                    };
-                    color = 'transparent';
-                }
-            } else if (mute) {
-                color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
-            } else {
-                // Fallback: if DB colour is empty/invalid, use consonant colour
-                color = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
-            }
-            // If underlined, set a unified colour for both text and the underline
-            if (isUnderlined && !isTrueSyl && !mute) {
-                const finalCol = runAnchor ?? color;
-                style = {
-                    ...style,
-                    textDecoration: 'underline',
-                    textDecorationColor: finalCol,
-                    textUnderlineOffset: '6px',
-                    textDecorationThickness: '2.5px'
-                };
-                color = finalCol;
+        children: displayNodes.map((d, i)=>{
+            if (!d.t) return null;
+            const style = d.gradient ? {
+                background: `linear-gradient(to right, ${__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$display$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["DIPHTHONG_START"]}, ${__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$display$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["DIPHTHONG_END"]})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent'
+            } : {
+                color: d.color
+            };
+            if (d.underline) {
+                style.textDecoration = 'underline';
+                style.textDecorationColor = d.underlineColor;
+                style.textUnderlineOffset = '6px';
+                style.textDecorationThickness = '2.5px';
             }
             const classes = [
                 'eic-seg',
-                isTrueSyl ? 'eic-syllabic' : '',
-                isUnderlined && !isTrueSyl ? 'eic-stressed' : '',
-                mute && !isTrueSyl ? 'eic-silent' : ''
+                d.syllabic ? 'eic-syllabic' : '',
+                d.underline ? 'eic-stressed' : '',
+                d.mute ? 'eic-silent' : ''
             ].filter(Boolean).join(' ');
-            const spanStyle = {
-                ...style,
-                color
-            };
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                style: spanStyle,
+                style: style,
                 className: classes,
-                title: n.s && n.s !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$renderNode$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SYLLABIC_MARKER"] ? n.s : undefined,
-                children: n.t
+                title: d.sound || undefined,
+                children: d.t
             }, i, false, {
                 fileName: "[project]/src/components/WordRenderer.tsx",
-                lineNumber: 210,
+                lineNumber: 45,
                 columnNumber: 11
             }, this);
         })
     }, void 0, false, {
         fileName: "[project]/src/components/WordRenderer.tsx",
-        lineNumber: 154,
+        lineNumber: 16,
         columnNumber: 5
     }, this);
 }
@@ -936,6 +1819,50 @@ function StatsBar({ stats, usedColors }) {
 _c = StatsBar;
 var _c;
 __turbopack_context__.k.register(_c, "StatsBar");
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/src/lib/renderNode.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+// Schema exactă din words.db RenderJson
+__turbopack_context__.s([
+    "COLOR_CONSONANT",
+    ()=>COLOR_CONSONANT,
+    "COLOR_SILENT",
+    ()=>COLOR_SILENT,
+    "GRAPHIC_CONSONANTS",
+    ()=>GRAPHIC_CONSONANTS,
+    "SYLLABIC_MARKER",
+    ()=>SYLLABIC_MARKER,
+    "isGraphicConsonantString",
+    ()=>isGraphicConsonantString,
+    "isMute",
+    ()=>isMute,
+    "isSyllabicConsonant",
+    ()=>isSyllabicConsonant,
+    "isVowelNode",
+    ()=>isVowelNode
+]);
+const SYLLABIC_MARKER = '\u200d';
+const COLOR_SILENT = '#000000';
+const COLOR_CONSONANT = '#000000';
+function isSyllabicConsonant(node) {
+    return node.s === SYLLABIC_MARKER;
+}
+function isMute(node) {
+    return node.c === COLOR_SILENT;
+}
+function isVowelNode(node) {
+    return !node.x && node.c !== COLOR_SILENT && node.t.length > 0;
+}
+const GRAPHIC_CONSONANTS = new Set('bcdfghjklmnpqrstvxz');
+function isGraphicConsonantString(t) {
+    return t.length > 0 && [
+        ...t.toLowerCase()
+    ].every((c)=>GRAPHIC_CONSONANTS.has(c));
+}
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -2360,4 +3287,4 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 }),
 ]);
 
-//# sourceMappingURL=src_0xobun7._.js.map
+//# sourceMappingURL=src_0d6y3y0._.js.map

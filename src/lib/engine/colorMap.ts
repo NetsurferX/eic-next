@@ -3,7 +3,7 @@
 // only ever looks at IPA display strings. Edit COLOR_MAP to change a colour;
 // you never need to touch align.ts to do that.
 
-export const COLOR_SILENT    = '#000000'
+export const COLOR_SILENT    = '#999999'  // mute letters: grey, distinct from a normal pronounced consonant
 export const COLOR_CONSONANT = '#000000'
 
 export const COLOR_MAP: Record<string, string> = {

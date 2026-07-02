@@ -68,7 +68,8 @@ __turbopack_context__.s([
     "isVowelSound",
     ()=>isVowelSound
 ]);
-const COLOR_SILENT = '#000000';
+const COLOR_SILENT = '#999999' // mute letters: grey, distinct from a normal pronounced consonant
+;
 const COLOR_CONSONANT = '#000000';
 const COLOR_MAP = {
     'æ': '#00b0f0',
@@ -449,24 +450,21 @@ function segment(rawIpa) {
 "use strict";
 
 // engine/align.ts
-// Maps Seg[] (phonemes) onto the word's letters, left to right.
+// Maps Seg[] (IPA phonemes after transforms) onto the word's letters.
 //
-// VOWEL CLASSIFICATION: there is no "semivowel" type anywhere in this engine.
-// j/w/ỷ are vowel SOUNDS (see colorMap.ts's isVowelSound/VOWEL_CHARS, which
-// already returns true for them) — same isVowel flag, same color category,
-// same eligibility for stress, as any other vowel.
+// TWO RULES drive this, not a dictionary:
 //
-// CONSUMPTION WIDTH (the one place glides differ from a/e/i/o/u): a true
-// vowel sound consumes the entire run of adjacent vowel-letters ("ea" in
-// "bread" is one run for one sound). A glide sound (j/w/ỷ) consumes exactly
-// one letter, because the glide letter itself (y/w) sits next to letters
-// belonging to a DIFFERENT phoneme — e.g. in "way" the w-sound and the
-// eɪ-sound are two separate phonemes that happen to be letter-adjacent.
-// Treating y/w as part of the vowel-letter-run set causes one phoneme to
-// swallow letters that belong to the next one (tested: broke "way", "yellow",
-// "happy" by making the w/y-segment eat the following vowel letters too).
-// So GRAPHIC_VOWELS stays a/e/i/o/u only — that set defines run *boundaries*,
-// not "what counts as a vowel sound."
+// 1. CONSONANT_SPELLINGS table: each IPA display (e.g. 'sh', 'k', 'r') lists
+//    every letter sequence that can spell it in English, longest first.
+//    Handles: ti/ci→sh ("nation"), ch→k ("school"), rr/ll/nn/tt ("current",
+//    "better"), ph/gh→f ("phone","enough"), kn/gn→n ("knight"), tch→ch, etc.
+//
+// 2. R-CONTROLLED VOWEL rule: after consuming vowel letters, if the next
+//    letter is 'r' AND the next phoneme is NOT /r/, absorb the 'r' into this
+//    vowel node. Handles: er/ir/or/ur/ar as single phoneme ("inter-", "her").
+//
+// With these two rules almost all English spelling irregularities are covered
+// without touching a word list.
 __turbopack_context__.s([
     "GRAPHIC_VOWELS",
     ()=>GRAPHIC_VOWELS,
@@ -479,17 +477,6 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
 ;
-const GLIDE_DISPLAYS = new Set([
-    'j',
-    'w',
-    'ỷ'
-]);
-const TRAILING_GLIDE_LETTERS = new Set([
-    'w',
-    'y',
-    'W',
-    'Y'
-]);
 const GRAPHIC_VOWELS = new Set([
     ...'aeiou',
     ...'AEIOU'
@@ -499,6 +486,271 @@ function isGraphicVowel(c) {
 }
 function isGraphicCons(c) {
     return !GRAPHIC_VOWELS.has(c);
+}
+// ── Glide sounds ──────────────────────────────────────────────────────────────
+const GLIDE_DISPLAYS = new Set([
+    'j',
+    'w',
+    'ỷ'
+]);
+// IPA displays that are vowel sounds (used to decide vowel-run width)
+const VOWEL_DISPLAY_STARTS = new Set([
+    ...'aeiouæɑɔəɛɪʊʌỷyw'
+]);
+function isVowelDisplay(d) {
+    return d.length > 0 && VOWEL_DISPLAY_STARTS.has(d[0]);
+}
+// ── Consonant spelling table ──────────────────────────────────────────────────
+// Key   = IPA display string (after TRANSFORMS in segment.ts)
+// Value = letter sequences that spell it, LONGEST FIRST (greedy match wins)
+//
+// Adding a new rule: just add a line here. No other file needs to change.
+const CONSONANT_SPELLINGS = new Map([
+    // Affricates & fricatives
+    [
+        'sh',
+        [
+            'tsch',
+            'sch',
+            'ssh',
+            'sh',
+            'ti',
+            'ci',
+            'si'
+        ]
+    ],
+    [
+        'ch',
+        [
+            'tch',
+            'ch'
+        ]
+    ],
+    [
+        'j',
+        [
+            'dge',
+            'dg',
+            'j'
+        ]
+    ],
+    [
+        'zh',
+        [
+            'si',
+            'zi',
+            'z'
+        ]
+    ],
+    [
+        'ng',
+        [
+            'ngg',
+            'ng'
+        ]
+    ],
+    [
+        'th',
+        [
+            'th'
+        ]
+    ],
+    [
+        'dh',
+        [
+            'th'
+        ]
+    ],
+    // Stops
+    [
+        'k',
+        [
+            'ck',
+            'kk',
+            'ch',
+            'kh',
+            'k',
+            'c',
+            'q'
+        ]
+    ],
+    [
+        'g',
+        [
+            'gg',
+            'gh',
+            'g'
+        ]
+    ],
+    [
+        't',
+        [
+            'tt',
+            't'
+        ]
+    ],
+    [
+        'd',
+        [
+            'dd',
+            'd'
+        ]
+    ],
+    [
+        'p',
+        [
+            'pp',
+            'p'
+        ]
+    ],
+    [
+        'b',
+        [
+            'bb',
+            'b'
+        ]
+    ],
+    // Fricatives
+    [
+        'f',
+        [
+            'ph',
+            'gh',
+            'ff',
+            'f'
+        ]
+    ],
+    [
+        'v',
+        [
+            'vv',
+            'v'
+        ]
+    ],
+    [
+        's',
+        [
+            'ss',
+            's'
+        ]
+    ],
+    [
+        'z',
+        [
+            'zz',
+            'z',
+            's'
+        ]
+    ],
+    [
+        'h',
+        [
+            'wh',
+            'h'
+        ]
+    ],
+    // Nasals & liquids
+    [
+        'n',
+        [
+            'kn',
+            'gn',
+            'nn',
+            'n'
+        ]
+    ],
+    [
+        'm',
+        [
+            'mm',
+            'm'
+        ]
+    ],
+    [
+        'l',
+        [
+            'll',
+            'l'
+        ]
+    ],
+    [
+        'r',
+        [
+            'rr',
+            'wr',
+            'rh',
+            'r'
+        ]
+    ],
+    // Glides (as graphic consonants — position-based edge cases)
+    [
+        'w',
+        [
+            'wh',
+            'w'
+        ]
+    ]
+]);
+function tryConsSpellings(display, word, pos) {
+    const spellings = CONSONANT_SPELLINGS.get(display);
+    if (!spellings) return '';
+    const wLow = word.toLowerCase();
+    for (const sp of spellings){
+        if (wLow.startsWith(sp, pos)) return word.slice(pos, pos + sp.length);
+    }
+    return '';
+}
+// ── Vowel consumption ─────────────────────────────────────────────────────────
+function consumeVowel(display, word, pos, nextDisplay) {
+    const wLen = word.length;
+    // Glide sound: consume exactly 1 letter (it may be a consonant-looking letter
+    // like 'u' in "queen" or 'o' in "one") — never extend into the adjacent vowel run
+    if (GLIDE_DISPLAYS.has(display)) {
+        const consumed = pos < wLen ? word[pos] : '';
+        return {
+            consumed,
+            muteTail: '',
+            newPos: pos + (consumed ? 1 : 0)
+        };
+    }
+    // True vowel: consume the consecutive vowel-letter run.
+    // If the NEXT phoneme is also a vowel, take only 1 letter — the remaining
+    // vowel letters belong to that next phoneme ("ia" in "association" = i+eɪ,
+    // not a single two-letter run for one phoneme).
+    const start = pos;
+    if (nextDisplay && isVowelDisplay(nextDisplay)) {
+        // Two consecutive vowel phonemes: each gets exactly 1 letter
+        if (pos < wLen && isGraphicVowel(word[pos])) pos++;
+    } else {
+        while(pos < wLen && isGraphicVowel(word[pos]))pos++;
+    }
+    // Trailing w/y that completes a digraph (ow/aw/ay/oy/ey in "power","day","boy")
+    if (pos > start && pos < wLen && 'wyWY'.includes(word[pos])) pos++;
+    // R-controlled vowel: "er","ir","or","ur","ar" spell ONE phoneme. The 'r'
+    // here genuinely carries part of THIS sound, so it stays merged into the
+    // pronounced span (never split off as mute). If the next letter is 'r' and
+    // the next PHONEME is not /r/, absorb it. Fixes "inter-" in
+    // "international", "er" in "current", the "our" boundary in "power", etc.
+    if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
+        pos++;
+    }
+    const pronounced = word.slice(start, pos);
+    // Silent 'gh' right after the pronounced run: real letters with NO phoneme
+    // of their own ("night","high","eight","caught","though"...). Per the
+    // mute-letter principle these render as their OWN grey node — never widen
+    // the vowel's coloured/underlined span. Only absorb when the next phoneme
+    // isn't one 'gh' could itself spell (f as in "enough", g as in "ghost"),
+    // in which case 'gh' belongs to the FOLLOWING consonant node instead.
+    let muteTail = '';
+    if (pos > start && pos + 1 < wLen && (word[pos] === 'g' || word[pos] === 'G') && (word[pos + 1] === 'h' || word[pos + 1] === 'H') && nextDisplay !== 'f' && nextDisplay !== 'g') {
+        muteTail = word.slice(pos, pos + 2);
+        pos += 2;
+    }
+    return {
+        consumed: pronounced,
+        muteTail,
+        newPos: pos
+    };
 }
 function align(word, segs) {
     if (segs.length === 0) return [
@@ -513,9 +765,10 @@ function align(word, segs) {
     const nodes = [];
     let pos = 0;
     const wLen = word.length;
-    for (const seg of segs){
-        const { ipa, display, isVowel, accented } = seg;
-        // Latent phoneme or syllabic marker — no grapheme consumed
+    for(let si = 0; si < segs.length; si++){
+        const { ipa, display, isVowel, accented } = segs[si];
+        const nextDisplay = si + 1 < segs.length ? segs[si + 1].display : undefined;
+        // Latent phoneme — no letters consumed (syllabic marker, zero-width joiner)
         if (!display || display === '\u200d') {
             nodes.push({
                 t: '',
@@ -527,46 +780,48 @@ function align(word, segs) {
             continue;
         }
         let consumed = '';
+        let muteTail = '';
         if (isVowel) {
-            if (GLIDE_DISPLAYS.has(display)) {
-                // Glide sound: consume exactly 1 letter, whatever it is — it does
-                // not extend into a neighboring vowel-letter run (that run belongs
-                // to the next phoneme).
-                if (pos < wLen) consumed = word[pos++];
-            } else {
-                // True vowel sound → consume the consecutive vowel-letter run, plus
-                // one trailing w/y if present. The trailing grab handles digraphs
-                // where a SINGLE diphthong phoneme is spelled with a true-vowel
-                // letter followed by w/y (ow, aw, ew, ay, oy, ey — "power", "brown",
-                // "day", "boy"). It only fires after at least one true vowel letter
-                // was already consumed, so it never touches a glide-onset w/y at the
-                // START of a run (that's the separate branch above) — only a w/y
-                // immediately completing a vowel digraph that already started.
-                const start = pos;
-                while(pos < wLen && isGraphicVowel(word[pos]))pos++;
-                if (pos > start && pos < wLen && TRAILING_GLIDE_LETTERS.has(word[pos])) pos++;
-                consumed = word.slice(start, pos);
-            }
+            const r = consumeVowel(display, word, pos, nextDisplay);
+            consumed = r.consumed;
+            muteTail = r.muteTail;
+            pos = r.newPos;
         } else {
-            // Consonant: take 1 consonant grapheme (2 for IPA digraphs)
-            if (pos < wLen && isGraphicCons(word[pos])) {
+            // 1. Try spelling table (handles ti→sh, rr→r, ch→k, ph→f, kn→n, etc.)
+            const fromTable = tryConsSpellings(display, word, pos);
+            if (fromTable) {
+                consumed = fromTable;
+                pos += fromTable.length;
+            } else if (pos < wLen && isGraphicCons(word[pos])) {
+                // 2. Generic fallback: 1 letter (2 for IPA digraphs like th, ng)
                 consumed = word[pos++];
                 if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos])) consumed += word[pos++];
             }
+        // 3. Nothing matched → consumed stays '' (truly latent phoneme)
         }
         const color = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getColor"])(display);
+        const isCons = !color;
         const isStressed = accented && isVowel;
-        const isSilent = !color && !isVowel;
-        const isCons = !color && !isVowel;
         nodes.push({
             t: consumed,
             s: display,
-            c: color ?? (isSilent ? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"] : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]),
+            c: color ?? (isCons ? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"]),
             u: isStressed,
-            x: isCons || color === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]
+            x: isCons
         });
+        // Silent 'gh' split off consumeVowel: its own mute node, no phoneme,
+        // never coloured/underlined as part of the preceding vowel.
+        if (muteTail) {
+            nodes.push({
+                t: muteTail,
+                s: '',
+                c: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"],
+                u: false,
+                x: false
+            });
+        }
     }
-    // Remaining word letters → silent
+    // Remaining letters → silent tail
     if (pos < wLen) nodes.push({
         t: word.slice(pos),
         s: '',
@@ -621,6 +876,182 @@ function extractProps(nodes) {
     };
 }
 }),
+"[project]/src/lib/engine/display.ts [app-route] (ecmascript) <locals>", ((__turbopack_context__) => {
+"use strict";
+
+// engine/display.ts
+// The ONLY place that decides what a node looks like on screen.
+// WordRenderer calls resolveDisplay() and just renders the result —
+// no classification logic should live in the component at all.
+//
+// Input:  RenderNode[] after applyRegexOverrides() has run
+// Output: DisplayNode[] — one entry per node, all display decisions made
+__turbopack_context__.s([
+    "DIPHTHONG_END",
+    ()=>DIPHTHONG_END,
+    "DIPHTHONG_START",
+    ()=>DIPHTHONG_START,
+    "SYLLABIC_MARKER",
+    ()=>SYLLABIC_MARKER,
+    "resolveDisplay",
+    ()=>resolveDisplay
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
+;
+;
+const SYLLABIC_MARKER = '\u200d' // must match renderNode.ts
+;
+const DIPHTHONG_START = '#FF3399';
+const DIPHTHONG_END = '#CC0000';
+const SCHWA = '#888888';
+// Letters that are graphically consonants — used to detect the
+// "silent consonant in vowel position" case (e.g. the 'k' in 'knight'
+// gets a vowel color from the engine but its letters are all consonants,
+// meaning it is mute, not a vowel).
+// w/y included: they can appear as graphic letters inside consonant
+// positions and should not be mistaken for real vowel runs there.
+const GRAPHIC_CONSONANT_LETTERS = new Set('bcdfghjklmnpqrstvwxyz');
+function isGraphicConsonant(t) {
+    return t.length > 0 && [
+        ...t.toLowerCase()
+    ].every((c)=>GRAPHIC_CONSONANT_LETTERS.has(c));
+}
+function isMute(n) {
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
+    if (!n.t || n.t.length === 0) return false;
+    // A node is mute when the engine gave it a vowel color (meaning it carries
+    // a vowel phoneme) but its letters are all graphic consonants — classic
+    // "silent consonant" case, e.g. 'k' in 'knight'.
+    const hasVowelColor = n.c !== __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] && n.c !== '' && n.c !== undefined;
+    if (hasVowelColor && isGraphicConsonant(n.t)) return true;
+    return false;
+}
+function isVowelNode(n) {
+    if (!n.t || n.t.length === 0) return false;
+    if (isMute(n)) return false;
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] || n.x || n.c === '') return false;
+    return true;
+}
+// ── Syllabic / diphthong glide classification ─────────────────────────────────
+// Nodes with SYLLABIC_MARKER as their sound are either:
+//   trueSyllabic  — a syllabic consonant (preceded by schwa colour)
+//   diphthongGlide — the glide part of a diphthong
+function classifySyllabic(nodes) {
+    const trueSyllabic = new Set();
+    const diphthongGlide = new Set();
+    for(let i = 0; i < nodes.length; i++){
+        if (nodes[i].s !== SYLLABIC_MARKER) continue;
+        const prev = i > 0 ? nodes[i - 1] : null;
+        if (prev && prev.c === SCHWA) trueSyllabic.add(i);
+        else diphthongGlide.add(i);
+    }
+    return {
+        trueSyllabic,
+        diphthongGlide
+    };
+}
+// ── Diphthong gradient ────────────────────────────────────────────────────────
+// A diphthong glide and the vowel immediately before it both get the gradient.
+function buildDiphthongSet(nodes, diphthongGlide) {
+    const result = new Set();
+    for(let i = 0; i < nodes.length; i++){
+        if (!diphthongGlide.has(i)) continue;
+        if (i > 0 && isVowelNode(nodes[i - 1]) && nodes[i].t.length > 0) {
+            result.add(i - 1);
+            result.add(i);
+        }
+    }
+    return result;
+}
+// ── Underline run ─────────────────────────────────────────────────────────────
+// Starts at a stressed vowel node (n.u === true) and extends rightward
+// through consecutive vowels, glides, and diphthong glides.
+// Monosyllabic words never have n.u === true from the engine, so they
+// naturally produce no underline here — no explicit monosyllabic check needed.
+function buildUnderlineSet(nodes, diphthongGlide) {
+    const result = new Set();
+    let i = 0;
+    while(i < nodes.length){
+        const n = nodes[i];
+        const denied = n.underlineOverride === 'deny';
+        const forced = n.underlineOverride === 'force';
+        const isStressedVowel = !denied && n.u && isVowelNode(n) && !isMute(n);
+        if (forced || isStressedVowel) {
+            if (!denied) result.add(i);
+            let j = i + 1;
+            while(j < nodes.length){
+                const next = nodes[j];
+                if (next.underlineOverride === 'deny') break;
+                if (next.underlineOverride === 'force' || isVowelNode(next) && !isMute(next) || diphthongGlide.has(j)) {
+                    result.add(j);
+                    j++;
+                } else {
+                    break;
+                }
+            }
+            i = j;
+        } else {
+            i++;
+        }
+    }
+    return result;
+}
+function resolveDisplay(nodes) {
+    const { trueSyllabic, diphthongGlide } = classifySyllabic(nodes);
+    const diphthongSet = buildDiphthongSet(nodes, diphthongGlide);
+    const underlineSet = buildUnderlineSet(nodes, diphthongGlide);
+    // Build per-run underline color: anchor to first real vowel in the run.
+    const underlineColorMap = new Map();
+    let runStart = null;
+    for(let i = 0; i <= nodes.length; i++){
+        const hit = i < nodes.length && underlineSet.has(i);
+        if (hit && runStart === null) runStart = i;
+        if ((!hit || i === nodes.length) && runStart !== null) {
+            let anchorColor;
+            for(let k = runStart; k < i; k++){
+                const rn = nodes[k];
+                if (isVowelNode(rn) && !isMute(rn)) {
+                    anchorColor = rn.c;
+                    break;
+                }
+            }
+            if (!anchorColor) {
+                const rn = nodes[runStart];
+                anchorColor = rn.c && rn.c !== '' ? rn.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+            }
+            for(let j = runStart; j < i; j++)underlineColorMap.set(j, anchorColor);
+            runStart = null;
+        }
+    }
+    return nodes.map((n, i)=>{
+        const isTrueSyl = trueSyllabic.has(i);
+        const isGlide = diphthongGlide.has(i);
+        const isDiph = diphthongSet.has(i);
+        const isUnder = underlineSet.has(i);
+        const mute = isMute(n) || isGlide && !isDiph;
+        const runAnchor = underlineColorMap.get(i) ?? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+        // Final color decision — one place, one pass, explicit priority:
+        let color;
+        if (isTrueSyl) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]; // syllabic consonant
+        else if (isDiph) color = isUnder && !mute // diphthong with underline → solid
+         ? runAnchor : 'transparent'; // gradient handled via gradient flag
+        else if (mute) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
+        else color = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+        if (isUnder && !isTrueSyl && !mute) color = runAnchor;
+        return {
+            t: n.t ?? '',
+            color,
+            underline: isUnder && !isTrueSyl && !mute,
+            gradient: isDiph && !(isUnder && !mute),
+            mute,
+            syllabic: isTrueSyl,
+            underlineColor: runAnchor,
+            sound: n.s && n.s !== SYLLABIC_MARKER ? n.s : ''
+        };
+    });
+}
+;
+}),
 "[project]/src/lib/engine/index.ts [app-route] (ecmascript) <locals>", ((__turbopack_context__) => {
 "use strict";
 
@@ -639,6 +1070,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$segm
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/align.ts [app-route] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$colorMap$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/colorMap.ts [app-route] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$score$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/engine/score.ts [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$display$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/src/lib/engine/display.ts [app-route] (ecmascript) <locals>");
 ;
 ;
 ;
@@ -657,6 +1089,7 @@ function processIpa(word, rawIpa) {
     const segs = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$segment$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["segment"])(rawIpa);
     return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$align$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["align"])(word, segs);
 }
+;
 ;
 ;
 ;
@@ -942,4 +1375,4 @@ async function DELETE() {
 }),
 ];
 
-//# sourceMappingURL=%5Broot-of-the-server%5D__0h.eubs._.js.map
+//# sourceMappingURL=%5Broot-of-the-server%5D__0-_-xon._.js.map

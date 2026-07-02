@@ -20,6 +20,8 @@ export function processIpa(word: string, rawIpa: string): RenderNode[] {
 }
 
 export { scoreNodes, extractProps } from './score'
+export { resolveDisplay, DIPHTHONG_START, DIPHTHONG_END } from './display'
+export type { DisplayNode } from './display'
 export { COLOR_SILENT, COLOR_CONSONANT, COLOR_MAP, getColor } from './colorMap'
 export { GRAPHIC_VOWELS, isGraphicVowel, isGraphicCons } from './align'
 export type { RenderNode, Seg, WordProps } from './types'
