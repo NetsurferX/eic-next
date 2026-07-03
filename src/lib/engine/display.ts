@@ -7,9 +7,9 @@
 // Output: DisplayNode[] — one entry per node, all display decisions made
 
 import type { RenderNode } from './types'
-import { COLOR_SILENT, COLOR_CONSONANT } from './colorMap'
 
-export { COLOR_SILENT, COLOR_CONSONANT }
+export const COLOR_SILENT    = '#000000'
+export const COLOR_CONSONANT = '#000000'
 export const SYLLABIC_MARKER = '\u200d'   // must match renderNode.ts
 
 const DIPHTHONG_START = '#FF3399'
@@ -93,33 +93,39 @@ function buildUnderlineSet(
   diphthongGlide: Set<number>
 ): Set<number> {
   const result = new Set<number>()
-  let i = 0
-  while (i < nodes.length) {
-    const n = nodes[i]
-    const denied = n.underlineOverride === 'deny'
-    const forced = n.underlineOverride === 'force'
-    const isStressedVowel = !denied && n.u && isVowelNode(n) && !isMute(n)
 
-    if (forced || isStressedVowel) {
-      if (!denied) result.add(i)
-      let j = i + 1
-      while (j < nodes.length) {
-        const next = nodes[j]
-        if (next.underlineOverride === 'deny') break
-        if (next.underlineOverride === 'force'
-          || (isVowelNode(next) && !isMute(next))
-          || diphthongGlide.has(j)) {
-          result.add(j)
-          j++
-        } else {
-          break
-        }
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i]
+    if (n.underlineOverride === 'deny') continue
+
+    // Manual force override (from regex rules) — still never underline consonants
+    if (n.underlineOverride === 'force' && !n.x) {
+      result.add(i)
+      continue
+    }
+
+    // DOGMA: only a stressed vowel node anchors the underline.
+    // Consonants (n.x === true) are never underlined, period.
+    if (!n.u || n.x || !isVowelNode(n) || isMute(n)) continue
+
+    result.add(i)
+
+    // Extend ONLY through immediately following diphthong glide nodes.
+    // Do NOT extend into the next syllable's vowel — that would be a
+    // different phoneme, different syllable, wrong underline span.
+    let j = i + 1
+    while (j < nodes.length) {
+      const next = nodes[j]
+      if (next.underlineOverride === 'deny') break
+      if (diphthongGlide.has(j) && !next.x) {
+        result.add(j)
+        j++
+      } else {
+        break
       }
-      i = j
-    } else {
-      i++
     }
   }
+
   return result
 }
 

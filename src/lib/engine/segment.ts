@@ -37,15 +37,14 @@ const TRANSFORMS: [string, string][] = [
   // isVowelSound() already returns true for these (see colorMap.ts);
   // align.ts treats them exactly like any other vowel sound.
   ['j','j'],['w','w'],['ỷ','ỷ'],
-  // Simple vowels
-  ['æ','æ'],['ɪ','ɪ'],
+  ['ɐ',  'ə'],  // near-open central vowel, UK variant of schwa (e.g. "power" UK)
   ['ɑ','ɑ'],['ɒ','ɒ'],
   ['ɛ','ɛ'],['ʌ','ʌ'],
   ['ʊ','ʊ'],['ə','ə'],
 ]
 
 const STRIP = new Set([...'/,.ˌːˑ'])
-const VOWEL_FALLBACK = new Set([...'aeioujæɑɔəwɛɪʊʌyøœɒỷ'])
+const VOWEL_FALLBACK = new Set([...'aeioujæɑɔəwɛɪʊʌyøœɒỷɐ'])
 
 /**
  * Stress anchoring needs a DIFFERENT notion of "vowel" than sound

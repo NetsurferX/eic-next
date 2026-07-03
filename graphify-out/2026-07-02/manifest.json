@@ -1,0 +1,162 @@
+{
+  "next-env.d.ts": {
+    "mtime": 1779689026.1425934,
+    "ast_hash": "d0f8375ae1199dc7acd3977fc33b78b8",
+    "semantic_hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "next.config.ts": {
+    "mtime": 1779785398.1940553,
+    "ast_hash": "4bfde509ea6eebf075f2faa4f3622520",
+    "semantic_hash": "4bfde509ea6eebf075f2faa4f3622520"
+  },
+  "package.json": {
+    "mtime": 1779773896.0,
+    "ast_hash": "48b7db0b4024dafbaf919ab757816436",
+    "semantic_hash": "48b7db0b4024dafbaf919ab757816436"
+  },
+  "src/app/api/game/route.ts": {
+    "mtime": 1780647307.7764125,
+    "ast_hash": "f9dc5f2e39f55ba5063cf03f4a23b93b",
+    "semantic_hash": "f9dc5f2e39f55ba5063cf03f4a23b93b"
+  },
+  "src/app/api/search/route.ts": {
+    "mtime": 1779688969.3429775,
+    "ast_hash": "7d261f6ab212f7089150fe0f4acfa01d",
+    "semantic_hash": "7d261f6ab212f7089150fe0f4acfa01d"
+  },
+  "src/app/api/speak/route.ts": {
+    "mtime": 1779846110.0,
+    "ast_hash": "f22606f75ea4f4d595910d56cdc24da2",
+    "semantic_hash": "f22606f75ea4f4d595910d56cdc24da2"
+  },
+  "src/app/api/words/route.ts": {
+    "mtime": 1780645028.7071562,
+    "ast_hash": "586f0ca9cb2b86ae82d56bebaf8038fe",
+    "semantic_hash": "586f0ca9cb2b86ae82d56bebaf8038fe"
+  },
+  "src/app/layout.tsx": {
+    "mtime": 1780645028.7071562,
+    "ast_hash": "a48b65d36bd450e72ef999daff702bd7",
+    "semantic_hash": "a48b65d36bd450e72ef999daff702bd7"
+  },
+  "src/app/learn/page.tsx": {
+    "mtime": 1780647133.4184535,
+    "ast_hash": "8254649dd7653033bee7589a3fb2d44d",
+    "semantic_hash": "8254649dd7653033bee7589a3fb2d44d"
+  },
+  "src/app/page.tsx": {
+    "mtime": 1780366458.0,
+    "ast_hash": "9b5cb2241fe6d1a0f899c1c5cf18a956",
+    "semantic_hash": "9b5cb2241fe6d1a0f899c1c5cf18a956"
+  },
+  "src/app/rules/page.tsx": {
+    "mtime": 1781578686.0,
+    "ast_hash": "dbc584c44d924bd4056643ed31b56d34",
+    "semantic_hash": "dbc584c44d924bd4056643ed31b56d34"
+  },
+  "src/components/ConstellationView.tsx": {
+    "mtime": 1780646721.790124,
+    "ast_hash": "92ef35a148b3b820b04efb8c5e33cb42",
+    "semantic_hash": "92ef35a148b3b820b04efb8c5e33cb42"
+  },
+  "src/components/KaraokeMode.tsx": {
+    "mtime": 1779846110.0,
+    "ast_hash": "a04498e7dc41ab9892189e93d2e412d5",
+    "semantic_hash": "a04498e7dc41ab9892189e93d2e412d5"
+  },
+  "src/components/SoundSpectrum.tsx": {
+    "mtime": 1779773896.0,
+    "ast_hash": "38f5684b5ad05336ff39e73bb8458e18",
+    "semantic_hash": "38f5684b5ad05336ff39e73bb8458e18"
+  },
+  "src/components/StatsBar.tsx": {
+    "mtime": 1779677188.0,
+    "ast_hash": "afff4bd2689f8204340c472f6c0b26a9",
+    "semantic_hash": "afff4bd2689f8204340c472f6c0b26a9"
+  },
+  "src/components/TerrainView.tsx": {
+    "mtime": 1780647307.7764125,
+    "ast_hash": "8f82023096c7e2688fd114f349464fd6",
+    "semantic_hash": "8f82023096c7e2688fd114f349464fd6"
+  },
+  "src/components/WordRenderer.tsx": {
+    "mtime": 1781578686.0,
+    "ast_hash": "fe0a26e4552feca53989c71c58ecf94b",
+    "semantic_hash": "fe0a26e4552feca53989c71c58ecf94b"
+  },
+  "src/components/game/ColourGame.tsx": {
+    "mtime": 1779944800.0,
+    "ast_hash": "6177fc8db984705a211d4789887f3461",
+    "semantic_hash": "6177fc8db984705a211d4789887f3461"
+  },
+  "src/components/game/GameProgress.tsx": {
+    "mtime": 1779944800.0,
+    "ast_hash": "fbd19afe6f62180081d0c42f2797a231",
+    "semantic_hash": "fbd19afe6f62180081d0c42f2797a231"
+  },
+  "src/components/game/SilentGame.tsx": {
+    "mtime": 1780647307.7764125,
+    "ast_hash": "d19c7ce98772a65c027d7a1868df09ab",
+    "semantic_hash": "d19c7ce98772a65c027d7a1868df09ab"
+  },
+  "src/components/game/StressGame.tsx": {
+    "mtime": 1780647307.7764125,
+    "ast_hash": "ec20e0a23546fedb2feac94fd1d665e7",
+    "semantic_hash": "ec20e0a23546fedb2feac94fd1d665e7"
+  },
+  "src/lib/db.ts": {
+    "mtime": 1780645028.7071562,
+    "ast_hash": "e9fc0d7c1a4d027cd344c76bb59ec299",
+    "semantic_hash": "e9fc0d7c1a4d027cd344c76bb59ec299"
+  },
+  "src/lib/gameTypes.ts": {
+    "mtime": 1779944800.0,
+    "ast_hash": "025452c5208676b8c8d00eff7661795a",
+    "semantic_hash": "025452c5208676b8c8d00eff7661795a"
+  },
+  "src/lib/pipeline.ts": {
+    "mtime": 1781578686.0,
+    "ast_hash": "d535a85f4088410724be51dd8321ecad",
+    "semantic_hash": "d535a85f4088410724be51dd8321ecad"
+  },
+  "src/lib/renderNode.ts": {
+    "mtime": 1780647033.0733268,
+    "ast_hash": "8e0aa12ad988515bf363b5894d1ffabf",
+    "semantic_hash": "8e0aa12ad988515bf363b5894d1ffabf"
+  },
+  "src/lib/ruleConfig.ts": {
+    "mtime": 1781578686.0,
+    "ast_hash": "75fefefcc097d7faf813e2b73f3136d3",
+    "semantic_hash": "75fefefcc097d7faf813e2b73f3136d3"
+  },
+  "src/lib/useColorizer.ts": {
+    "mtime": 1780531366.0,
+    "ast_hash": "4f7cf0e352f98102068b8f4dfed7f03d",
+    "semantic_hash": "4f7cf0e352f98102068b8f4dfed7f03d"
+  },
+  "tsconfig.json": {
+    "mtime": 1779783480.2472973,
+    "ast_hash": "77cde76abc2f77404a39eb82c83f93f2",
+    "semantic_hash": "77cde76abc2f77404a39eb82c83f93f2"
+  },
+  "PROJECT_CONTEXT.md": {
+    "mtime": 1780647307.7530773,
+    "ast_hash": "41c1ee13eb3c4182ad1a3c805a2c2f46",
+    "semantic_hash": "41c1ee13eb3c4182ad1a3c805a2c2f46"
+  },
+  "README.md": {
+    "mtime": 1779677188.0,
+    "ast_hash": "857680cd426f43c674d336464203a34a",
+    "semantic_hash": "857680cd426f43c674d336464203a34a"
+  },
+  "WORDRENDERER_LINE_BY_LINE_GUIDE.md": {
+    "mtime": 1780293821.8126774,
+    "ast_hash": "54fe88874c10c70bb66460eed016b415",
+    "semantic_hash": "54fe88874c10c70bb66460eed016b415"
+  },
+  "WORDRENDERER_RULES_GUIDE.md": {
+    "mtime": 1780647307.4530523,
+    "ast_hash": "5a52198f7a9c540429db0941244f40d9",
+    "semantic_hash": "5a52198f7a9c540429db0941244f40d9"
+  }
+}

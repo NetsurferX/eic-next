@@ -90,58 +90,63 @@ function consumeVowel(
   word: string,
   pos: number,
   nextDisplay: string | undefined
-): { consumed: string; muteTail: string; newPos: number } {
+): { consumed: string; newPos: number } {
   const wLen = word.length
 
   // Glide sound: consume exactly 1 letter (it may be a consonant-looking letter
   // like 'u' in "queen" or 'o' in "one") — never extend into the adjacent vowel run
   if (GLIDE_DISPLAYS.has(display)) {
     const consumed = pos < wLen ? word[pos] : ''
-    return { consumed, muteTail: '', newPos: pos + (consumed ? 1 : 0) }
+    return { consumed, newPos: pos + (consumed ? 1 : 0) }
   }
 
   // True vowel: consume the consecutive vowel-letter run.
-  // If the NEXT phoneme is also a vowel, take only 1 letter — the remaining
-  // vowel letters belong to that next phoneme ("ia" in "association" = i+eɪ,
-  // not a single two-letter run for one phoneme).
+  //
+  // CONSECUTIVE-VOWEL RULE: if the next phoneme is also a plain vowel
+  // (not r-colored like 'ər'), take only 1 letter — the rest belong to
+  // that next phoneme ("ia" in "association" = i + eɪ, not one run).
+  // R-colored vowels like 'ər' are excluded because they follow a diphthong
+  // without competing for the same letters ("power": aw→'ow', ər→'er').
+  const R_COLORED = new Set(['ər', 'er', 'ar', 'or', 'ur', 'ɪr', 'ɛr'])
+  const isPlainVowelDisplay = (d: string) =>
+    d.length > 0 && VOWEL_DISPLAY_STARTS.has(d[0]) && !R_COLORED.has(d)
+
   const start = pos
-  if (nextDisplay && isVowelDisplay(nextDisplay)) {
-    // Two consecutive vowel phonemes: each gets exactly 1 letter
+  if (nextDisplay && isPlainVowelDisplay(nextDisplay)) {
+    // Consecutive plain vowel phonemes: 1 letter each
     if (pos < wLen && isGraphicVowel(word[pos])) pos++
+    // No trailing extensions here — they'd grab letters belonging to next phoneme
   } else {
+    // Full vowel run + extensions
     while (pos < wLen && isGraphicVowel(word[pos])) pos++
+
+    // Trailing w/y that completes a digraph (ow/aw/ay/oy/ey)
+    if (pos > start && pos < wLen && 'wyWY'.includes(word[pos])) pos++
+
+    // Silent 'gh' after vowel run (night, high, caught, though).
+    // Guard: don't absorb if next phoneme could itself be spelled by gh.
+    if (pos > start && pos + 1 < wLen
+        && (word[pos] === 'g' || word[pos] === 'G')
+        && (word[pos + 1] === 'h' || word[pos + 1] === 'H')
+        && nextDisplay !== 'f' && nextDisplay !== 'g') {
+      pos += 2
+    }
+
+    // R-controlled absorption: absorb a trailing 'r' when:
+    // a) Display IS r-colored (ər, er…) — the 'r' is part of the phoneme, or
+    // b) Plain vowel followed by a consonant phoneme (medial r — "inter-",
+    //    "current" if rr wasn't in CONSONANT_SPELLINGS).
+    // Does NOT fire at end-of-word for plain vowels → UK "power","mother",'r' stays mute.
+    const nextIsConsonant = nextDisplay !== undefined
+      && !isPlainVowelDisplay(nextDisplay)
+      && !R_COLORED.has(nextDisplay)
+      && nextDisplay !== 'r'
+    if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
+      if (R_COLORED.has(display) || nextIsConsonant) pos++
+    }
   }
 
-  // Trailing w/y that completes a digraph (ow/aw/ay/oy/ey in "power","day","boy")
-  if (pos > start && pos < wLen && 'wyWY'.includes(word[pos])) pos++
-
-  // R-controlled vowel: "er","ir","or","ur","ar" spell ONE phoneme. The 'r'
-  // here genuinely carries part of THIS sound, so it stays merged into the
-  // pronounced span (never split off as mute). If the next letter is 'r' and
-  // the next PHONEME is not /r/, absorb it. Fixes "inter-" in
-  // "international", "er" in "current", the "our" boundary in "power", etc.
-  if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
-    pos++
-  }
-
-  const pronounced = word.slice(start, pos)
-
-  // Silent 'gh' right after the pronounced run: real letters with NO phoneme
-  // of their own ("night","high","eight","caught","though"...). Per the
-  // mute-letter principle these render as their OWN grey node — never widen
-  // the vowel's coloured/underlined span. Only absorb when the next phoneme
-  // isn't one 'gh' could itself spell (f as in "enough", g as in "ghost"),
-  // in which case 'gh' belongs to the FOLLOWING consonant node instead.
-  let muteTail = ''
-  if (pos > start && pos + 1 < wLen
-      && (word[pos] === 'g' || word[pos] === 'G')
-      && (word[pos + 1] === 'h' || word[pos + 1] === 'H')
-      && nextDisplay !== 'f' && nextDisplay !== 'g') {
-    muteTail = word.slice(pos, pos + 2)
-    pos += 2
-  }
-
-  return { consumed: pronounced, muteTail, newPos: pos }
+  return { consumed: word.slice(start, pos), newPos: pos }
 }
 
 // ── Main alignment ────────────────────────────────────────────────────────────
@@ -165,12 +170,10 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
     }
 
     let consumed = ''
-    let muteTail = ''
 
     if (isVowel) {
       const r = consumeVowel(display, word, pos, nextDisplay)
       consumed = r.consumed
-      muteTail = r.muteTail
       pos = r.newPos
     } else {
       // 1. Try spelling table (handles ti→sh, rr→r, ch→k, ph→f, kn→n, etc.)
@@ -198,12 +201,6 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
       u: isStressed,
       x: isCons,
     })
-
-    // Silent 'gh' split off consumeVowel: its own mute node, no phoneme,
-    // never coloured/underlined as part of the preceding vowel.
-    if (muteTail) {
-      nodes.push({ t: muteTail, s: '', c: COLOR_SILENT, u: false, x: false })
-    }
   }
 
   // Remaining letters → silent tail
