@@ -71,13 +71,19 @@ export const DEFAULT_CONFIG: RuleConfig = {
   colors: [
     { sounds: ['æ'],              hex: '#00b0f0', label: 'æ — cat',      category: 'vowel' },
     { sounds: ['ʌ','a','ɑ'],      hex: '#008E40', label: 'ɑ/ʌ — car/cup', category: 'vowel' },
-    { sounds: ['ə','ɜ','ər','er'],hex: '#888888', label: 'ə — schwa',    category: 'vowel' },
-    { sounds: ['e','ɛ','eɪ','eỷ'],hex: '#EE5B00', label: 'e/ɛ — bed',    category: 'vowel' },
+    { sounds: ['ə','ɜ','ər','er'],hex: '#000000', label: 'ə — schwa (SPEC: negru)', category: 'vowel' },
+    { sounds: ['e','ɛ'],          hex: '#EE5B00', label: 'e/ɛ — bed',    category: 'vowel' },
     { sounds: ['ɪ','i','iː'],     hex: '#CC0000', label: 'i/ɪ — see/sit', category: 'vowel' },
-    { sounds: ['ɒ','ɔ','o','oʊ','əw'], hex: '#FF3399', label: 'ɒ/ɔ — hot/or', category: 'vowel' },
+    { sounds: ['ɒ','ɔ','o'],      hex: '#FF3399', label: 'ɒ/ɔ — hot/or', category: 'vowel' },
     { sounds: ['ʊ','u','uː'],     hex: '#7030A0', label: 'u/ʊ — moon/book', category: 'vowel' },
-    { sounds: ['aɪ','aỷ','aw','aʊ','oɪ','oỷ','ɔɪ'], hex: '#4472C4', label: 'aɪ/aʊ — my/now', category: 'vowel' },
-    { sounds: ['j','w','ỷ'],      hex: '#E57373', label: 'j/w — yes/we', category: 'semivowel' },
+    { sounds: ['oʊ','əw'],        hex: '#FCD116', label: 'əʊ — go/snow (SPEC: tricolor gradient, placeholder hue)', category: 'vowel' },
+    { sounds: ['eɪ','eỷ'],        hex: '#00246C', label: 'eɪ — name/day (SPEC: split from e/ɛ)', category: 'vowel' },
+    { sounds: ['ju','ỷu','juː'],  hex: '#833C0B', label: 'juː — cute/beauty (SPEC: new)', category: 'vowel' },
+    { sounds: ['aɪ','aỷ'],        hex: '#4472C4', label: 'aɪ — my/time',  category: 'vowel' },
+    { sounds: ['aw','aʊ'],        hex: '#23D300', label: 'aʊ — tower/flower (SPEC: split from aɪ)', category: 'vowel' },
+    { sounds: ['oɪ','oỷ','ɔɪ'],   hex: '#FF3399', label: 'ɔɪ — boy/coin (SPEC: bicolor roz→roșu, placeholder hue)', category: 'vowel' },
+    { sounds: ['j','ỷ'],          hex: '#CC0000', label: 'j/ỷ — yes (SPEC: red, same as i/ɪ)', category: 'semivowel' },
+    { sounds: ['w'],              hex: '#000000', label: 'w — we (SPEC: negru, same as consonants)', category: 'semivowel' },
   ],
 
   underline: {
@@ -113,6 +119,120 @@ export const DEFAULT_CONFIG: RuleConfig = {
       priority: 100,
       notes:    "General silent-pattern rules don't cover positional cases like this.",
       testWords: ['island'],
+    },
+
+    // ── B_tehnic §6.2 — V-R forced-schwa lexical sets ──────────────────────
+    // Whole-span colour override for each set. Splitting the vowel run from
+    // the syllabic-r glyph (white-fill/black-border per §6.1) still needs
+    // align.ts/display.ts work — see EiC-tehnic-spec.md §10.5.
+    {
+      id: 'vr-near', label: 'Near set (iər → i + ər)', enabled: true,
+      pattern: '(near|interfere|ideal)', flags: 'i', group: 0,
+      action: { color: '#CC0000' }, priority: 200,
+      notes: 'Roșu (#CC0000) — Near lexical set, §6.2.',
+      testWords: ['near', 'interfere'],
+    },
+    {
+      id: 'vr-care', label: 'Care/bare/aire set (eər → e + ər)', enabled: true,
+      pattern: '(bear|hair|care|bare|aire|stare)', flags: 'i', group: 0,
+      action: { color: '#EE5B00' }, priority: 200,
+      notes: 'Portocaliu (#EE5B00) — Care/bare/aire lexical set, §6.2.',
+      testWords: ['bear', 'hair'],
+    },
+    {
+      id: 'vr-cure', label: 'Cure set (jʊər → ỷu + ər)', enabled: true,
+      pattern: '(cure|lure)', flags: 'i', group: 0,
+      action: { color: '#833C0B' }, priority: 200,
+      notes: 'Maro (#833C0B) — Cure lexical set, §6.2.',
+      testWords: ['cure', 'lure'],
+    },
+    {
+      id: 'vr-poor', label: 'Poor set (ʊər → ʊ + ər)', enabled: true,
+      pattern: '(poor|tour)', flags: 'i', group: 0,
+      action: { color: '#7030A0' }, priority: 200,
+      notes: 'Violet (#7030A0) — Poor lexical set, §6.2.',
+      testWords: ['poor', 'tour'],
+    },
+    {
+      id: 'vr-our', label: 'Our set (aʊər → aw + ər, forced schwa)', enabled: true,
+      pattern: '^(hour|our|sour|dour)s?$', flags: 'i', group: 0,
+      action: { color: '#23D300' }, priority: 200,
+      notes: 'Verde neon (#23D300) — "our" lexical set (aw+ər fused). NOT the same handling as tower/flower — see vr-tower-flower.',
+      testWords: ['hour', 'our', 'sour', 'dour'],
+    },
+    {
+      id: 'vr-tower-flower', label: 'Tower/flower (aʊ + ə + r, NOT the our set)', enabled: true,
+      pattern: '(tower|flower)', flags: 'i', group: 0,
+      action: { color: '#23D300' }, priority: 200,
+      notes: 'Verde neon + negru + negru — has its own vowel grapheme (e) for /ə/ before r, unlike "our". Distinct per §6.2 note.',
+      testWords: ['tower', 'flower'],
+    },
+    {
+      id: 'vr-fire-tyre', label: 'Fire/tyre set (aɪər → aỷ + ər)', enabled: true,
+      pattern: '(fire|tyre|ire)', flags: 'i', group: 0,
+      action: { color: '#4472C4' }, priority: 200,
+      notes: 'Albastru mediu (#4472C4) — fire/tyre/ire, §6.2.',
+      testWords: ['fire', 'tyre', 'ire'],
+    },
+    {
+      id: 'vr-goer', label: 'Goer (əʊər → əw + ə + r)', enabled: false,
+      pattern: '^goer$', flags: 'i', group: 0,
+      action: { color: '#FCD116' }, priority: 200,
+      notes: 'Left disabled — spec wants gradient tricolor + negru, not a flat colour; needs §10.4 gradient support before this is accurate. Placeholder colour only.',
+      testWords: ['goer'],
+    },
+
+    // ── B_tehnic Tabelul 5 — manual y/w exceptions ─────────────────────────
+    {
+      id: 'oy-lawyer', label: 'lawyer — ỷ grapheme on w', enabled: true,
+      pattern: '^lawyer$', flags: 'i', group: 0,
+      action: { color: '#CC0000' }, priority: 210,
+      notes: 'Manual exception from Tabelul 5 — /ɔɪ/ = o+ỷ, grapheme falls on the "w".',
+      testWords: ['lawyer'],
+    },
+    {
+      id: 'oy-freudian', label: 'Freudian — ủ grapheme', enabled: true,
+      pattern: '^freudian$', flags: 'i', group: 0,
+      action: { color: '#CC0000' }, priority: 210,
+      notes: 'Manual exception from Tabelul 5.',
+      testWords: ['Freudian'],
+    },
+    {
+      id: 'oy-rooibos', label: 'rooibos — ủ grapheme', enabled: true,
+      pattern: '^rooibos$', flags: 'i', group: 0,
+      action: { color: '#CC0000' }, priority: 210,
+      notes: 'Manual exception from Tabelul 5.',
+      testWords: ['rooibos'],
+    },
+    {
+      id: 'oy-buoyant-buoyed', label: 'buoyant/buoyed — ủ grapheme', enabled: true,
+      pattern: '^(buoyant|buoyed)$', flags: 'i', group: 0,
+      action: { color: '#CC0000' }, priority: 210,
+      notes: 'Manual exception from Tabelul 5.',
+      testWords: ['buoyant', 'buoyed'],
+    },
+    {
+      id: 'j-fjord', label: 'fjord — j̉ grapheme on j', enabled: true,
+      pattern: '^fjord$', flags: 'i', group: 0,
+      action: { color: '#CC0000' }, priority: 210,
+      notes: 'Only word in the spec where the semivowel grapheme itself is "j".',
+      testWords: ['fjord'],
+    },
+
+    // ── B_tehnic §2.b/§2.c — expressly-mute e cases ────────────────────────
+    {
+      id: 'mute-e-ed', label: 'Mute e in -ed when absent from IPA (e.g. cooed)', enabled: false,
+      pattern: '([aeiou])(e)d$', flags: 'i', group: 2,
+      action: { silent: true }, priority: 150,
+      notes: '§2.b "E mut prevăzut expres 1" — left disabled: fires on every -ed word ending in a vowel+e, including ones where this e IS pronounced. Needs a per-word IPA check upstream before enabling broadly.',
+      testWords: ['cooed'],
+    },
+    {
+      id: 'mute-e-after-ow', label: 'Mute final e after ow (e.g. stowe)', enabled: true,
+      pattern: '(ow)(e)$', flags: 'i', group: 2,
+      action: { silent: true }, priority: 150,
+      notes: '§2.c "E mut prevăzut expres 2".',
+      testWords: ['stowe'],
     },
   ],
 }

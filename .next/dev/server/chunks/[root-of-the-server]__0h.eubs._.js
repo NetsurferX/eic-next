@@ -75,36 +75,55 @@ const COLOR_MAP = {
     'ʌ': '#008E40',
     'a': '#008E40',
     'ɑ': '#008E40',
-    'ə': '#888888',
-    'ɜ': '#888888',
-    'ər': '#888888',
-    'er': '#888888',
-    'ɐ': '#888888',
+    // SPEC CORRECTION (B_tehnic §9 Tabel 2): schwa is negru, not grey.
+    'ə': '#000000',
+    'ɜ': '#000000',
+    'ər': '#000000',
+    'er': '#000000',
+    'ɐ': '#000000',
     'e': '#EE5B00',
     'ɛ': '#EE5B00',
-    'eɪ': '#EE5B00',
-    'eỷ': '#EE5B00',
     'ɪ': '#CC0000',
     'i': '#CC0000',
     'iː': '#CC0000',
     'ɒ': '#FF3399',
     'ɔ': '#FF3399',
     'o': '#FF3399',
-    'oʊ': '#FF3399',
-    'əw': '#FF3399',
     'ʊ': '#7030A0',
     'u': '#7030A0',
     'uː': '#7030A0',
+    // SPEC CORRECTION (§9): /əʊ/ is its own tricolor-gradient sound
+    // (#002B7F→#FCD116→#CE1126). No gradient-by-sound support yet (see
+    // EiC-tehnic-spec.md §10.4) — using the gradient's midpoint colour as a
+    // single-hue placeholder until that support exists.
+    'oʊ': '#FCD116',
+    'əw': '#FCD116',
+    // SPEC CORRECTION (§9): /eɪ/ (name, day) is its own dark blue, not a
+    // variant of /e/-/ɛ/.
+    'eɪ': '#00246C',
+    'eỷ': '#00246C',
+    // SPEC CORRECTION (§9): /juː/ (cute, beauty) — wasn't mapped before.
+    'ju': '#833C0B',
+    'ỷu': '#833C0B',
+    'juː': '#833C0B',
     'aɪ': '#4472C4',
     'aỷ': '#4472C4',
-    'aw': '#4472C4',
-    'aʊ': '#4472C4',
-    'oɪ': '#4472C4',
-    'oỷ': '#4472C4',
-    'ɔɪ': '#4472C4',
-    'j': '#E57373',
-    'w': '#E57373',
-    'ỷ': '#E57373'
+    // SPEC CORRECTION (§9): /aʊ/ (tower, flower) is verde neon, split out of
+    // the aɪ blue group it was previously lumped into.
+    'aw': '#23D300',
+    'aʊ': '#23D300',
+    // SPEC CORRECTION (§9): /ɔɪ/ (boy, coin) is bicolor roz→roșu, not the aɪ
+    // blue. True two-tone gradient needs seg-splitting (see spec §10.3/10.4);
+    // using the roz start-colour as a single-hue placeholder for now.
+    'oɪ': '#FF3399',
+    'oỷ': '#FF3399',
+    'ɔɪ': '#FF3399',
+    // SPEC CORRECTION (Tabelul 5/6): /j/,/ỷ/ take the same red as i/ɪ; /w/ is
+    // negru like any other consonant. Neither is a distinct "semivowel" hue —
+    // the old #E57373 bucket is gone.
+    'j': '#CC0000',
+    'ỷ': '#CC0000',
+    'w': '#000000'
 };
 function getColor(sound) {
     if (!sound) return null;
@@ -276,6 +295,10 @@ const TRANSFORMS = [
         'j'
     ],
     [
+        'ŋɡ',
+        'ng'
+    ],
+    [
         'ŋg',
         'ng'
     ],
@@ -298,6 +321,34 @@ const TRANSFORMS = [
     [
         'ɹ',
         'r'
+    ],
+    // SPEC ADDITIONS (B_tehnic §8 Tabel 1): /gz/ ("example"), /kʃ/ ("sexual").
+    // Must come before any single-char consonant fallback below.
+    [
+        'ɡz',
+        'gz'
+    ],
+    [
+        'gz',
+        'gz'
+    ],
+    [
+        'kʃ',
+        'kʃ'
+    ],
+    // SPEC ADDITION (§9 Tabel 2): /juː/ ("cute, beauty") — must come before
+    // the plain 'j' identity mapping below or it will never be reached.
+    [
+        'juː',
+        'ỷu'
+    ],
+    [
+        'jʊ',
+        'ỷu'
+    ],
+    [
+        'ju',
+        'ỷu'
     ],
     // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
     // isVowelSound() already returns true for these (see colorMap.ts);
@@ -578,6 +629,13 @@ const CONSONANT_SPELLINGS = new Map([
         ]
     ],
     [
+        'ɡ',
+        [
+            'gg',
+            'g'
+        ]
+    ],
+    [
         't',
         [
             'tt',
@@ -684,6 +742,25 @@ const CONSONANT_SPELLINGS = new Map([
             'wh',
             'w'
         ]
+    ],
+    // SPEC ADDITIONS (B_tehnic §8 Tabel 1) — not previously in this table.
+    [
+        'x',
+        [
+            'h'
+        ]
+    ],
+    [
+        'gz',
+        [
+            'x'
+        ]
+    ],
+    [
+        'kʃ',
+        [
+            'x'
+        ]
     ]
 ]);
 function tryConsSpellings(display, word, pos) {
@@ -726,27 +803,34 @@ function consumeVowel(display, word, pos, nextDisplay) {
     const isPlainVowelDisplay = (d)=>d.length > 0 && VOWEL_DISPLAY_STARTS.has(d[0]) && !R_COLORED.has(d);
     const start = pos;
     if (nextDisplay && isPlainVowelDisplay(nextDisplay)) {
-        // Consecutive plain vowel phonemes: 1 letter each
+        // Consecutive plain vowels: 1 letter each, no extensions.
         if (pos < wLen && isGraphicVowel(word[pos])) pos++;
-    // No trailing extensions here — they'd grab letters belonging to next phoneme
+        else if (pos < wLen && 'ywYW'.includes(word[pos])) pos++;
     } else {
-        // Full vowel run + extensions
+        // Full vowel run
         while(pos < wLen && isGraphicVowel(word[pos]))pos++;
-        // Trailing w/y that completes a digraph (ow/aw/ay/oy/ey)
-        if (pos > start && pos < wLen && 'wyWY'.includes(word[pos])) pos++;
+        // Track graphic vowels consumed BEFORE extensions — used by r-guard below.
+        const graphicVowelCount = pos - start;
+        // Y/W fallback: if the run consumed nothing (no a/e/i/o/u at this position),
+        // try consuming one 'y' or 'w'. Handles vowel phonemes whose only available
+        // letter is y/w: "type"→aɪ at 'y', "happy"→i at 'y', "few"→u at 'w'.
+        if (graphicVowelCount === 0 && pos < wLen && 'ywYW'.includes(word[pos])) {
+            pos++;
+        }
+        // Trailing w/y digraph (ow/aw/ay/oy/ey) — only when run had a real vowel start
+        if (graphicVowelCount > 0 && pos < wLen && 'wyWY'.includes(word[pos])) pos++;
         // Silent 'gh' after vowel run (night, high, caught, though).
-        // Guard: don't absorb if next phoneme could itself be spelled by gh.
         if (pos > start && pos + 1 < wLen && (word[pos] === 'g' || word[pos] === 'G') && (word[pos + 1] === 'h' || word[pos + 1] === 'H') && nextDisplay !== 'f' && nextDisplay !== 'g') {
             pos += 2;
         }
-        // R-controlled absorption: absorb a trailing 'r' when:
-        // a) Display IS r-colored (ər, er…) — the 'r' is part of the phoneme, or
-        // b) Plain vowel followed by a consonant phoneme (medial r — "inter-",
-        //    "current" if rr wasn't in CONSONANT_SPELLINGS).
-        // Does NOT fire at end-of-word for plain vowels → UK "power","mother",'r' stays mute.
+        // R-controlled absorption:
+        // a) Display IS r-colored (ər, er…): always absorb the 'r' letter.
+        // b) Medial 'r' before a consonant: absorb ONLY when the vowel consumed
+        //    ≤1 graphic vowel letter. This handles "inter-" (1 letter 'e' → absorb 'r')
+        //    but NOT "colours" (2 letters 'ou' → 'r' stays mute/silent).
         const nextIsConsonant = nextDisplay !== undefined && !isPlainVowelDisplay(nextDisplay) && !R_COLORED.has(nextDisplay) && nextDisplay !== 'r';
         if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
-            if (R_COLORED.has(display) || nextIsConsonant) pos++;
+            if (R_COLORED.has(display) || nextIsConsonant && graphicVowelCount <= 1) pos++;
         }
     }
     return {

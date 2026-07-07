@@ -30,9 +30,15 @@ const TRANSFORMS: [string, string][] = [
   ['æː','æ'],['eː','e'],
   // Consonant digraphs
   ['tʃ','ch'],['dʒ','j'],
-  ['ŋg','ng'],['ŋ','ng'],
+  ['ŋɡ','ng'],['ŋg','ng'],['ŋ','ng'],  // both script-g (U+0261) and plain g
   ['θ','th'],['ð','dh'],
   ['ʃ','sh'],['ɹ','r'],
+  // SPEC ADDITIONS (B_tehnic §8 Tabel 1): /gz/ ("example"), /kʃ/ ("sexual").
+  // Must come before any single-char consonant fallback below.
+  ['ɡz','gz'],['gz','gz'],['kʃ','kʃ'],
+  // SPEC ADDITION (§9 Tabel 2): /juː/ ("cute, beauty") — must come before
+  // the plain 'j' identity mapping below or it will never be reached.
+  ['juː','ỷu'],['jʊ','ỷu'],['ju','ỷu'],
   // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
   // isVowelSound() already returns true for these (see colorMap.ts);
   // align.ts treats them exactly like any other vowel sound.

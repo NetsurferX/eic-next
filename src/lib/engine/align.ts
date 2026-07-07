@@ -54,6 +54,7 @@ const CONSONANT_SPELLINGS = new Map<string, string[]>([
   ['k',   ['ck', 'kk', 'ch',       // "back", "bookkeeper", "school"
            'kh', 'k', 'c', 'q']],  // "khaki", "cat", "queen"
   ['g',   ['gg', 'gh', 'g']],     // "bigger", "ghost"
+  ['ɡ',   ['gg', 'g']],           // script-g (U+0261) variant from some IPA fonts
   ['t',   ['tt', 't']],
   ['d',   ['dd', 'd']],
   ['p',   ['pp', 'p']],
@@ -71,6 +72,10 @@ const CONSONANT_SPELLINGS = new Map<string, string[]>([
   ['r',   ['rr', 'wr', 'rh', 'r']], // "current", "write", "rhythm"
   // Glides (as graphic consonants — position-based edge cases)
   ['w',   ['wh', 'w']],
+  // SPEC ADDITIONS (B_tehnic §8 Tabel 1) — not previously in this table.
+  ['x',   ['h']],           // /x/ voiceless velar fricative — "loch"
+  ['gz',  ['x']],           // /gz/ — "example"
+  ['kʃ',  ['x']],           // /kʃ/ — "sexual"
 ])
 
 function tryConsSpellings(display: string, word: string, pos: number): string {
@@ -113,18 +118,29 @@ function consumeVowel(
 
   const start = pos
   if (nextDisplay && isPlainVowelDisplay(nextDisplay)) {
-    // Consecutive plain vowel phonemes: 1 letter each
+    // Consecutive plain vowels: 1 letter each, no extensions.
     if (pos < wLen && isGraphicVowel(word[pos])) pos++
-    // No trailing extensions here — they'd grab letters belonging to next phoneme
+    // Y/W fallback for consecutive case ("beyond" ɪ at 'e' is covered by
+    // graphic vowel; this handles edge cases where only a y/w is available)
+    else if (pos < wLen && 'ywYW'.includes(word[pos])) pos++
   } else {
-    // Full vowel run + extensions
+    // Full vowel run
     while (pos < wLen && isGraphicVowel(word[pos])) pos++
 
-    // Trailing w/y that completes a digraph (ow/aw/ay/oy/ey)
-    if (pos > start && pos < wLen && 'wyWY'.includes(word[pos])) pos++
+    // Track graphic vowels consumed BEFORE extensions — used by r-guard below.
+    const graphicVowelCount = pos - start
+
+    // Y/W fallback: if the run consumed nothing (no a/e/i/o/u at this position),
+    // try consuming one 'y' or 'w'. Handles vowel phonemes whose only available
+    // letter is y/w: "type"→aɪ at 'y', "happy"→i at 'y', "few"→u at 'w'.
+    if (graphicVowelCount === 0 && pos < wLen && 'ywYW'.includes(word[pos])) {
+      pos++
+    }
+
+    // Trailing w/y digraph (ow/aw/ay/oy/ey) — only when run had a real vowel start
+    if (graphicVowelCount > 0 && pos < wLen && 'wyWY'.includes(word[pos])) pos++
 
     // Silent 'gh' after vowel run (night, high, caught, though).
-    // Guard: don't absorb if next phoneme could itself be spelled by gh.
     if (pos > start && pos + 1 < wLen
         && (word[pos] === 'g' || word[pos] === 'G')
         && (word[pos + 1] === 'h' || word[pos + 1] === 'H')
@@ -132,17 +148,17 @@ function consumeVowel(
       pos += 2
     }
 
-    // R-controlled absorption: absorb a trailing 'r' when:
-    // a) Display IS r-colored (ər, er…) — the 'r' is part of the phoneme, or
-    // b) Plain vowel followed by a consonant phoneme (medial r — "inter-",
-    //    "current" if rr wasn't in CONSONANT_SPELLINGS).
-    // Does NOT fire at end-of-word for plain vowels → UK "power","mother",'r' stays mute.
+    // R-controlled absorption:
+    // a) Display IS r-colored (ər, er…): always absorb the 'r' letter.
+    // b) Medial 'r' before a consonant: absorb ONLY when the vowel consumed
+    //    ≤1 graphic vowel letter. This handles "inter-" (1 letter 'e' → absorb 'r')
+    //    but NOT "colours" (2 letters 'ou' → 'r' stays mute/silent).
     const nextIsConsonant = nextDisplay !== undefined
       && !isPlainVowelDisplay(nextDisplay)
       && !R_COLORED.has(nextDisplay)
       && nextDisplay !== 'r'
     if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
-      if (R_COLORED.has(display) || nextIsConsonant) pos++
+      if (R_COLORED.has(display) || (nextIsConsonant && graphicVowelCount <= 1)) pos++
     }
   }
 

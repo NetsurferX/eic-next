@@ -1,11 +1,11 @@
 {
   "app": {
-    "[project]/src/app/learn/page": [
+    "[project]/src/app/page": [
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/5e5dfa9e86f764b8-s.p.0o9~3wzuvo.a_.woff2",
       "static/media/8c2eb9ceedecfc8e-s.p.0oeo8epbafgia.woff2"
     ],
-    "[project]/src/app/page": [
+    "[project]/src/app/rules/page": [
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/5e5dfa9e86f764b8-s.p.0o9~3wzuvo.a_.woff2",
       "static/media/8c2eb9ceedecfc8e-s.p.0oeo8epbafgia.woff2"

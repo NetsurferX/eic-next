@@ -1,16 +1,16 @@
-# Graph Report - eic-next  (2026-07-02)
+# Graph Report - eic-next  (2026-07-03)
 
 ## Corpus Check
-- 40 files · ~26,370 words
+- 40 files · ~26,381 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 231 nodes · 360 edges · 17 communities (11 shown, 6 thin omitted)
+- 238 nodes · 371 edges · 17 communities (11 shown, 6 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b8afd0c3`
+- Built from commit: `7a4137f6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -45,12 +45,12 @@
 10. `isMute()` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Props` --references--> `RenderNode`  [EXTRACTED]
-  src/components/WordRenderer.tsx → src/lib/renderNode.ts
-- `WordRenderer()` --calls--> `resolveDisplay()`  [EXTRACTED]
-  src/components/WordRenderer.tsx → src/lib/engine/display.ts
 - `processIpa()` --calls--> `align()`  [EXTRACTED]
   src/lib/engine/index.ts → src/lib/engine/align.ts
+- `WordRenderer()` --calls--> `resolveDisplay()`  [EXTRACTED]
+  src/components/WordRenderer.tsx → src/lib/engine/display.ts
+- `Props` --references--> `RenderNode`  [EXTRACTED]
+  src/components/WordRenderer.tsx → src/lib/renderNode.ts
 - `GET()` --calls--> `searchPrefix()`  [EXTRACTED]
   src/app/api/search/route.ts → src/lib/db.ts
 - `Props` --references--> `TextToken`  [EXTRACTED]
@@ -67,7 +67,7 @@ Nodes (25): ConstellationView, Home(), SAMPLES, TABS, ViewMode, Props, WordNode,
 
 ### Community 1 - "API & Database"
 Cohesion: 0.12
-Nodes (29): dominantColor(), GameNode, GET(), GRAPHIC_CONS, hasSilentLetters(), hasStress(), isGraphicCons(), shuffle() (+21 more)
+Nodes (30): dominantColor(), GameNode, GET(), GRAPHIC_CONS, hasSilentLetters(), hasStress(), isGraphicCons(), shuffle() (+22 more)
 
 ### Community 2 - "Game / Learning"
 Cohesion: 0.12
@@ -87,11 +87,11 @@ Nodes (19): Props, WordRenderer(), RenderNode, applyRegexOverrides(), ColorEntry
 
 ### Community 6 - "Phonetic Pipeline"
 Cohesion: 0.16
-Nodes (16): COLOR_MAP, getColor(), GRAPHIC_VOWELS, isGraphicCons(), isGraphicVowel(), isVowelSound(), mapToWord(), processIpa() (+8 more)
+Nodes (15): COLOR_MAP, getColor(), GRAPHIC_VOWELS, isGraphicCons(), isGraphicVowel(), isVowelSound(), mapToWord(), Seg (+7 more)
 
 ### Community 7 - "WordRenderer"
-Cohesion: 0.21
-Nodes (14): align(), CONSONANT_SPELLINGS, consumeVowel(), GLIDE_DISPLAYS, GRAPHIC_VOWELS, isGraphicCons(), isGraphicVowel(), isVowelDisplay() (+6 more)
+Cohesion: 0.14
+Nodes (21): align(), CONSONANT_SPELLINGS, consumeVowel(), GLIDE_DISPLAYS, GRAPHIC_VOWELS, isGraphicCons(), isGraphicVowel(), isVowelDisplay() (+13 more)
 
 ### Community 8 - "Layout & Metadata"
 Cohesion: 0.40
@@ -102,7 +102,7 @@ Cohesion: 0.42
 Nodes (9): buildDiphthongSet(), buildUnderlineSet(), classifySyllabic(), DisplayNode, GRAPHIC_CONSONANT_LETTERS, isGraphicConsonant(), isMute(), isVowelNode() (+1 more)
 
 ## Knowledge Gaps
-- **78 isolated node(s):** `GLIDE_DISPLAYS`, `VOWEL_DISPLAY_STARTS`, `CONSONANT_SPELLINGS`, `VOWEL_CHARS`, `GRAPHIC_CONSONANT_LETTERS` (+73 more)
+- **81 isolated node(s):** `GLIDE_DISPLAYS`, `VOWEL_DISPLAY_STARTS`, `CONSONANT_SPELLINGS`, `GRAPHIC_CONSONANT_LETTERS`, `TRANSFORMS` (+76 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -110,13 +110,13 @@ Nodes (9): buildDiphthongSet(), buildUnderlineSet(), classifySyllabic(), Display
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `resolveDisplay()` connect `Community 16` to `Rules & Config`, `WordRenderer`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+  _High betweenness centrality (0.025) - this node is a cross-community bridge._
 - **What connects `GLIDE_DISPLAYS`, `VOWEL_DISPLAY_STARTS`, `CONSONANT_SPELLINGS` to the rest of the system?**
-  _78 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _81 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `UI & Rendering` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
 - **Should `API & Database` be split into smaller, more focused modules?**
-  _Cohesion score 0.125 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12121212121212122 - nodes in this community are weakly interconnected._
 - **Should `Game / Learning` be split into smaller, more focused modules?**
   _Cohesion score 0.12169312169312169 - nodes in this community are weakly interconnected._
 - **Should `Package / Dependencies` be split into smaller, more focused modules?**
