@@ -15,7 +15,14 @@ interface NodePreview {
 }
 
 // Resolves a node's actual display colour/silent/underline state — shared by
-// renderWord() and the Rule Bridge tab's clickable stage so they never drift.
+// renderWord() and the Rule Bridge tab's clickable stage so they never drift
+// FROM EACH OTHER. Note this is still a deliberately simplified preview vs.
+// the real pipeline (engine/display.ts): it underlines exactly the node(s)
+// already marked isStressed/underlineOverride and does not extend the
+// underline across a following diphthong glide the way buildUnderlineSet()
+// does in production. That's fine for previewing a single rule's effect on
+// one grapheme, but a multi-letter diphthong's underline may look one
+// grapheme shorter here than it will in the actual WordRenderer output.
 function nodeVisual(n: NodePreview, config: RuleConfig) {
   const color = n.c ?? resolveColor(n.s, config)
   const isSilent = n.isSilent || !color

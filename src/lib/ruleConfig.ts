@@ -39,9 +39,15 @@ export interface VowelChars {
 // WordRenderer.tsx get the colour, silence, or stress-underline wrong.
 
 export interface RegexRuleAction {
-  color?:     string             // hex override for the matched grapheme(s)
-  silent?:    boolean            // force matched grapheme(s) to render silent/grey
-  underline?: 'force' | 'deny'   // force-anchor or forbid stress underline here
+  color?:       string             // hex override for the matched grapheme(s)
+  silent?:      boolean            // force matched grapheme(s) to render silent/grey
+  underline?:   'force' | 'deny'   // force-anchor or forbid stress underline here
+  // B_tehnic §6.1 — mark matched grapheme(s) as the "alb cu chenar negru"
+  // forced-schwa consonant (V-R lexical set: bear/near/cure/poor/fire/hour).
+  syllabicR?:   boolean
+  // B_tehnic §2.f — render this string as a superscript glyph on the
+  // matched grapheme(s) instead of hiding a letterless phoneme.
+  superscript?: string
 }
 
 export interface RegexRule {
@@ -174,6 +180,45 @@ export const DEFAULT_CONFIG: RuleConfig = {
       notes: 'Albastru mediu (#4472C4) — fire/tyre/ire, §6.2.',
       testWords: ['fire', 'tyre', 'ire'],
     },
+
+    // ── B_tehnic §6.1 — "alb cu chenar negru" styling for the syllabic 'r'
+    // itself (as opposed to the vowel-run colour above). Wired up for 3
+    // representative words to demonstrate each spelling shape (plain -r,
+    // -re, single-letter stem); the remaining V-R words follow the same
+    // pattern — see EiC-spec-integration-CHANGELOG.md for the full list of
+    // patterns to add via /rules.
+    {
+      id: 'vr-near-r', label: "Near — syllabic 'r' (alb/chenar negru)", enabled: true,
+      pattern: '^(nea)(r)$', flags: 'i', group: 2,
+      action: { syllabicR: true }, priority: 205,
+      notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
+      testWords: ['near'],
+    },
+    {
+      id: 'vr-poor-r', label: "Poor — syllabic 'r' (alb/chenar negru)", enabled: true,
+      pattern: '^(poo)(r)$', flags: 'i', group: 2,
+      action: { syllabicR: true }, priority: 205,
+      notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
+      testWords: ['poor'],
+    },
+    {
+      id: 'vr-fire-r', label: "Fire — syllabic 'r' (alb/chenar negru)", enabled: true,
+      pattern: '^(fi)(r)(e)$', flags: 'i', group: 2,
+      action: { syllabicR: true }, priority: 205,
+      notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
+      testWords: ['fire'],
+    },
+
+    // ── B_tehnic §2.f — letterless-phoneme superscript mechanism demo.
+    // Disabled: the spec's own example ("kethib") isn't in the lexicon;
+    // enable/adapt once a real word needing this comes up.
+    {
+      id: 'superscript-example', label: 'Superscript for a letterless phoneme (mechanism demo)', enabled: false,
+      pattern: '^kethib$', flags: 'i', group: 0,
+      action: { superscript: 'v' }, priority: 220,
+      notes: '§2.f — /keˈti:v/ → kethi^v^bh: the /v/ has no letter of its own, spec shows it raised. Demonstrates the mechanism; not a general rule.',
+      testWords: ['kethib'],
+    },
     {
       id: 'vr-goer', label: 'Goer (əʊər → əw + ə + r)', enabled: false,
       pattern: '^goer$', flags: 'i', group: 0,
@@ -253,7 +298,12 @@ export const DEFAULT_CONFIG: RuleConfig = {
 const SILENT_HEX = '#000000'
 
 export function applyRegexOverrides<
-  T extends { t: string; c?: string; u?: boolean; underlineOverride?: 'force' | 'deny' }
+  T extends {
+    t: string; c?: string; u?: boolean
+    underlineOverride?: 'force' | 'deny'
+    syllabicOverride?: boolean
+    superscriptOverride?: string
+  }
 >(word: string, nodes: T[], rules: RegexRule[]): T[] {
   if (!rules?.length) return nodes
 
@@ -297,9 +347,11 @@ export function applyRegexOverrides<
       const [nStart, nEnd] = ranges[i]
       if (nEnd <= gStart || nStart >= gEnd) continue // no overlap
 
-      if (rule.action.color)     out[i].c = rule.action.color
-      if (rule.action.silent)    out[i].c = SILENT_HEX
-      if (rule.action.underline) out[i].underlineOverride = rule.action.underline
+      if (rule.action.color)       out[i].c = rule.action.color
+      if (rule.action.silent)      out[i].c = SILENT_HEX
+      if (rule.action.underline)   out[i].underlineOverride = rule.action.underline
+      if (rule.action.syllabicR)   out[i].syllabicOverride = true
+      if (rule.action.superscript) out[i].superscriptOverride = rule.action.superscript
     }
   }
 

@@ -12,7 +12,12 @@ interface Props {
 
 const SILENT   = '#000000'
 const CONSONANT = '#000000'
-const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
+// Kept in sync with engine/display.ts's GRAPHIC_CONSONANT_LETTERS — this
+// used to omit 'w' and 'y', which could misclassify vowel-group boundaries
+// for words where w/y sit in a graphic-consonant position (e.g. the 'w' in
+// silent-consonant contexts), giving this game different groupings than the
+// actual colorizer for the same word.
+const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvwxyz')
 const SYLLABIC_MARKER = '\u200d'
 
 function isVowelNode(n: { t: string; c: string; s: string; x: boolean }) {

@@ -1,5 +1,12 @@
 // Self-contained test harness: minimal pipeline logic inlined to avoid
 // module resolution issues when running via ts-node.
+//
+// NOTE: this is a manual mirror of engine/colorMap.ts + engine/segment.ts,
+// kept self-contained on purpose (see comment above). It is NOT imported by
+// the app. If you change COLOR_MAP or TRANSFORMS in engine/, update the
+// copies below too, or this debug tool will silently show stale output.
+// Last synced: B_tehnic spec integration (schwa→black, eɪ/aʊ/ɔɪ/juː split
+// out, j/w/ỷ recoloured, gz/kʃ added).
 
 const COLOR_SILENT = '#000000'
 const COLOR_CONSONANT = '#000000'
@@ -7,15 +14,18 @@ const COLOR_CONSONANT = '#000000'
 const COLOR_MAP: Record<string, string> = {
   'æ':  '#00b0f0',
   'ʌ':  '#008E40', 'a': '#008E40', 'ɑ': '#008E40',
-  'ə':  '#888888', 'ɜ': '#888888', 'ər': '#888888', 'er': '#888888',
-  'e':  '#EE5B00', 'ɛ': '#EE5B00', 'eɪ': '#EE5B00', 'eỷ': '#EE5B00',
+  'ə':  '#000000', 'ɜ': '#000000', 'ər': '#000000', 'er': '#000000',
+  'e':  '#EE5B00', 'ɛ': '#EE5B00',
   'ɪ':  '#CC0000', 'i': '#CC0000', 'iː': '#CC0000',
   'ɒ':  '#FF3399', 'ɔ': '#FF3399', 'o':  '#FF3399',
-  'oʊ': '#FF3399', 'əw': '#FF3399',
   'ʊ':  '#7030A0', 'u': '#7030A0', 'uː': '#7030A0',
-  'aɪ': '#4472C4', 'aỷ': '#4472C4', 'aw': '#4472C4',
-  'aʊ': '#4472C4', 'oɪ': '#4472C4', 'oỷ': '#4472C4', 'ɔɪ': '#4472C4',
-  'j':  '#E57373', 'w': '#E57373', 'ỷ': '#E57373',
+  'oʊ': '#FCD116', 'əw': '#FCD116',
+  'eɪ': '#00246C', 'eỷ': '#00246C',
+  'ju': '#833C0B', 'ỷu': '#833C0B', 'juː': '#833C0B',
+  'aɪ': '#4472C4', 'aỷ': '#4472C4',
+  'aw': '#23D300', 'aʊ': '#23D300',
+  'oɪ': '#FF3399', 'oỷ': '#FF3399', 'ɔɪ': '#FF3399',
+  'j':  '#CC0000', 'ỷ': '#CC0000', 'w': '#000000',
 }
 
 function getColor(sound: string): string | null {
@@ -32,7 +42,10 @@ function isVowelSound(s: string): boolean { return s.length > 0 && VOWEL_CHARS.h
 const TRANSFORMS: [string,string][] = [
   ['ɜːr','ər'],['ɝːr','ər'],['ɚːr','ər'],['ɜr','ər'],['ɝr','ər'],['ɚr','ər'],['ɜː','ər'],['ɝː','ər'],['ɚː','ər'],['ɜ','ər'],['ɝ','ər'],['ɚ','ər'],
   ['ɔːr','or'],['ɔr','or'],['ɔɹ','or'],['ɔɪ','oỷ'],['oɪ','oỷ'],['aɪ','aỷ'],['eɪ','eỷ'],['aʊ','aw'],['əʊ','əw'],['oʊ','əw'],['ɛːr','er'],['ɛr','er'],['ɛɹ','er'],
-  ['iː','i'],['uː','u'],['ɑː','ɑ'],['ɔː','ɔ'],['æː','æ'],['eː','e'],['tʃ','ch'],['dʒ','j'],['ŋg','ng'],['ŋ','ng'],['θ','th'],['ð','dh'],['ʃ','sh'],['ɹ','r'],['j','j'],['w','w'],['ỷ','ỷ'],['æ','æ'],['ɪ','ɪ'],['ɑ','ɑ'],['ɒ','ɒ'],['ɛ','ɛ'],['ʌ','ʌ'],['ʊ','ʊ'],['ə','ə']
+  ['iː','i'],['uː','u'],['ɑː','ɑ'],['ɔː','ɔ'],['æː','æ'],['eː','e'],['tʃ','ch'],['dʒ','j'],['ŋg','ng'],['ŋ','ng'],['θ','th'],['ð','dh'],['ʃ','sh'],['ɹ','r'],
+  ['ɡz','gz'],['gz','gz'],['kʃ','kʃ'],
+  ['juː','ỷu'],['jʊ','ỷu'],['ju','ỷu'],
+  ['j','j'],['w','w'],['ỷ','ỷ'],['æ','æ'],['ɪ','ɪ'],['ɑ','ɑ'],['ɒ','ɒ'],['ɛ','ɛ'],['ʌ','ʌ'],['ʊ','ʊ'],['ə','ə']
 ]
 
 const STRIP = new Set([...'/,.ˌːˑ'])

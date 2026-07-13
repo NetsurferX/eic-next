@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import type { GameState, GameWord, GameLevel } from '@/lib/gameTypes'
-import { LEVEL_INFO } from '@/lib/gameTypes'
+import { LEVEL_INFO, COLOR_LABELS } from '@/lib/gameTypes'
 import ColourGame   from '@/components/game/ColourGame'
 import SilentGame   from '@/components/game/SilentGame'
 import StressGame   from '@/components/game/StressGame'
+import GradientGame from '@/components/game/GradientGame'
 import GameProgress from '@/components/game/GameProgress'
+import IntroCard    from '@/components/game/IntroCard'
 
 const ROUNDS = 10
+const LEVELS: GameLevel[] = [1, 2, 3, 4]
 
 async function fetchWords(level: GameLevel): Promise<GameWord[]> {
   const res  = await fetch(`/api/game?level=${level}&n=${ROUNDS}`)
@@ -19,6 +22,10 @@ async function fetchWords(level: GameLevel): Promise<GameWord[]> {
 export default function LearnPage() {
   const [game, setGame] = useState<GameState | null>(null)
   const [loading, setLoading] = useState(false)
+  // Level picked but not yet fetched/started — shows the rule explanation
+  // (IntroCard) BEFORE the network round-trip, so the "here's the rule"
+  // step isn't blocked behind a loading spinner.
+  const [pendingLevel, setPendingLevel] = useState<GameLevel | null>(null)
 
   const startGame = useCallback(async (level: GameLevel) => {
     setLoading(true)
@@ -48,7 +55,6 @@ export default function LearnPage() {
       const streak    = correct ? prev.streak + 1 : 0
       const xpGain    = correct ? (10 + streak * 2) : 0
       const roundsDone = prev.roundsDone + 1
-      const isLast    = prev.current >= prev.words.length - 1
 
       return {
         ...prev,
@@ -59,7 +65,6 @@ export default function LearnPage() {
         roundsDone,
         phase:      'feedback',
         lastCorrect: correct,
-        current:    isLast ? prev.current : prev.current,
       }
     })
 
@@ -79,7 +84,24 @@ export default function LearnPage() {
 
   const currentWord = game?.words[game.current] ?? null
 
-  // Intro screen
+  // Rule-explanation step — shown the moment a level is picked, before any
+  // fetch happens. This is the step all four games were missing.
+  if (pendingLevel && !game && !loading) {
+    return (
+      <main className="game-home">
+        <IntroCard
+          level={pendingLevel}
+          onStart={() => {
+            const level = pendingLevel
+            setPendingLevel(null)
+            startGame(level)
+          }}
+        />
+      </main>
+    )
+  }
+
+  // Level picker
   if (!game && !loading) {
     return (
       <main className="game-home">
@@ -96,11 +118,11 @@ export default function LearnPage() {
         </div>
 
         <div className="game-levels">
-          {([1, 2, 3] as GameLevel[]).map(level => (
+          {LEVELS.map(level => (
             <button
               key={level}
               className="game-level-card"
-              onClick={() => startGame(level)}
+              onClick={() => setPendingLevel(level)}
             >
               <span className="game-level-icon">{LEVEL_INFO[level].icon}</span>
               <span className="game-level-name">{LEVEL_INFO[level].name}</span>
@@ -113,27 +135,22 @@ export default function LearnPage() {
         <div className="game-colour-guide">
           <h2 className="game-guide-title">The EiC Colour System</h2>
           <div className="game-colour-grid">
-            {[
-              { c: '#00b0f0', label: 'æ',     ex: 'cat, hat, black' },
-              { c: '#008E40', label: 'ɑ / ʌ', ex: 'car, cup, love' },
-              { c: '#888888', label: 'ə',     ex: 'about, sofa' },
-              { c: '#EE5B00', label: 'e / ɛ', ex: 'bed, say, they' },
-              { c: '#CC0000', label: 'i / ɪ', ex: 'see, sit, been' },
-              { c: '#FF3399', label: 'ɒ / ɔ', ex: 'hot, or, more' },
-              { c: '#7030A0', label: 'u / ʊ', ex: 'moon, book, true' },
-              { c: '#4472C4', label: 'aɪ/aʊ', ex: 'my, now, eye' },
-              { c: '#E57373', label: 'j / w', ex: 'yes, we, you' },
-              { c: '#000000', label: '∅',     ex: 'consonants' },
-              { c: '#000000', label: '—',     ex: 'silent letters' },
-            ].map(({ c, label, ex }) => (
+            {Object.entries(COLOR_LABELS).map(([c, { label, example }]) => (
               <div key={c} className="game-colour-item">
                 <div className="game-colour-swatch" style={{ background: c }} />
                 <div className="game-colour-info">
                   <span className="game-colour-label">{label}</span>
-                  <span className="game-colour-ex">{ex}</span>
+                  <span className="game-colour-ex">{example}</span>
                 </div>
               </div>
             ))}
+            <div className="game-colour-item">
+              <div className="game-colour-swatch" style={{ background: '#000000' }} />
+              <div className="game-colour-info">
+                <span className="game-colour-label">∅ / —</span>
+                <span className="game-colour-ex">consonants &amp; silent letters</span>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -212,6 +229,14 @@ export default function LearnPage() {
         )}
         {game.level === 3 && (
           <StressGame
+            word={currentWord}
+            phase={game.phase}
+            lastCorrect={game.lastCorrect}
+            onAnswer={onAnswer}
+          />
+        )}
+        {game.level === 4 && (
+          <GradientGame
             word={currentWord}
             phase={game.phase}
             lastCorrect={game.lastCorrect}

@@ -19,7 +19,7 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
 
         const style: CSSProperties = d.gradient
           ? {
-              background:           `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
+              background:           d.gradientCss ?? `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor:  'transparent',
               backgroundClip:       'text',
@@ -36,14 +36,16 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
 
         const classes = [
           'eic-seg',
-          d.syllabic  ? 'eic-syllabic' : '',
-          d.underline ? 'eic-stressed'  : '',
-          d.mute      ? 'eic-silent'    : '',
+          d.syllabic   ? 'eic-syllabic'    : '',
+          d.syllabicVR ? 'eic-syllabic-vr' : '',
+          d.underline  ? 'eic-stressed'    : '',
+          d.mute       ? 'eic-silent'      : '',
         ].filter(Boolean).join(' ')
 
         return (
           <span key={i} style={style} className={classes} title={d.sound || undefined}>
             {d.t}
+            {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>
         )
       })}

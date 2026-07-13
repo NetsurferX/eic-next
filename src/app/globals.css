@@ -149,6 +149,26 @@ button, textarea, input { font-family: var(--font-sans); }
   margin: 0 0.5px;
 }
 
+/* B_tehnic §6.1 — setul lexical V-R (bear/near/cure/poor/fire/hour):
+   consoana silabică forțată e "alb cu chenar negru", opusul lui .eic-syllabic
+   de mai sus. Pe fundal alb interiorul e practic invizibil — doar conturul
+   rămâne vizibil, marcând forma fără să coloreze litera. */
+.eic-syllabic-vr {
+  color: #FFFFFF !important;
+  border: 1px solid #000000;
+  border-radius: 2px;
+  line-height: 1;
+  padding: 0;
+  margin: 0 0.5px;
+}
+
+/* B_tehnic §2.f — fonem fără grafem propriu, notat ca exponent */
+.eic-superscript {
+  font-size: 0.6em;
+  vertical-align: super;
+  margin-left: 0.5px;
+}
+
 /* ── Legend ── */
 .eic-legend {
   display: flex; flex-wrap: wrap;

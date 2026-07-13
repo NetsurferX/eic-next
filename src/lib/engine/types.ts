@@ -10,6 +10,14 @@ export interface RenderNode {
   u: boolean   // isStressed
   x: boolean   // isConsonant
   underlineOverride?: 'force' | 'deny'  // set later by ruleConfig.ts's applyRegexOverrides()
+  // B_tehnic §6.1 — forced V-R schwa+consonant styling ("alb cu chenar
+  // negru"). Distinct from the existing SYLLABIC_MARKER-driven `syllabic`
+  // case in display.ts (which is black-fill) — this one is white-fill.
+  syllabicOverride?: boolean
+  // B_tehnic §2.f — a phoneme with no corresponding letter at all is shown
+  // as a superscript glyph attached to the previous/next grapheme instead
+  // of being silently dropped. Set via ruleConfig.ts regex rules.
+  superscriptOverride?: string
 }
 
 /** One IPA phoneme after transform + stress detection, before grapheme mapping. */

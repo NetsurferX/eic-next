@@ -11,7 +11,12 @@ interface Props {
 }
 
 const SILENT     = '#000000'
-const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvxz')
+// SYNCED with engine/display.ts's GRAPHIC_CONSONANT_LETTERS (and with the
+// same fix already applied in StressGame.tsx and api/game/route.ts). This
+// was missing w/y before, which could misclassify a silent-consonant node
+// built around 'w' or 'y' differently than the real colorizer does for
+// the same word.
+const GRAPHIC_CONS = new Set('bcdfghjklmnpqrstvwxyz')
 
 function isGraphicCons(t: string) {
   return !!t && [...t.toLowerCase()].every(c => GRAPHIC_CONS.has(c))
@@ -127,8 +132,8 @@ export default function SilentGame({ word, phase, lastCorrect, onAnswer }: Props
       {isFeedback && (
         <div className={`cg-feedback ${lastCorrect ? 'fb-correct' : 'fb-wrong'}`}>
           {lastCorrect
-            ? `✓ Correct! Grey letters are always silent.`
-            : `Not quite. Silent letters are shown in grey — they have no sound.`
+            ? `✓ Correct! Silent letters render in plain black — same as a consonant — so you have to know the word, not just look at the colour.`
+            : `Not quite. Silent letters are black — the same black as a consonant. Colour won't give it away here.`
           }
         </div>
       )}

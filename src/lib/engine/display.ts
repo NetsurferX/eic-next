@@ -7,6 +7,7 @@
 // Output: DisplayNode[] — one entry per node, all display decisions made
 
 import type { RenderNode } from './types'
+import { COLOR_MAP } from './colorMap'
 
 export const COLOR_SILENT    = '#000000'
 export const COLOR_CONSONANT = '#000000'
@@ -16,6 +17,22 @@ const DIPHTHONG_START = '#FF3399'
 const DIPHTHONG_END   = '#CC0000'
 
 const SCHWA = '#888888'
+
+// B_tehnic §9 Tabel 2 — four short/lax simple vowels get a 70%→30% gradient
+// into black instead of a flat fill: /ʌ/, /ɪ/, /ɒ,ɔ/ (LOT/CLOTH-THOUGHT
+// merger, §5.3 — both symbols may appear depending on the lexicon source),
+// /ʊ/. Their long/tense counterparts (ɑ, i, o "door/force", u) stay solid —
+// they're already distinct display keys post-TRANSFORMS, so no ambiguity.
+const SIMPLE_GRADIENT_SOUNDS = new Set(['ʌ', 'ɪ', 'ɒ', 'ɔ', 'ʊ'])
+function simpleGradientHex(sound: string): string | null {
+  if (!SIMPLE_GRADIENT_SOUNDS.has(sound)) return null
+  return COLOR_MAP[sound] ?? null
+}
+// 70/30 split, not a smooth 0→100 blend: solid colour through 70% of the
+// grapheme's width, then a quick fade to black in the last 30%.
+function simpleGradientCss(hex: string): string {
+  return `linear-gradient(to right, ${hex} 0%, ${hex} 70%, #000000 100%)`
+}
 
 // Letters that are graphically consonants — used to detect the
 // "silent consonant in vowel position" case (e.g. the 'k' in 'knight'
@@ -135,9 +152,14 @@ export interface DisplayNode {
   t:          string   // letters to render
   color:      string   // final text color
   underline:  boolean  // draw underline?
-  gradient:   boolean  // draw pink→red diphthong gradient?
+  gradient:   boolean  // draw a gradient fill (diphthong OR simple-vowel)?
+  gradientCss?: string // explicit gradient background when set (simple-vowel
+                       // 70/30 split); falls back to the DIPHTHONG_START/END
+                       // 2-stop blend in WordRenderer when absent
   mute:       boolean  // is silent (black)?
-  syllabic:   boolean  // is syllabic consonant (white border)?
+  syllabic:   boolean  // is syllabic consonant (black fill/border)?
+  syllabicVR: boolean  // B_tehnic §6.1 forced V-R schwa+consonant (white fill/border)
+  superscript: string  // B_tehnic §2.f letterless-phoneme glyph, rendered raised
   underlineColor: string  // color for the underline decoration
   sound:      string   // tooltip (IPA sound)
 }
@@ -175,28 +197,46 @@ export function resolveDisplay(nodes: RenderNode[]): DisplayNode[] {
     const isGlide    = diphthongGlide.has(i)
     const isDiph     = diphthongSet.has(i)
     const isUnder    = underlineSet.has(i)
+    const isSylVR    = !!n.syllabicOverride   // B_tehnic §6.1 — alb cu chenar negru
     const mute       = isMute(n) || (isGlide && !isDiph)
+    const simpleHex  = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null
 
     const runAnchor  = underlineColorMap.get(i) ?? COLOR_CONSONANT
 
     // Final color decision — one place, one pass, explicit priority:
     let color: string
-    if (isTrueSyl)      color = COLOR_CONSONANT         // syllabic consonant
+    let gradientCss: string | undefined
+    if (isSylVR)        color = '#FFFFFF'               // forced V-R syllabic (white fill)
+    else if (isTrueSyl) color = COLOR_CONSONANT         // syllabic consonant
     else if (isDiph)    color = isUnder && !mute        // diphthong with underline → solid
                           ? runAnchor
                           : 'transparent'               // gradient handled via gradient flag
+    else if (simpleHex) {
+      // B_tehnic §9 — stressed occurrence renders solid (matches the
+      // existing diphthong stressed-underline behaviour); unstressed
+      // occurrences get the 70/30 gradient into black.
+      if (isUnder && !mute) {
+        color = runAnchor
+      } else {
+        color = 'transparent'
+        gradientCss = simpleGradientCss(simpleHex)
+      }
+    }
     else if (mute)      color = COLOR_SILENT
     else                color = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
 
-    if (isUnder && !isTrueSyl && !mute) color = runAnchor
+    if (isUnder && !isTrueSyl && !isSylVR && !mute) color = runAnchor
 
     return {
       t:              n.t ?? '',
       color,
-      underline:      isUnder && !isTrueSyl && !mute,
-      gradient:       isDiph && !(isUnder && !mute),
+      underline:      isUnder && !isTrueSyl && !isSylVR && !mute,
+      gradient:       (isDiph && !(isUnder && !mute)) || !!gradientCss,
+      gradientCss,
       mute,
       syllabic:       isTrueSyl,
+      syllabicVR:     isSylVR,
+      superscript:    n.superscriptOverride ?? '',
       underlineColor: runAnchor,
       sound:          n.s && n.s !== SYLLABIC_MARKER ? n.s : '',
     }
