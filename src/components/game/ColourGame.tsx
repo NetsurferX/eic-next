@@ -2,12 +2,13 @@
 
 import { useMemo, useEffect } from 'react'
 import WordRenderer from '@/components/WordRenderer'
-import type { GameWord } from '@/lib/gameTypes'
-import { COLOR_LABELS } from '@/lib/gameTypes'
+import type { GameWord, Difficulty } from '@/lib/gameTypes'
+import { COLOR_LABELS, NEAR_COLOR_GROUPS } from '@/lib/gameTypes'
 
 interface Props {
   word:        GameWord
-  phase:       'playing' | 'feedback' | 'intro' | 'done'
+  difficulty:  Difficulty
+  phase:       'playing' | 'feedback' | 'intro' | 'loading' | 'done'
   lastCorrect: boolean | null
   onAnswer:    (correct: boolean) => void
 }
@@ -21,15 +22,25 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-export default function ColourGame({ word, phase, lastCorrect, onAnswer }: Props) {
+export default function ColourGame({ word, difficulty, phase, lastCorrect, onAnswer }: Props) {
   const correct = word.dominantColor
 
-  // Build 4 options: 1 correct + 3 random distractors
+  // Build 4 options: 1 correct + 3 distractors. On Hard, distractors are
+  // pulled from NEAR_COLOR_GROUPS first — phonetically neighbouring sounds,
+  // so telling them apart takes real recognition, not just "not that hue".
   const options = useMemo(() => {
     const all = Object.keys(COLOR_LABELS).filter(c => c !== correct)
+
+    if (difficulty === 'hard') {
+      const neighbours = shuffle((NEAR_COLOR_GROUPS[correct] ?? []).filter(c => c !== correct))
+      const rest = shuffle(all.filter(c => !neighbours.includes(c)))
+      const distractors = [...neighbours, ...rest].slice(0, 3)
+      return shuffle([correct, ...distractors])
+    }
+
     const distractors = shuffle(all).slice(0, 3)
     return shuffle([correct, ...distractors])
-  }, [correct])
+  }, [correct, difficulty])
 
   // Auto-speak word
   useEffect(() => {
@@ -49,24 +60,19 @@ export default function ColourGame({ word, phase, lastCorrect, onAnswer }: Props
 
   return (
     <div className="cg-wrap">
-
-      {/* Instruction */}
       <p className="game-instruction">
         What sound does the <strong>highlighted colour</strong> represent?
       </p>
 
-      {/* Word display */}
       <div className="cg-word-display">
         <WordRenderer nodes={word.nodes} wordStr={word.word} />
       </div>
 
-      {/* Dominant colour swatch */}
       <div className="cg-swatch-row">
         <div className="cg-swatch" style={{ background: correct }} />
         <span className="cg-swatch-label">dominant sound</span>
       </div>
 
-      {/* Options */}
       <div className="cg-options">
         {options.map(color => {
           const info      = COLOR_LABELS[color]
@@ -95,7 +101,6 @@ export default function ColourGame({ word, phase, lastCorrect, onAnswer }: Props
         })}
       </div>
 
-      {/* Feedback */}
       {isFeedback && (
         <div className={`cg-feedback ${lastCorrect ? 'fb-correct' : 'fb-wrong'}`}>
           {lastCorrect

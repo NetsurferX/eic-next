@@ -1,0 +1,448 @@
+/* ============================================================
+   Decodorul — Colour Game styles
+   Append this into globals.css (or import as its own file).
+   Palette: warm paper background, teal accent, Fraunces for
+   display type, Inter for body/UI — matches the EiC brand.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+.game-home {
+  min-height: 100vh;
+  background: #faf7f2;
+  color: #1c1917;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 64px;
+}
+
+/* ---------- Intro / home screen ---------- */
+
+.ic-wrap {
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.game-logo {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 40px;
+  letter-spacing: 1px;
+}
+
+.ic-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 28px;
+  margin: 0;
+}
+
+.ic-rule {
+  color: #57534e;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0;
+}
+
+.ic-example {
+  font-family: 'Fraunces', serif;
+  font-size: 40px;
+  font-weight: 700;
+  padding: 16px 0;
+}
+
+.ic-start {
+  margin-top: 8px;
+  padding: 12px 32px;
+  border-radius: 12px;
+  border: none;
+  background: #0d9488;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.ic-start:hover { background: #0f766e; transform: translateY(-1px); }
+.ic-start:active { transform: translateY(0); }
+
+/* ---------- Colour legend guide ---------- */
+
+.game-colour-guide {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.game-guide-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: #44403c;
+}
+
+.game-colour-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.game-colour-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid #ece7dd;
+  text-align: left;
+}
+
+.game-colour-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.game-colour-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.game-colour-label {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.game-colour-ex {
+  font-size: 11px;
+  color: #78716c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Loading ---------- */
+
+.game-loading {
+  padding: 80px 0;
+  color: #78716c;
+  font-size: 15px;
+}
+
+/* ---------- Arena wrapper ---------- */
+
+.game-arena {
+  width: 100%;
+  max-width: 560px;
+  margin-top: 24px;
+}
+
+/* ---------- ColourGame ---------- */
+
+.cg-wrap {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.game-instruction {
+  color: #57534e;
+  font-size: 15px;
+  margin: 0;
+}
+
+.cg-word-display {
+  font-family: 'Fraunces', serif;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.cg-swatch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cg-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.cg-swatch-label {
+  font-size: 13px;
+  color: #78716c;
+}
+
+.cg-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.cg-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #d6d3d1;
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cg-option:hover:not(:disabled) { border-color: #0d9488; }
+.cg-option:disabled { cursor: default; opacity: 0.85; }
+
+.cg-option.correct {
+  border-color: #16a34a;
+  background: #dcfce7;
+}
+.cg-option.incorrect {
+  border-color: #d6d3d1;
+  opacity: 0.5;
+}
+
+.cg-opt-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.cg-opt-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cg-opt-label {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.cg-opt-ex {
+  font-size: 11px;
+  color: #78716c;
+}
+
+.cg-tick {
+  margin-left: auto;
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.cg-feedback {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.cg-feedback.fb-correct { background: #dcfce7; color: #166534; }
+.cg-feedback.fb-wrong   { background: #fee2e2; color: #991b1b; }
+
+/* ---------- GameProgress ---------- */
+
+.gp-wrap {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gp-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gp-exit {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #78716c;
+  padding: 4px 8px;
+}
+.gp-exit:hover { color: #1c1917; }
+
+.gp-level-badge {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.gp-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gp-streak { color: #ea580c; }
+.gp-score  { color: #44403c; }
+.gp-xp     { color: #a16207; }
+
+.gp-bar-wrap {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: #e7e2d8;
+  overflow: hidden;
+}
+
+.gp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0d9488, #14b8a6);
+  transition: width 0.4s ease;
+}
+
+.gp-bar-dots {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px;
+}
+
+.gp-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: transparent;
+}
+.gp-dot.done    { background: rgba(255,255,255,0.6); }
+.gp-dot.current { background: rgba(255,255,255,0.9); }
+
+/* ---------- Done screen ---------- */
+
+.game-done {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 0;
+}
+
+.game-done-emoji { font-size: 48px; }
+
+.game-done-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 24px;
+  margin: 0;
+}
+
+.game-done-stats {
+  display: flex;
+  gap: 28px;
+}
+
+.game-done-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-done-num {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.game-done-lbl {
+  font-size: 12px;
+  color: #78716c;
+}
+
+.game-done-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.game-play-again {
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  background: #0d9488;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+.game-play-again:hover { background: #0f766e; }
+
+/* ============================================================
+   Additions for difficulty tiers — append to game.css
+   ============================================================ */
+ 
+.ic-diff-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+}
+ 
+.ic-diff-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  border: 2px solid #d6d3d1;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.ic-diff-btn:hover { border-color: #0d9488; transform: translateY(-1px); }
+.ic-diff-btn.selected {
+  border-color: #0d9488;
+  background: #f0fdfa;
+}
+ 
+.ic-diff-icon { font-size: 22px; }
+ 
+.ic-diff-label {
+  font-weight: 700;
+  font-size: 14px;
+}
+ 
+.ic-diff-desc {
+  font-size: 11px;
+  color: #78716c;
+  text-align: center;
+  line-height: 1.3;
+}
+ 
+.game-change-level {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid #d6d3d1;
+  background: white;
+  color: #44403c;
+  font-weight: 600;
+  cursor: pointer;
+}
+.game-change-level:hover { border-color: #a8a29e; }
