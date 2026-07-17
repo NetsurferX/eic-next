@@ -434,6 +434,21 @@ button, textarea, input {
   color: #000 !important;
 }
 
+.eic-syllabic-vr {
+  border: 1px solid #000;
+  border-radius: 2px;
+  margin: 0 .5px;
+  padding: 0;
+  line-height: 1;
+  color: #fff !important;
+}
+
+.eic-superscript {
+  vertical-align: super;
+  margin-left: .5px;
+  font-size: .6em;
+}
+
 .eic-legend {
   border-top: 1px solid var(--color-border-soft);
   flex-wrap: wrap;
