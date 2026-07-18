@@ -2,9 +2,9 @@
   "[project]/src/components/ConstellationView.tsx [app-client] (ecmascript, next/dynamic entry)": {
     "id": "[project]/src/components/ConstellationView.tsx [app-client] (ecmascript, next/dynamic entry)",
     "files": [
-      "static/chunks/node_modules_d3_src_index_06g~g49.js",
-      "static/chunks/src_components_ConstellationView_tsx_0n4t50q._.js",
-      "static/chunks/src_components_ConstellationView_tsx_0gx6w.6._.js"
+      "static/chunks/node_modules_d3_src_index_0bb6huj.js",
+      "static/chunks/src_components_ConstellationView_tsx_12ohp79._.js",
+      "static/chunks/src_components_ConstellationView_tsx_0tmc2zl._.js"
     ]
   }
 }
