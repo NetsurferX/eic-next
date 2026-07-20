@@ -2475,6 +2475,15 @@ const SPEEDS = {
 // Audio cache — avoid re-fetching the same word
 const audioCache = new Map() // word → object URL
 ;
+// Prefetch-only: synthesizes and caches a word's audio without playing it.
+// Fire-and-forget by design — callers don't await this.
+async function prefetch(word) {
+    if (("TURBOPACK compile-time value", "undefined") === 'undefined' || audioCache.has(word)) return;
+    //TURBOPACK unreachable
+    ;
+}
+// Resolves once playback has actually STARTED (not when it ends) — that's
+// the moment advance()'s pacing timer is allowed to start counting.
 async function speak(word) {
     if ("TURBOPACK compile-time truthy", 1) return;
     //TURBOPACK unreachable
@@ -2487,8 +2496,10 @@ function KaraokeMode({ tokens }) {
     const [speed, setSpeed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('normal');
     const timerRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const speedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(speed);
+    const stoppedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(false);
     speedRef.current = speed;
     const stop = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(()=>{
+        stoppedRef.current = true;
         setPlaying(false);
         if (timerRef.current) clearTimeout(timerRef.current);
     }, []);
@@ -2498,19 +2509,33 @@ function KaraokeMode({ tokens }) {
             setPlaying(false);
             return;
         }
+        stoppedRef.current = false;
         setCurrent(next);
-        speak(wordTokens[next].raw);
-        timerRef.current = setTimeout(()=>advance(next), SPEEDS[speedRef.current]);
+        // Prefetch the next couple of words in the background so their audio
+        // is already cached by the time we get there — hides the ~1-2s Piper
+        // model-load latency behind however long the current word takes.
+        if (wordTokens[next + 1]) prefetch(wordTokens[next + 1].raw);
+        if (wordTokens[next + 2]) prefetch(wordTokens[next + 2].raw);
+        speak(wordTokens[next].raw).finally(()=>{
+            if (stoppedRef.current) return;
+            timerRef.current = setTimeout(()=>advance(next), SPEEDS[speedRef.current]);
+        });
     }, [
         wordTokens
     ]);
     const play = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(()=>{
         if (wordTokens.length === 0) return;
         const startIdx = current >= wordTokens.length - 1 ? 0 : Math.max(0, current);
+        stoppedRef.current = false;
         setPlaying(true);
         setCurrent(startIdx);
-        speak(wordTokens[startIdx].raw);
-        timerRef.current = setTimeout(()=>advance(startIdx), SPEEDS[speedRef.current]);
+        // Warm the cache for the first couple of words too.
+        if (wordTokens[startIdx + 1]) prefetch(wordTokens[startIdx + 1].raw);
+        if (wordTokens[startIdx + 2]) prefetch(wordTokens[startIdx + 2].raw);
+        speak(wordTokens[startIdx].raw).finally(()=>{
+            if (stoppedRef.current) return;
+            timerRef.current = setTimeout(()=>advance(startIdx), SPEEDS[speedRef.current]);
+        });
     }, [
         advance,
         current,
@@ -2532,7 +2557,7 @@ function KaraokeMode({ tokens }) {
             children: tok.raw
         }, i, false, {
             fileName: "[project]/src/components/KaraokeMode.tsx",
-            lineNumber: 77,
+            lineNumber: 117,
             columnNumber: 34
         }, this);
         if (tok.isPunct) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2540,7 +2565,7 @@ function KaraokeMode({ tokens }) {
             children: tok.raw
         }, i, false, {
             fileName: "[project]/src/components/KaraokeMode.tsx",
-            lineNumber: 78,
+            lineNumber: 118,
             columnNumber: 34
         }, this);
         const wordIdx = wordTokens.indexOf(tok);
@@ -2553,7 +2578,7 @@ function KaraokeMode({ tokens }) {
                 children: tok.raw
             }, i, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 86,
+                lineNumber: 126,
                 columnNumber: 14
             }, this);
         }
@@ -2569,12 +2594,12 @@ function KaraokeMode({ tokens }) {
                 wordStr: tok.raw
             }, void 0, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 99,
+                lineNumber: 139,
                 columnNumber: 9
             }, this)
         }, i, false, {
             fileName: "[project]/src/components/KaraokeMode.tsx",
-            lineNumber: 90,
+            lineNumber: 130,
             columnNumber: 7
         }, this);
     });
@@ -2592,12 +2617,12 @@ function KaraokeMode({ tokens }) {
                                 children: s
                             }, s, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 111,
+                                lineNumber: 151,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/KaraokeMode.tsx",
-                        lineNumber: 109,
+                        lineNumber: 149,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2609,7 +2634,7 @@ function KaraokeMode({ tokens }) {
                                 children: current <= 0 || current >= wordTokens.length - 1 ? '▶ play' : '▶ resume'
                             }, void 0, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 123,
+                                lineNumber: 163,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "k-play-btn k-stop",
@@ -2617,7 +2642,7 @@ function KaraokeMode({ tokens }) {
                                 children: "■ stop"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 127,
+                                lineNumber: 167,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2630,19 +2655,19 @@ function KaraokeMode({ tokens }) {
                                 children: "↺"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                                lineNumber: 129,
+                                lineNumber: 169,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/KaraokeMode.tsx",
-                        lineNumber: 121,
+                        lineNumber: 161,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 108,
+                lineNumber: 148,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2654,12 +2679,12 @@ function KaraokeMode({ tokens }) {
                     }
                 }, void 0, false, {
                     fileName: "[project]/src/components/KaraokeMode.tsx",
-                    lineNumber: 136,
+                    lineNumber: 176,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 135,
+                lineNumber: 175,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2670,12 +2695,12 @@ function KaraokeMode({ tokens }) {
                     children: "Paste text above to begin reading."
                 }, void 0, false, {
                     fileName: "[project]/src/components/KaraokeMode.tsx",
-                    lineNumber: 149,
+                    lineNumber: 189,
                     columnNumber: 13
                 }, this) : rendered
             }, void 0, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 147,
+                lineNumber: 187,
                 columnNumber: 7
             }, this),
             current >= 0 && current < wordTokens.length && wordTokens[current]?.nodes && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2685,18 +2710,18 @@ function KaraokeMode({ tokens }) {
                     wordStr: wordTokens[current].raw
                 }, void 0, false, {
                     fileName: "[project]/src/components/KaraokeMode.tsx",
-                    lineNumber: 157,
+                    lineNumber: 197,
                     columnNumber: 11
                 }, this)
             }, current, false, {
                 fileName: "[project]/src/components/KaraokeMode.tsx",
-                lineNumber: 156,
+                lineNumber: 196,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/KaraokeMode.tsx",
-        lineNumber: 105,
+        lineNumber: 145,
         columnNumber: 5
     }, this);
 }

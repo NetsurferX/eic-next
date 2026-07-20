@@ -13,7 +13,27 @@ const SPEEDS = { slow: 2000, normal: 1000, fast: 500 }
 // Audio cache — avoid re-fetching the same word
 const audioCache = new Map<string, string>()  // word → object URL
 
-async function speak(word: string) {
+// Prefetch-only: synthesizes and caches a word's audio without playing it.
+// Fire-and-forget by design — callers don't await this.
+async function prefetch(word: string): Promise<void> {
+  if (typeof window === 'undefined' || audioCache.has(word)) return
+  try {
+    const res = await fetch('/api/speak', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ word }),
+    })
+    if (!res.ok) return
+    const blob = await res.blob()
+    audioCache.set(word, URL.createObjectURL(blob))
+  } catch {
+    // ignore — a failed prefetch just means speak() will fetch it later
+  }
+}
+
+// Resolves once playback has actually STARTED (not when it ends) — that's
+// the moment advance()'s pacing timer is allowed to start counting.
+async function speak(word: string): Promise<void> {
   if (typeof window === 'undefined') return
   try {
     let url = audioCache.get(word)
@@ -29,7 +49,7 @@ async function speak(word: string) {
       audioCache.set(word, url)
     }
     const audio = new Audio(url)
-    audio.play().catch(() => {})
+    await audio.play()
   } catch (e) {
     console.warn('speak error:', e)
   }
@@ -42,9 +62,11 @@ export default function KaraokeMode({ tokens }: Props) {
   const [speed, setSpeed]             = useState<keyof typeof SPEEDS>('normal')
   const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const speedRef   = useRef(speed)
+  const stoppedRef = useRef(false)
   speedRef.current = speed
 
   const stop = useCallback(() => {
+    stoppedRef.current = true
     setPlaying(false)
     if (timerRef.current) clearTimeout(timerRef.current)
   }, [])
@@ -55,18 +77,36 @@ export default function KaraokeMode({ tokens }: Props) {
       setPlaying(false)
       return
     }
+    stoppedRef.current = false
     setCurrent(next)
-    speak(wordTokens[next].raw)
-    timerRef.current = setTimeout(() => advance(next), SPEEDS[speedRef.current])
+
+    // Prefetch the next couple of words in the background so their audio
+    // is already cached by the time we get there — hides the ~1-2s Piper
+    // model-load latency behind however long the current word takes.
+    if (wordTokens[next + 1]) prefetch(wordTokens[next + 1].raw)
+    if (wordTokens[next + 2]) prefetch(wordTokens[next + 2].raw)
+
+    speak(wordTokens[next].raw).finally(() => {
+      if (stoppedRef.current) return
+      timerRef.current = setTimeout(() => advance(next), SPEEDS[speedRef.current])
+    })
   }, [wordTokens])
 
   const play = useCallback(() => {
     if (wordTokens.length === 0) return
     const startIdx = current >= wordTokens.length - 1 ? 0 : Math.max(0, current)
+    stoppedRef.current = false
     setPlaying(true)
     setCurrent(startIdx)
-    speak(wordTokens[startIdx].raw)
-    timerRef.current = setTimeout(() => advance(startIdx), SPEEDS[speedRef.current])
+
+    // Warm the cache for the first couple of words too.
+    if (wordTokens[startIdx + 1]) prefetch(wordTokens[startIdx + 1].raw)
+    if (wordTokens[startIdx + 2]) prefetch(wordTokens[startIdx + 2].raw)
+
+    speak(wordTokens[startIdx].raw).finally(() => {
+      if (stoppedRef.current) return
+      timerRef.current = setTimeout(() => advance(startIdx), SPEEDS[speedRef.current])
+    })
   }, [advance, current, wordTokens])
 
   // Stop when tokens change
