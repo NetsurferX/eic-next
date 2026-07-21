@@ -1,21 +1,16 @@
 'use client'
 
-import { useRef, useMemo, useState } from 'react'
-import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import { useRef, useMemo, useState, useCallback } from 'react'
 import WordRenderer from '@/components/WordRenderer'
 import StatsBar from '@/components/StatsBar'
 import SoundSpectrum from '@/components/SoundSpectrum'
 import KaraokeMode from '@/components/KaraokeMode'
-import TerrainView from '@/components/TerrainView'
+import ColourGame   from '@/components/game/ColourGame'
+import GameProgress from '@/components/game/GameProgress'
+import IntroCard    from '@/components/game/IntroCard'
 import { useColorizer } from '@/lib/useColorizer'
 import { COLOR_SILENT, COLOR_CONSONANT } from '@/lib/renderNode'
-
-// D3 component — disable SSR entirely
-const ConstellationView = dynamic(
-  () => import('@/components/ConstellationView'),
-  { ssr: false, loading: () => <div className="terrain-empty">Loading constellation…</div> }
-)
+import type { GameWord, GameSession, Difficulty } from '@/lib/gameTypes'
 
 const SAMPLES = [
   'The quick brown fox jumps over the lazy dog.',
@@ -29,19 +24,23 @@ const SAMPLES = [
 
 let sampleIdx = 0
 
-type ViewMode = 'editor' | 'read' | 'landscape' | 'map'
+// ── Game setup — same session machine that used to live in app/learn/page.tsx ──
+const ROUNDS = 10
 
-const TABS: { id: ViewMode; label: string; icon: string }[] = [
-  { id: 'editor',    label: 'Editor',        icon: '✏️' },
-  { id: 'read',      label: 'Read',          icon: '▶'  },
-  { id: 'landscape', label: 'Landscape',     icon: '⛰'  },
-  { id: 'map',       label: 'Constellation', icon: '✦'  },
-]
+async function fetchWords(difficulty: Difficulty): Promise<GameWord[]> {
+  const res  = await fetch(`/api/game?n=${ROUNDS}&difficulty=${difficulty}`)
+  const data = await res.json() as { words: GameWord[] }
+  return data.words ?? []
+}
+
+const EMPTY_SESSION: GameSession = {
+  difficulty: 'medium', words: [], current: 0, score: 0, streak: 0, maxStreak: 0,
+  xp: 0, roundsDone: 0, totalRounds: 0, phase: 'intro', lastCorrect: null,
+}
 
 export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { tokens, stats, inputText, onInput, setInputText } = useColorizer()
-  const [view, setView] = useState<ViewMode>('editor')
 
   const usedColors = useMemo(() => {
     const s = new Set<string>()
@@ -68,7 +67,53 @@ export default function Home() {
     if (textareaRef.current) textareaRef.current.value = ''
   }
 
-  const hasText = tokens.some(t => t.isWord)
+  // ── Game state ─────────────────────────────────────────────────────────────
+  const [session, setSession] = useState<GameSession>(EMPTY_SESSION)
+
+  const begin = useCallback(async (difficulty: Difficulty) => {
+    setSession(s => ({ ...s, difficulty, phase: 'loading' }))
+    const words = await fetchWords(difficulty)
+    if (!words.length) {
+      setSession(s => ({ ...s, phase: 'intro' }))
+      return
+    }
+    setSession({
+      difficulty, words, current: 0, score: 0, streak: 0, maxStreak: 0,
+      xp: 0, roundsDone: 0, totalRounds: words.length,
+      phase: 'playing', lastCorrect: null,
+    })
+  }, [])
+
+  const onAnswer = useCallback((correct: boolean) => {
+    setSession(prev => {
+      const streak     = correct ? prev.streak + 1 : 0
+      const xpGain     = correct ? 10 + streak * 2 : 0
+      const roundsDone = prev.roundsDone + 1
+      return {
+        ...prev,
+        score:       prev.score + (correct ? 1 : 0),
+        streak,
+        maxStreak:   Math.max(prev.maxStreak, streak),
+        xp:          prev.xp + xpGain,
+        roundsDone,
+        phase:       'feedback',
+        lastCorrect: correct,
+      }
+    })
+
+    setTimeout(() => {
+      setSession(prev => {
+        const isLast = prev.current >= prev.words.length - 1
+        return {
+          ...prev,
+          current: isLast ? prev.current : prev.current + 1,
+          phase:   isLast ? 'done' : 'playing',
+        }
+      })
+    }, 1200)
+  }, [])
+
+  const currentWord = session.words[session.current] ?? null
 
   return (
     <main className="eic-home">
@@ -83,78 +128,107 @@ export default function Home() {
         </div>
         <h1 className="eic-headline">See English as it sounds.</h1>
         <p className="eic-subline">Type or paste text — every grapheme colours in place.</p>
-        <div style={{ marginTop: '1rem' }}>
-          <Link href="/learn" className="eic-nav-link">🎮 Learn with games</Link>
-          <Link href="/rules" className="eic-nav-link" style={{fontSize:'12px', opacity:0.7}}>⚙ Rule editor</Link>
-        </div>
       </header>
 
       {/* Sound Spectrum — always visible */}
       <SoundSpectrum tokens={tokens} />
 
-      {/* View tabs */}
-      <div className="view-tabs">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={[
-              'view-tab',
-              view === tab.id ? 'active' : '',
-              tab.id !== 'editor' && !hasText ? 'disabled' : '',
-            ].filter(Boolean).join(' ')}
-            onClick={() => (tab.id === 'editor' || hasText) && setView(tab.id)}
-          >
-            <span className="view-tab-icon">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-
-        <div className="view-tab-spacer" />
-
-        {view === 'editor' && (
-          <div className="eic-toolbar-actions">
-            <button className="eic-action-btn" onClick={loadSample}>try a sample</button>
-            <button className="eic-action-btn" onClick={clearAll}>clear</button>
-          </div>
-        )}
+      {/* ── Editor ── */}
+      <div className="eic-toolbar-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', margin: '0.5rem 0' }}>
+        <button className="eic-action-btn" onClick={loadSample}>try a sample</button>
+        <button className="eic-action-btn" onClick={clearAll}>clear</button>
       </div>
 
-      {/* Editor */}
-      {view === 'editor' && (
-        <>
-          <div className="eic-editor" onClick={() => textareaRef.current?.focus()}>
-            <div className="eic-highlight" aria-hidden="true">
-              {tokens.length === 0
-                ? <span className="eic-placeholder">Type or paste English text here…</span>
-                : tokens.map(tok => {
-                    if (tok.isWhitespace) return tok.raw
-                    if (tok.isPunct)  return <span key={tok.key} className="eic-punct">{tok.raw}</span>
-                    if (!tok.nodes)   return <span key={tok.key} className="eic-plain">{tok.raw}</span>
-                    return <WordRenderer key={tok.key} nodes={tok.nodes} wordStr={tok.raw} />
-                  })
-              }
-            </div>
-            <textarea
-              ref={textareaRef}
-              className="eic-textarea"
-              defaultValue={inputText}
-              onChange={e => onInput(e.target.value)}
-              placeholder=" "
-              spellCheck={false}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              rows={6}
-              aria-label="Text input"
-            />
-          </div>
-          {stats && <StatsBar stats={stats} usedColors={usedColors} />}
-        </>
-      )}
+      <div className="eic-editor" onClick={() => textareaRef.current?.focus()}>
+        <div className="eic-highlight" aria-hidden="true">
+          {tokens.length === 0
+            ? <span className="eic-placeholder">Type or paste English text here…</span>
+            : tokens.map(tok => {
+                if (tok.isWhitespace) return tok.raw
+                if (tok.isPunct)  return <span key={tok.key} className="eic-punct">{tok.raw}</span>
+                if (!tok.nodes)   return <span key={tok.key} className="eic-plain">{tok.raw}</span>
+                return <WordRenderer key={tok.key} nodes={tok.nodes} wordStr={tok.raw} />
+              })
+          }
+        </div>
+        <textarea
+          ref={textareaRef}
+          className="eic-textarea"
+          defaultValue={inputText}
+          onChange={e => onInput(e.target.value)}
+          placeholder=" "
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          rows={6}
+          aria-label="Text input"
+        />
+      </div>
 
-      {view === 'read'      && <KaraokeMode tokens={tokens} />}
-      {view === 'landscape' && <TerrainView tokens={tokens} />}
-      {view === 'map'       && <ConstellationView tokens={tokens} />}
+      {stats && <StatsBar stats={stats} usedColors={usedColors} />}
+
+      {/* ── Voice reading — inline by default, no tab ── */}
+      <KaraokeMode tokens={tokens} />
+
+      {/* ── Game — inline below, no separate page ── */}
+      <section className="game-home" style={{ marginTop: '3rem' }}>
+        {session.phase === 'intro' && <IntroCard onStart={begin} />}
+
+        {session.phase === 'loading' && (
+          <div className="game-loading">Loading words…</div>
+        )}
+
+        {session.phase === 'done' && (
+          <div className="game-done">
+            <div className="game-done-emoji">
+              {Math.round((session.score / session.totalRounds) * 100) >= 80 ? '🎉'
+                : Math.round((session.score / session.totalRounds) * 100) >= 50 ? '👍' : '💪'}
+            </div>
+            <h2 className="game-done-title">
+              {Math.round((session.score / session.totalRounds) * 100) >= 80 ? 'Excellent!'
+                : Math.round((session.score / session.totalRounds) * 100) >= 50 ? 'Good work!' : 'Keep practising!'}
+            </h2>
+            <div className="game-done-stats">
+              <div className="game-done-stat">
+                <span className="game-done-num">{session.score}/{session.totalRounds}</span>
+                <span className="game-done-lbl">correct</span>
+              </div>
+              <div className="game-done-stat">
+                <span className="game-done-num">{session.maxStreak}</span>
+                <span className="game-done-lbl">best streak</span>
+              </div>
+              <div className="game-done-stat">
+                <span className="game-done-num">+{session.xp}</span>
+                <span className="game-done-lbl">XP earned</span>
+              </div>
+            </div>
+            <div className="game-done-actions">
+              <button className="game-play-again" onClick={() => begin(session.difficulty)}>
+                Play again
+              </button>
+              <button className="game-change-level" onClick={() => setSession(EMPTY_SESSION)}>
+                Change difficulty
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(session.phase === 'playing' || session.phase === 'feedback') && currentWord && (
+          <>
+            <GameProgress session={session} onExit={() => setSession(EMPTY_SESSION)} />
+            <div className="game-arena">
+              <ColourGame
+                word={currentWord}
+                difficulty={session.difficulty}
+                phase={session.phase}
+                lastCorrect={session.lastCorrect}
+                onAnswer={onAnswer}
+              />
+            </div>
+          </>
+        )}
+      </section>
 
     </main>
   )
