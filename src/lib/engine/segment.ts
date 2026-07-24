@@ -7,7 +7,7 @@
 // the engine needs to change.
 
 import type { Seg } from './types'
-import { isVowelSound, VOWEL_CHARS } from './colorMap'
+import { isVowelSound, VOWEL_CHARS } from '../rules/colors'
 
 const TRANSFORMS: [string, string][] = [
   // Schwa+R
@@ -40,7 +40,7 @@ const TRANSFORMS: [string, string][] = [
   // the plain 'j' identity mapping below or it will never be reached.
   ['juː','ỷu'],['jʊ','ỷu'],['ju','ỷu'],
   // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
-  // isVowelSound() already returns true for these (see colorMap.ts);
+  // isVowelSound() already returns true for these (see rules/colors.ts);
   // align.ts treats them exactly like any other vowel sound.
   ['j','j'],['w','w'],['ỷ','ỷ'],
   ['ɐ',  'ə'],  // near-open central vowel, UK variant of schwa (e.g. "power" UK)
@@ -54,7 +54,7 @@ const VOWEL_FALLBACK = new Set([...'aeioujæɑɔəwɛɪʊʌyøœɒỷɐ'])
 
 /**
  * Stress anchoring needs a DIFFERENT notion of "vowel" than sound
- * classification does. VOWEL_CHARS (colorMap.ts) correctly includes j/w/ỷ —
+ * classification does. VOWEL_CHARS (rules/colors.ts) correctly includes j/w/ỷ —
  * they're vowel-adjacent sounds for coloring purposes. But a glide can never
  * itself carry primary stress; only a true syllable nucleus can. Using
  * VOWEL_CHARS here caused stress to land on a glide instead of skipping past

@@ -1,16 +1,16 @@
 import type { Stats } from '@/lib/useColorizer'
+import { COLOR_LABELS } from '@/lib/rules/colors'
 
-const LEGEND = [
-  { color: '#00b0f0', label: 'æ — cat' },
-  { color: '#008E40', label: 'ɑ/ʌ — car, cup' },
-  { color: '#888888', label: 'ə — schwa' },
-  { color: '#EE5B00', label: 'e/ɛ — bed' },
-  { color: '#CC0000', label: 'i/ɪ — see, sit' },
-  { color: '#FF3399', label: 'ɒ/ɔ — hot, or' },
-  { color: '#7030A0', label: 'u/ʊ — moon, book' },
-  { color: '#4472C4', label: 'aɪ/aʊ — my, now' },
-  { color: '#E57373', label: 'j/w — yes, we' },
-]
+// Derived from the single canonical source (src/lib/rules/colors.ts) instead
+// of a hand-copied table. The old hardcoded version here had drifted from
+// two spec corrections: schwa at '#888888' (should be '#000000') and a
+// separate '#E57373' j/w bucket that the spec removed (j is the same red as
+// i/ɪ; w is plain black like any consonant) — plus aɪ/aʊ merged into one
+// blue when the spec splits them into two colours.
+const LEGEND = Object.entries(COLOR_LABELS).map(([color, { label, example }]) => ({
+  color,
+  label: `${label} — ${example}`,
+}))
 
 interface Props {
   stats: Stats

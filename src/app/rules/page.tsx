@@ -75,10 +75,10 @@ function resolveColor(sound: string, config: RuleConfig): string | null {
 // tab routes to the right layer instead of guessing.
 const BRIDGE_LOCATIONS: Record<string, string> = {
   '':         'Not sure — find the right layer',
-  colormap:   'Sound → colour mapping (pipeline.ts COLOR_MAP, ruleConfig.ts colors[])',
-  alignment:  'Grapheme/phoneme alignment (pipeline.ts mapToWord / segment / GRAPHIC_VOWELS)',
-  underline:  'Stress underline logic (WordRenderer.tsx buildUnderlined, ruleConfig.ts underline rules)',
-  regex:      'Needs a pattern override (ruleConfig.ts RegexRule)',
+  colormap:   'Sound → colour mapping — src/lib/rules/colors.ts (single source; edit one line, engine + this editor + the game all read it)',
+  alignment:  'Grapheme/phoneme alignment — src/lib/engine/align.ts (consonant-spelling table + vowel-run rules), src/lib/engine/segment.ts (IPA transforms)',
+  underline:  'Stress underline logic — src/lib/engine/display.ts buildUnderlineSet() (algorithmic, not config — see the DOGMA comment there)',
+  regex:      'Needs a per-word pattern override — src/lib/rules/overrides/ (pick the file matching the category, or misc.ts for a one-off)',
 }
 
 // The governing system, distilled from English_in_Colours.docx (Dorel's source

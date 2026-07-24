@@ -7,10 +7,9 @@
 // Output: DisplayNode[] — one entry per node, all display decisions made
 
 import type { RenderNode } from './types'
-import { COLOR_MAP } from './colorMap'
+import { COLOR_MAP, COLOR_SILENT, COLOR_CONSONANT } from '../rules/colors'
 
-export const COLOR_SILENT    = '#000000'
-export const COLOR_CONSONANT = '#000000'
+export { COLOR_SILENT, COLOR_CONSONANT } // re-exported for renderNode.ts's existing import path
 export const SYLLABIC_MARKER = '\u200d'   // must match renderNode.ts
 
 const DIPHTHONG_START = '#FF3399'

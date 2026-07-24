@@ -4,7 +4,7 @@
 // functions, no dependency on align.ts/segment.ts internals.
 
 import type { RenderNode, WordProps } from './types'
-import { COLOR_SILENT, COLOR_CONSONANT } from './colorMap'
+import { COLOR_SILENT, COLOR_CONSONANT } from '../rules/colors'
 import { isGraphicCons } from './align'
 
 export function scoreNodes(nodes: RenderNode[]): number {

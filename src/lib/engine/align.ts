@@ -16,7 +16,7 @@
 // without touching a word list.
 
 import type { RenderNode, Seg } from './types'
-import { getColor, COLOR_SILENT, COLOR_CONSONANT } from './colorMap'
+import { getColor, COLOR_SILENT, COLOR_CONSONANT } from '../rules/colors'
 
 // ── Graphic vowel / consonant ─────────────────────────────────────────────────
 // Only a/e/i/o/u define vowel-letter RUNS (y/w handled separately as glides).

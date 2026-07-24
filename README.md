@@ -24,23 +24,42 @@ npm start
 ```
 src/
   app/
-    page.tsx          ← pagina principală
-    layout.tsx        ← root layout (fonturi)
-    globals.css       ← design system
+    page.tsx           ← pagina principală
+    layout.tsx         ← root layout (fonturi)
+    globals.css        ← design system
+    learn/page.tsx     ← modul de învățare
+    rules/page.tsx     ← editor de reguli (colours/regex bridge + tester)
     api/
-      words/route.ts  ← POST /api/words — batch lookup
-      search/route.ts ← GET /api/search?q= — prefix search
+      words/route.ts   ← POST /api/words — batch lookup
+      search/route.ts  ← GET /api/search?q= — prefix search
+      speak/route.ts   ← TTS
+      game/route.ts    ← joc — sesiune/scor
   components/
-    WordRenderer.tsx  ← colorează un cuvânt
-    StatsBar.tsx      ← legend + statistici
+    WordRenderer.tsx   ← colorează un cuvânt (folosește lib/engine + lib/rules)
+    StatsBar.tsx        ← legend + statistici
+    ConstellationView.tsx / TerrainView.tsx / SoundSpectrum.tsx ← vizualizări
+    game/               ← componente joc (ColourGame, GameProgress, IntroCard)
   lib/
-    colorMap.ts       ← IPA → hex colors
-    phoneticPipeline.ts ← IPA → RenderNode[]
-    db.ts             ← better-sqlite3 singleton
-    useColorizer.ts   ← React hook principal
+    engine/            ← ALGORITMUL de bază: segment.ts (IPA→foneme), align.ts
+                          (foneme→grafeme), display.ts (decizii de afișare
+                          finale: culoare/underline/mute), score.ts, index.ts
+                          (singurul punct de import public)
+    rules/             ← DATELE editabile — vezi rules/README.md pentru harta
+                          "unde schimb X". colors.ts (sunet→culoare, sursă
+                          unică), overrides/ (excepții per-cuvânt, regex)
+    ruleConfig.ts       ← punte între lib/rules/ și editorul /rules (diff +
+                          prompt generator)
+    db.ts               ← better-sqlite3 singleton
+    useColorizer.ts     ← React hook principal
+    gameTypes.ts        ← tipuri + date derivate din lib/rules/colors.ts
+  scripts/
+    accent-test.ts      ← harness de debug standalone (rulează motorul real)
 data/
-  words.db            ← baza de date (tu o pui aici)
+  words.db              ← baza de date (tu o pui aici)
 ```
+
+Pentru "unde schimb o regulă de culoare / cuvânt / underline" — vezi
+[`src/lib/rules/README.md`](src/lib/rules/README.md).
 
 ## Deploy pe Railway
 

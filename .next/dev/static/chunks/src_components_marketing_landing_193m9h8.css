@@ -1,0 +1,361 @@
+/* [project]/src/components/marketing/landing.css [app-client] (css) */
+.eic-landing {
+  width: 100%;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background: radial-gradient(1100px 600px at 12% 0, #7fe8dc 0%, #0000 55%), radial-gradient(1000px 700px at 95% 15%, #5fdcd1 0%, #0000 55%), linear-gradient(#4fd8c9 0%, #2fc2b4 45%, #1fa79b 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.eic-landing-nav {
+  z-index: 1;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  display: flex;
+  position: relative;
+}
+
+.eic-landing-brand {
+  align-items: center;
+  gap: .6rem;
+  display: flex;
+}
+
+.eic-landing-badge {
+  color: #7fe8dc;
+  letter-spacing: .02em;
+  background: #0b3b3a;
+  border-radius: 999px;
+  justify-content: center;
+  align-items: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: .7rem;
+  font-weight: 700;
+  display: inline-flex;
+}
+
+.eic-landing-brand-name {
+  letter-spacing: -.01em;
+  color: #08302f;
+  font-weight: 600;
+}
+
+.eic-landing-nav-links {
+  align-items: center;
+  gap: 2rem;
+  font-size: .9rem;
+  display: none;
+}
+
+.eic-landing-nav-link {
+  color: #0b3b3acc;
+  text-decoration: none;
+}
+
+.eic-landing-nav-link:hover {
+  color: #08302f;
+}
+
+.eic-landing-nav-link--active {
+  color: #08302f;
+  border-bottom: 2px solid #08302f;
+  padding-bottom: .2rem;
+}
+
+.eic-landing-signup {
+  color: #08302f;
+  cursor: pointer;
+  background: none;
+  border: 1px solid #08302f40;
+  border-radius: 999px;
+  padding: .5rem 1.25rem;
+  font-size: .9rem;
+  font-weight: 500;
+}
+
+.eic-landing-signup:hover {
+  background: #fff3;
+}
+
+.eic-landing-headline-wrap {
+  z-index: 1;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: .5rem 2rem 0;
+  position: relative;
+}
+
+.eic-landing-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: .25em;
+  color: #08302fb3;
+  margin-bottom: .75rem;
+  font-size: .7rem;
+}
+
+.eic-landing-h1 {
+  font-family: var(--font-serif);
+  letter-spacing: -.01em;
+  color: #08302f;
+  max-width: 24rem;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.eic-landing-sub {
+  color: #0b3b3acc;
+  max-width: 24rem;
+  margin-top: 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.eic-landing-main {
+  z-index: 1;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 1.5rem;
+  position: relative;
+}
+
+.eic-landing-input-card {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: #ffffffe6;
+  border: 1px solid #fff9;
+  border-radius: 2rem;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 20px 60px #08302f2e;
+}
+
+.eic-landing-input-label {
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #0b3b3a99;
+  text-align: center;
+  margin-bottom: .75rem;
+  font-size: .7rem;
+}
+
+.eic-landing-input-row {
+  background: #f4fbfa;
+  border: 2px solid #1fa79b40;
+  border-radius: 999px;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  transition: border-color .15s;
+  display: flex;
+}
+
+.eic-landing-input-row:focus-within {
+  border-color: #1fa79b;
+}
+
+.eic-landing-input {
+  letter-spacing: -.01em;
+  color: #08302f;
+  caret-color: #0b3b3a;
+  min-width: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background: none;
+  border: none;
+  outline: none;
+  flex: 1;
+}
+
+.eic-landing-input::placeholder {
+  color: #0b3b3a4d;
+}
+
+.eic-landing-decode-btn {
+  color: #fff;
+  cursor: pointer;
+  background: #0b3b3a;
+  border: none;
+  border-radius: 999px;
+  flex-shrink: 0;
+  padding: .7rem 1.25rem;
+  font-weight: 600;
+  transition: transform .15s;
+}
+
+.eic-landing-decode-btn:hover {
+  transform: scale(1.03);
+}
+
+.eic-landing-preview {
+  text-align: center;
+  letter-spacing: -.01em;
+  min-height: 2.25rem;
+  margin-top: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.eic-landing-vowel {
+  text-underline-offset: 6px;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+}
+
+.eic-landing-cta-row {
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: .75rem;
+  margin-top: 1.25rem;
+  display: flex;
+}
+
+.eic-landing-btn-primary {
+  color: #08302f;
+  background: #b8860b;
+  border-radius: 999px;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1.25rem;
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.eic-landing-btn-secondary {
+  color: #0b3b3a;
+  border: 1px solid #0b3b3a33;
+  border-radius: 999px;
+  padding: .6rem 1.25rem;
+  font-size: .9rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.eic-landing-btn-secondary:hover {
+  background: #0b3b3a0d;
+}
+
+.eic-landing-lower {
+  z-index: 1;
+  grid-template-columns: 1fr;
+  align-items: end;
+  gap: 1.25rem;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 3.5rem;
+  display: grid;
+  position: relative;
+}
+
+.eic-landing-card {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: #ffffffb3;
+  border: 1px solid #fff9;
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+}
+
+.eic-landing-card-label {
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #0b3b3a99;
+  margin-bottom: .75rem;
+  font-size: .7rem;
+}
+
+.eic-landing-legend-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem 1.25rem;
+  font-size: .9rem;
+  display: grid;
+}
+
+.eic-landing-legend-item {
+  align-items: center;
+  gap: .5rem;
+  display: flex;
+}
+
+.eic-landing-dot {
+  border-radius: 999px;
+  flex-shrink: 0;
+  width: .6rem;
+  height: .6rem;
+}
+
+.eic-landing-legend-ipa {
+  font-weight: 600;
+}
+
+.eic-landing-legend-ex {
+  color: #0b3b3a99;
+}
+
+.eic-landing-owl-wrap {
+  width: 8rem;
+  height: 9rem;
+  margin: 0 auto;
+  display: none;
+}
+
+.eic-landing-owl-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.eic-landing-stats-card {
+  text-align: center;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+  display: grid;
+}
+
+.eic-landing-stat-label {
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #0b3b3a99;
+  font-size: .625rem;
+}
+
+.eic-landing-stat-value {
+  color: #08302f;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.eic-landing-stat-muted {
+  color: #0b3b3a99;
+}
+
+@media (min-width: 768px) {
+  .eic-landing-nav-links {
+    display: flex;
+  }
+
+  .eic-landing-h1 {
+    font-size: 2.75rem;
+  }
+
+  .eic-landing-owl-wrap {
+    display: block;
+  }
+
+  .eic-landing-lower {
+    grid-template-columns: 1fr auto 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eic-landing * {
+    transition: none !important;
+  }
+}
+
+/*# sourceMappingURL=src_components_marketing_landing_193m9h8.css.map*/
