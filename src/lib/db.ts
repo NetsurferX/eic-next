@@ -136,8 +136,18 @@ export function getBestNodes(word: string): WordResult | null {
   if (!ukRow && !usRow) return null
 
   // 3. Process through pipeline
-  const ukNodes = ukRow ? processIpa(word, ukRow.ipa) : null
-  const usNodes = usRow ? processIpa(word, usRow.ipa) : null
+  const ukNodes = ukRow ? processIpa(word, stripIpaArtifacts(ukRow.ipa)) : null
+  const usNodes = usRow ? processIpa(word, stripIpaArtifacts(usRow.ipa)) : null
+
+  // UK lexicon source inserts U+200D (zero-width joiner) between the two
+  // characters of a diphthong (e‍ɪ, ə‍ʊ...) — an export artifact, not a
+  // phonetic marker (verified: 0 legitimate syllabic-consonant uses found in
+  // either table). Strip it here, at the data boundary, so segment.ts's
+  // TRANSFORMS can match diphthongs normally. Do NOT strip inside segment.ts
+  // itself — SYLLABIC_MARKER there is a distinct, internal mechanism.
+  function stripIpaArtifacts(ipa: string): string {
+    return ipa.replace(/\u200d/g, '')
+  }
 
   // 4. Select best variant
   const result = selectBest(ukNodes, usNodes)

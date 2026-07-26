@@ -1527,8 +1527,17 @@ function getBestNodes(word) {
     const usRow = stmtUs().get(word);
     if (!ukRow && !usRow) return null;
     // 3. Process through pipeline
-    const ukNodes = ukRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["processIpa"])(word, ukRow.ipa) : null;
-    const usNodes = usRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["processIpa"])(word, usRow.ipa) : null;
+    const ukNodes = ukRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["processIpa"])(word, stripIpaArtifacts(ukRow.ipa)) : null;
+    const usNodes = usRow ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$engine$2f$index$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__$3c$locals$3e$__["processIpa"])(word, stripIpaArtifacts(usRow.ipa)) : null;
+    // UK lexicon source inserts U+200D (zero-width joiner) between the two
+    // characters of a diphthong (e‍ɪ, ə‍ʊ...) — an export artifact, not a
+    // phonetic marker (verified: 0 legitimate syllabic-consonant uses found in
+    // either table). Strip it here, at the data boundary, so segment.ts's
+    // TRANSFORMS can match diphthongs normally. Do NOT strip inside segment.ts
+    // itself — SYLLABIC_MARKER there is a distinct, internal mechanism.
+    function stripIpaArtifacts(ipa) {
+        return ipa.replace(/\u200d/g, '');
+    }
     // 4. Select best variant
     const result = selectBest(ukNodes, usNodes);
     if (!result) return null;
