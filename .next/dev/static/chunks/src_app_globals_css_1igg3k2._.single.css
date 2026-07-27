@@ -1579,4 +1579,314 @@ button, textarea, input {
   }
 }
 
+.lesson-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem 4rem;
+}
+
+.lesson-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.lesson-title {
+  font-family: var(--font-serif);
+  letter-spacing: -.01em;
+  margin-bottom: .35rem;
+  font-size: 1.7rem;
+  font-style: italic;
+}
+
+.lesson-subhead {
+  color: var(--color-text-secondary);
+  opacity: .7;
+  font-size: .95rem;
+}
+
+.lesson-tabs {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1.75rem;
+  display: flex;
+}
+
+.lesson-tab {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  opacity: .55;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 10px 22px;
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+
+.lesson-tab:not(:disabled):hover {
+  background: var(--color-surface-2);
+}
+
+.lesson-tab.active {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: #fff;
+  opacity: 1;
+}
+
+.lesson-tab:disabled {
+  cursor: not-allowed;
+}
+
+.lesson-tab-lock {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.lesson-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 2rem;
+  display: grid;
+}
+
+.lesson-col {
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 1.1rem .9rem 1.25rem;
+  transition: border-color .2s, background .2s, opacity .2s;
+}
+
+.lesson-col.is-unlocked {
+  background: color-mix(in srgb, var(--lesson-color) 8%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--lesson-color) 30%, var(--color-border));
+}
+
+.lesson-col.is-active {
+  border-color: var(--lesson-color);
+  border-width: 2px;
+}
+
+.lesson-col.is-locked {
+  opacity: .45;
+}
+
+.lesson-col-head {
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.lesson-ipa-big {
+  font-family: var(--font-serif);
+  color: var(--lesson-color);
+  font-size: 1.5rem;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.lesson-col.is-locked .lesson-ipa-big {
+  color: var(--color-text-muted);
+  opacity: .5;
+}
+
+.lesson-ipa-sub {
+  color: var(--color-text-muted);
+  opacity: .6;
+  margin-top: 2px;
+  font-size: .7rem;
+}
+
+.lesson-lock {
+  opacity: .6;
+  font-size: 13px;
+  position: absolute;
+  top: -6px;
+  right: 4px;
+}
+
+.lesson-words {
+  flex-direction: column;
+  gap: 7px;
+  display: flex;
+}
+
+.lesson-word {
+  width: 100%;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--lesson-color) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--lesson-color) 10%, var(--color-bg));
+  color: var(--lesson-color);
+  cursor: not-allowed;
+  padding: 7px 6px;
+  transition: box-shadow .15s, transform .1s, background .15s;
+  position: relative;
+}
+
+.lesson-col.is-locked .lesson-word {
+  color: var(--color-text-muted);
+  border-color: var(--color-border-soft);
+  background: none;
+}
+
+.lesson-word.is-tappable {
+  cursor: pointer;
+}
+
+.lesson-word.is-tappable:hover {
+  transform: scale(1.04);
+}
+
+.lesson-word.is-tappable:active {
+  transform: scale(.97);
+}
+
+.lesson-word.is-playing {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
+  background: color-mix(in srgb, var(--lesson-color) 22%, var(--color-bg));
+  animation: .55s ease-in-out infinite word-pulse;
+}
+
+.lesson-word.is-practiced {
+  background: var(--lesson-color);
+  color: #fff;
+  border-color: var(--lesson-color);
+}
+
+.lesson-word-check {
+  margin-left: 5px;
+  font-size: 11px;
+}
+
+@keyframes word-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.shadow-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  text-align: center;
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.shadow-title {
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+  font-size: 14px;
+}
+
+.shadow-tabs {
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  display: inline-flex;
+}
+
+.shadow-tab {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border: 1.5px solid var(--tab-color);
+  color: var(--tab-color);
+  opacity: .5;
+  cursor: pointer;
+  background: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  transition: background .15s, color .15s, opacity .15s;
+}
+
+.shadow-tab:not(:disabled):hover {
+  opacity: .8;
+}
+
+.shadow-tab.active {
+  background: var(--tab-color);
+  color: #fff;
+  opacity: 1;
+}
+
+.shadow-tab:disabled {
+  cursor: not-allowed;
+}
+
+.shadow-repeat-btn {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: .02em;
+  border-radius: var(--radius-md);
+  background: var(--color-text-primary);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  margin: 0 auto 1rem;
+  padding: 12px 34px;
+  transition: opacity .15s;
+  display: block;
+}
+
+.shadow-repeat-btn:hover:not(:disabled) {
+  opacity: .85;
+}
+
+.shadow-repeat-btn:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.shadow-repeat-btn.is-stop {
+  background: #c00;
+}
+
+.shadow-count {
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.shadow-progress {
+  background: var(--color-border);
+  border-radius: 3px;
+  width: 100%;
+  max-width: 320px;
+  height: 5px;
+  margin: 0 auto 1rem;
+  overflow: hidden;
+}
+
+.shadow-progress-fill {
+  background: var(--color-text-primary);
+  border-radius: 3px;
+  height: 100%;
+  transition: width .3s;
+}
+
+.shadow-caption {
+  color: var(--color-text-muted);
+  opacity: .75;
+  font-size: 12.5px;
+}
+
+@media (max-width: 720px) {
+  .lesson-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /*# sourceMappingURL=src_app_globals_css_1igg3k2._.single.css.map*/
