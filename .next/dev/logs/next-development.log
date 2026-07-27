@@ -1,3 +1,8 @@
-{"timestamp":"00:00:12.144","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 393ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
-{"timestamp":"00:00:25.052","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:57.282","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:23.229","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 477ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
+{"timestamp":"00:00:45.901","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:48.990","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:01:22.191","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:01:25.311","source":"Server","level":"LOG","message":"○ Compiling /api/game ..."}
+{"timestamp":"00:02:10.804","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:02:36.479","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:25:48.982","source":"Server","level":"LOG","message":"✓ Compiled in 44.4s"}
