@@ -5,8 +5,11 @@
 
 import Database from 'better-sqlite3'
 import path from 'path'
-import { processIpa, scoreNodes, extractProps } from './engine'
+import { processIpa, scoreNodes, extractProps, COLOR_CONSONANT } from './engine'
 import type { RenderNode } from './engine'
+import { EiCSuffixVoicingPipeline } from './engine/suffixVoicing'
+
+const suffixPipeline = new EiCSuffixVoicingPipeline()
 
 const LEXICON_PATH = path.join(process.cwd(), 'data', 'lexicon.db')
 const CACHE_PATH   = path.join(process.cwd(), 'data', 'cache.db')
@@ -109,7 +112,39 @@ function stmtUs() {
 
 export interface WordResult {
   nodes:   RenderNode[]
-  variant: 'uk' | 'us' | 'coin'
+  variant: 'uk' | 'us' | 'coin' | 'derived'
+}
+
+// ── -s suffix fallback ────────────────────────────────────────────────────────
+// Cuvântul cerut nu e în lexicon (ex: "cats" nu are rând propriu), dar dacă
+// e "bază + s" și baza există în lexicon, sintetizăm nodul de sufix în loc
+// să întoarcem null. Nu acoperă -es/-ies (plural cu epenteză) — doar -s simplu.
+function tryPluralFallback(word: string): WordResult | null {
+  if (!word.endsWith('s') || word.length < 2) return null
+  const base = word.slice(0, -1)
+
+  const ukRow = stmtUk().get(base) as { ipa: string } | undefined
+  const usRow = stmtUs().get(base) as { ipa: string } | undefined
+  if (!ukRow && !usRow) return null
+
+  function build(ipa: string): RenderNode[] {
+    const baseNodes = processIpa(base, ipa.replace(/\u200d/g, ''))
+    const soundNodes = baseNodes.filter(n => n.s !== '')
+    const lastPhoneme = soundNodes.length
+      ? soundNodes[soundNodes.length - 1].s
+      : base[base.length - 1]
+
+    const { phonetic } = suffixPipeline.process_suffix_s(base, lastPhoneme)
+    const suffixNode: RenderNode = { t: 's', s: phonetic, c: COLOR_CONSONANT, u: false, x: true }
+    return [...baseNodes, suffixNode]
+  }
+
+  const ukNodes = ukRow ? build(ukRow.ipa) : null
+  const usNodes = usRow ? build(usRow.ipa) : null
+  const nodes = ukNodes ?? usNodes
+  if (!nodes) return null
+
+  return { nodes, variant: 'derived' }
 }
 
 // ── Core lookup — cache-first ─────────────────────────────────────────────────
@@ -133,7 +168,25 @@ export function getBestNodes(word: string): WordResult | null {
   const ukRow = stmtUk().get(word) as { ipa: string } | undefined
   const usRow = stmtUs().get(word) as { ipa: string } | undefined
 
-  if (!ukRow && !usRow) return null
+  if (!ukRow && !usRow) {
+    const derived = tryPluralFallback(word)
+    if (!derived) return null
+
+    try {
+      stmtCacheSet().run(
+        word, derived.variant, JSON.stringify(derived.nodes),
+        null, null,
+        extractProps(derived.nodes).dominantColor,
+        extractProps(derived.nodes).hasSilent  ? 1 : 0,
+        extractProps(derived.nodes).hasStress  ? 1 : 0,
+        extractProps(derived.nodes).syllableCount,
+        word.length, new Date().toISOString(),
+      )
+    } catch (e) {
+      console.warn('cache write failed:', e)
+    }
+    return derived
+  }
 
   // 3. Process through pipeline
   const ukNodes = ukRow ? processIpa(word, stripIpaArtifacts(ukRow.ipa)) : null
