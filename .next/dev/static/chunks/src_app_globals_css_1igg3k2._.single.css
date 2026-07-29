@@ -1585,6 +1585,30 @@ button, textarea, input {
   padding: 3rem 2rem 4rem;
 }
 
+.lesson-back-row {
+  margin-bottom: 1.25rem;
+}
+
+.lesson-back-btn {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  text-decoration: none;
+  transition: background .15s;
+  display: inline-flex;
+}
+
+.lesson-back-btn:hover {
+  background: var(--color-surface-2);
+}
+
 .lesson-header {
   text-align: center;
   margin-bottom: 1.75rem;
@@ -1601,49 +1625,8 @@ button, textarea, input {
 .lesson-subhead {
   color: var(--color-text-secondary);
   opacity: .7;
+  margin-bottom: 1.1rem;
   font-size: .95rem;
-}
-
-.lesson-tabs {
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 1.75rem;
-  display: flex;
-}
-
-.lesson-tab {
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  border: 1.5px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  opacity: .55;
-  cursor: pointer;
-  border-radius: 999px;
-  padding: 10px 22px;
-  transition: background .15s, border-color .15s, opacity .15s;
-}
-
-.lesson-tab:not(:disabled):hover {
-  background: var(--color-surface-2);
-}
-
-.lesson-tab.active {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-  color: #fff;
-  opacity: 1;
-}
-
-.lesson-tab:disabled {
-  cursor: not-allowed;
-}
-
-.lesson-tab-lock {
-  margin-left: 6px;
-  font-size: 12px;
 }
 
 .lesson-grid {
@@ -1677,28 +1660,22 @@ button, textarea, input {
 
 .lesson-col-head {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: .4rem;
   position: relative;
 }
 
-.lesson-ipa-big {
-  font-family: var(--font-serif);
+.lesson-letter {
+  font-family: var(--font-sans);
   color: var(--lesson-color);
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   font-style: italic;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.lesson-col.is-locked .lesson-ipa-big {
+.lesson-col.is-locked .lesson-letter {
   color: var(--color-text-muted);
   opacity: .5;
-}
-
-.lesson-ipa-sub {
-  color: var(--color-text-muted);
-  opacity: .6;
-  margin-top: 2px;
-  font-size: .7rem;
 }
 
 .lesson-lock {
@@ -1707,6 +1684,29 @@ button, textarea, input {
   position: absolute;
   top: -6px;
   right: 4px;
+}
+
+.lesson-trophy {
+  font-size: 15px;
+  position: absolute;
+  top: -4px;
+  left: 4px;
+}
+
+.lesson-stars {
+  justify-content: center;
+  gap: 3px;
+  margin-bottom: .85rem;
+  display: flex;
+}
+
+.lesson-star {
+  color: var(--color-border);
+  font-size: 13px;
+}
+
+.lesson-star.is-filled {
+  color: var(--lesson-color);
 }
 
 .lesson-words {
@@ -1724,11 +1724,15 @@ button, textarea, input {
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--lesson-color) 35%, var(--color-border));
   background: color-mix(in srgb, var(--lesson-color) 10%, var(--color-bg));
-  color: var(--lesson-color);
-  cursor: not-allowed;
+  color: var(--color-text-primary);
   padding: 7px 6px;
-  transition: box-shadow .15s, transform .1s, background .15s;
+  transition: box-shadow .15s, background .15s;
   position: relative;
+}
+
+.lesson-word-mark {
+  color: var(--lesson-color);
+  font-weight: 800;
 }
 
 .lesson-col.is-locked .lesson-word {
@@ -1737,33 +1741,14 @@ button, textarea, input {
   background: none;
 }
 
-.lesson-word.is-tappable {
-  cursor: pointer;
-}
-
-.lesson-word.is-tappable:hover {
-  transform: scale(1.04);
-}
-
-.lesson-word.is-tappable:active {
-  transform: scale(.97);
+.lesson-col.is-locked .lesson-word-mark {
+  color: var(--color-text-muted);
 }
 
 .lesson-word.is-playing {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
   background: color-mix(in srgb, var(--lesson-color) 22%, var(--color-bg));
   animation: .55s ease-in-out infinite word-pulse;
-}
-
-.lesson-word.is-practiced {
-  background: var(--lesson-color);
-  color: #fff;
-  border-color: var(--lesson-color);
-}
-
-.lesson-word-check {
-  margin-left: 5px;
-  font-size: 11px;
 }
 
 @keyframes word-pulse {

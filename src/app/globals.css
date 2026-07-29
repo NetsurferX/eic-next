@@ -1072,6 +1072,20 @@ button, textarea, input { font-family: var(--font-sans); }
   padding: 3rem 2rem 4rem;
 }
 
+.lesson-back-row { margin-bottom: 1.25rem; }
+.lesson-back-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 600; font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: background .15s;
+}
+.lesson-back-btn:hover { background: var(--color-surface-2); }
+
 .lesson-header { text-align: center; margin-bottom: 1.75rem; }
 .lesson-title {
   font-family: var(--font-serif);
@@ -1080,38 +1094,7 @@ button, textarea, input { font-family: var(--font-sans); }
   letter-spacing: -.01em;
   margin-bottom: .35rem;
 }
-.lesson-subhead { font-size: .95rem; color: var(--color-text-secondary); opacity: .7; }
-
-/* ── Lesson tabs (top pill row) ── */
-.lesson-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 1.75rem;
-  flex-wrap: wrap;
-}
-.lesson-tab {
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  padding: 10px 22px;
-  border-radius: 999px;
-  border: 1.5px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  opacity: .55;
-  cursor: pointer;
-  transition: background .15s, border-color .15s, opacity .15s;
-}
-.lesson-tab:not(:disabled):hover { background: var(--color-surface-2); }
-.lesson-tab.active {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-  color: #fff;
-  opacity: 1;
-}
-.lesson-tab:disabled { cursor: not-allowed; }
-.lesson-tab-lock { margin-left: 6px; font-size: 12px; }
+.lesson-subhead { font-size: .95rem; color: var(--color-text-secondary); opacity: .7; margin-bottom: 1.1rem; }
 
 /* ── Lesson grid (4 columns) ── */
 .lesson-grid {
@@ -1137,20 +1120,31 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-col.is-locked { opacity: .45; }
 
-.lesson-col-head { position: relative; text-align: center; margin-bottom: 1rem; }
-.lesson-ipa-big {
-  font-family: var(--font-serif);
+.lesson-col-head { position: relative; text-align: center; margin-bottom: .4rem; }
+.lesson-letter {
+  font-family: var(--font-sans);
   font-style: italic;
-  font-weight: 600;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.9rem;
+  line-height: 1;
   color: var(--lesson-color);
 }
-.lesson-col.is-locked .lesson-ipa-big { color: var(--color-text-muted); opacity: .5; }
-.lesson-ipa-sub { font-size: .7rem; color: var(--color-text-muted); opacity: .6; margin-top: 2px; }
+.lesson-col.is-locked .lesson-letter { color: var(--color-text-muted); opacity: .5; }
 .lesson-lock {
   position: absolute; top: -6px; right: 4px;
   font-size: 13px; opacity: .6;
 }
+.lesson-trophy {
+  position: absolute; top: -4px; left: 4px;
+  font-size: 15px;
+}
+
+.lesson-stars {
+  display: flex; justify-content: center; gap: 3px;
+  margin-bottom: .85rem;
+}
+.lesson-star { font-size: 13px; color: var(--color-border); }
+.lesson-star.is-filled { color: var(--lesson-color); }
 
 .lesson-words { display: flex; flex-direction: column; gap: 7px; }
 .lesson-word {
@@ -1164,29 +1158,21 @@ button, textarea, input { font-family: var(--font-sans); }
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--lesson-color) 35%, var(--color-border));
   background: color-mix(in srgb, var(--lesson-color) 10%, var(--color-bg));
-  color: var(--lesson-color);
-  cursor: not-allowed;
-  transition: box-shadow .15s, transform .1s, background .15s;
+  color: var(--color-text-primary);
+  transition: box-shadow .15s, background .15s;
 }
+.lesson-word-mark { color: var(--lesson-color); font-weight: 800; }
 .lesson-col.is-locked .lesson-word {
   color: var(--color-text-muted);
   border-color: var(--color-border-soft);
   background: transparent;
 }
-.lesson-word.is-tappable { cursor: pointer; }
-.lesson-word.is-tappable:hover { transform: scale(1.04); }
-.lesson-word.is-tappable:active { transform: scale(0.97); }
+.lesson-col.is-locked .lesson-word-mark { color: var(--color-text-muted); }
 .lesson-word.is-playing {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
   background: color-mix(in srgb, var(--lesson-color) 22%, var(--color-bg));
   animation: word-pulse .55s ease-in-out infinite;
 }
-.lesson-word.is-practiced {
-  background: var(--lesson-color);
-  color: #fff;
-  border-color: var(--lesson-color);
-}
-.lesson-word-check { margin-left: 5px; font-size: 11px; }
 
 @keyframes word-pulse {
   0%, 100% { transform: scale(1); }
