@@ -1,5 +1,6 @@
 'use client'
 
+import { speakWord, warmUpVoices } from '@/lib/speak'
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
 import Link from 'next/link'
 
@@ -103,11 +104,15 @@ export default function LearnPage() {
   const [justCompleted, setJustCompleted] = useState<number | null>(null)
 
   const hydrated    = useRef(false)
-  const audioCache  = useRef<Map<string, string>>(new Map())   // word → object URL
   const autoCancel  = useRef(false)
-  const currentAudio = useRef<HTMLAudioElement | null>(null)   // lets us silence playback instantly
+  // Holds a { pause } handle for whatever's currently speaking (Web Speech API),
+  // so the cleanup/stop logic below can silence it instantly either way.
+  const currentAudio = useRef<{ pause: () => void } | null>(null)
   const repRef      = useRef(0)   // rep in progress when stopped — 0 = nothing in progress
   const wordIdxRef  = useRef(0)   // word index in progress within that rep
+
+  // ── Warm up the speech-synthesis voice list so the first playWord() has it ready ──
+  useEffect(() => { warmUpVoices() }, [])
 
   // ── Restore progress from a previous visit ──
   useEffect(() => {
@@ -137,52 +142,13 @@ export default function LearnPage() {
 
   const lesson = LESSONS[active]
 
-  // ── Prefetch every word's audio for the active lesson so playback is instant ──
-  useEffect(() => {
-    let cancelled = false
-    lesson.words.forEach(async ({ text: word }) => {
-      if (audioCache.current.has(word)) return
-      try {
-        const res = await fetch('/api/speak', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ word }),
-        })
-        if (!res.ok || cancelled) return
-        const blob = await res.blob()
-        audioCache.current.set(word, URL.createObjectURL(blob))
-      } catch { /* ignore — that word just falls back to on-demand fetch */ }
-    })
-    return () => { cancelled = true }
-  }, [lesson])
-
   const playWord = useCallback(async (word: string) => {
     setPlayingWord(word)
     try {
-      let url = audioCache.current.get(word)
-      if (!url) {
-        const res = await fetch('/api/speak', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ word }),
-        })
-        if (res.ok) {
-          const blob = await res.blob()
-          url = URL.createObjectURL(blob)
-          audioCache.current.set(word, url)
-        }
-      }
-      if (url) {
-        const audio = new Audio(url)
-        currentAudio.current = audio
-        await audio.play()
-        await new Promise<void>(resolve => {
-          const done = () => resolve()
-          audio.addEventListener('ended', done, { once: true })
-          audio.addEventListener('pause', done, { once: true })  // fires when we stop the game mid-word
-        })
-        if (currentAudio.current === audio) currentAudio.current = null
-      }
+      const { promise, stop } = speakWord(word)
+      currentAudio.current = { pause: stop }
+      await promise
+      if (currentAudio.current?.pause === stop) currentAudio.current = null
     } catch { /* ignore */ }
     setPlayingWord(null)
   }, [])

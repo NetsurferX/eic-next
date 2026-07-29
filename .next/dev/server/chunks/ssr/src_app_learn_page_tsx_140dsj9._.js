@@ -196,7 +196,7 @@ function MarkedWord({ text, mark }) {
                 children: text.slice(idx, idx + mark.length)
             }, void 0, false, {
                 fileName: "[project]/src/app/learn/page.tsx",
-                lineNumber: 89,
+                lineNumber: 90,
                 columnNumber: 7
             }, this),
             text.slice(idx + mark.length)
@@ -270,32 +270,6 @@ function LearnPage() {
         };
     }, []);
     const lesson = LESSONS[active];
-    // ── Prefetch every word's audio for the active lesson so playback is instant ──
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        let cancelled = false;
-        lesson.words.forEach(async ({ text: word })=>{
-            if (audioCache.current.has(word)) return;
-            try {
-                const res = await fetch('/api/speak', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        word
-                    })
-                });
-                if (!res.ok || cancelled) return;
-                const blob = await res.blob();
-                audioCache.current.set(word, URL.createObjectURL(blob));
-            } catch  {}
-        });
-        return ()=>{
-            cancelled = true;
-        };
-    }, [
-        lesson
-    ]);
     const playWord = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async (word)=>{
         setPlayingWord(word);
         try {
@@ -442,12 +416,12 @@ function LearnPage() {
                     children: "← Pagina principală"
                 }, void 0, false, {
                     fileName: "[project]/src/app/learn/page.tsx",
-                    lineNumber: 268,
+                    lineNumber: 250,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/learn/page.tsx",
-                lineNumber: 267,
+                lineNumber: 249,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
@@ -458,7 +432,7 @@ function LearnPage() {
                         children: "EiC · English in Colors"
                     }, void 0, false, {
                         fileName: "[project]/src/app/learn/page.tsx",
-                        lineNumber: 272,
+                        lineNumber: 254,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -466,7 +440,7 @@ function LearnPage() {
                         children: "Repetă în glas fiecare cuvânt pe care îl auzi"
                     }, void 0, false, {
                         fileName: "[project]/src/app/learn/page.tsx",
-                        lineNumber: 273,
+                        lineNumber: 255,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -475,13 +449,13 @@ function LearnPage() {
                         children: isRunning ? '■ Oprește' : trophies[active] ? '🔁 Exersează din nou' : '▶ Start'
                     }, void 0, false, {
                         fileName: "[project]/src/app/learn/page.tsx",
-                        lineNumber: 274,
+                        lineNumber: 256,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/learn/page.tsx",
-                lineNumber: 271,
+                lineNumber: 253,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -506,7 +480,7 @@ function LearnPage() {
                                         children: "🔒"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/learn/page.tsx",
-                                        lineNumber: 292,
+                                        lineNumber: 274,
                                         columnNumber: 33
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -514,7 +488,7 @@ function LearnPage() {
                                         children: l.letter
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/learn/page.tsx",
-                                        lineNumber: 293,
+                                        lineNumber: 275,
                                         columnNumber: 17
                                     }, this),
                                     trophies[i] && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -523,13 +497,13 @@ function LearnPage() {
                                         children: "🏆"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/learn/page.tsx",
-                                        lineNumber: 294,
+                                        lineNumber: 276,
                                         columnNumber: 33
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/learn/page.tsx",
-                                lineNumber: 291,
+                                lineNumber: 273,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -542,12 +516,12 @@ function LearnPage() {
                                         children: "★"
                                     }, s, false, {
                                         fileName: "[project]/src/app/learn/page.tsx",
-                                        lineNumber: 299,
+                                        lineNumber: 281,
                                         columnNumber: 19
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/learn/page.tsx",
-                                lineNumber: 297,
+                                lineNumber: 279,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -561,36 +535,36 @@ function LearnPage() {
                                             mark: w.mark
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/learn/page.tsx",
-                                            lineNumber: 311,
+                                            lineNumber: 293,
                                             columnNumber: 23
                                         }, this)
                                     }, w.text, false, {
                                         fileName: "[project]/src/app/learn/page.tsx",
-                                        lineNumber: 307,
+                                        lineNumber: 289,
                                         columnNumber: 21
                                     }, this);
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/src/app/learn/page.tsx",
-                                lineNumber: 303,
+                                lineNumber: 285,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, l.id, true, {
                         fileName: "[project]/src/app/learn/page.tsx",
-                        lineNumber: 286,
+                        lineNumber: 268,
                         columnNumber: 13
                     }, this);
                 })
             }, void 0, false, {
                 fileName: "[project]/src/app/learn/page.tsx",
-                lineNumber: 279,
+                lineNumber: 261,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/learn/page.tsx",
-        lineNumber: 266,
+        lineNumber: 248,
         columnNumber: 5
     }, this);
 }

@@ -4,6 +4,7 @@ import { useMemo, useEffect } from 'react'
 import WordRenderer from '@/components/WordRenderer'
 import type { GameWord, Difficulty } from '@/lib/gameTypes'
 import { COLOR_LABELS, NEAR_COLOR_GROUPS } from '@/lib/gameTypes'
+import { speakWord } from '@/lib/speak'
 
 interface Props {
   word:        GameWord
@@ -45,14 +46,8 @@ export default function ColourGame({ word, difficulty, phase, lastCorrect, onAns
   // Auto-speak word
   useEffect(() => {
     if (phase !== 'playing') return
-    fetch('/api/speak', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ word: word.word }),
-    })
-      .then(r => r.blob())
-      .then(blob => new Audio(URL.createObjectURL(blob)).play())
-      .catch(() => {})
+    const { stop } = speakWord(word.word)
+    return () => stop() // oprește dacă utilizatorul schimbă cuvântul/faza înainte să termine
   }, [word.word, phase])
 
   const isPlaying  = phase === 'playing'
