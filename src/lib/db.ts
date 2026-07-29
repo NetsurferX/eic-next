@@ -11,8 +11,16 @@ import { EiCSuffixVoicingPipeline } from './engine/suffixVoicing'
 
 const suffixPipeline = new EiCSuffixVoicingPipeline()
 
+import { existsSync, copyFileSync } from 'fs'
+import os from 'os'
+
 const LEXICON_PATH = path.join(process.cwd(), 'data', 'lexicon.db')
-const CACHE_PATH   = path.join(process.cwd(), 'data', 'cache.db')
+
+// cache.db trebuie să fie scriptabil; pe serverless (Vercel) doar /tmp e writable.
+const isServerless = !!process.env.VERCEL
+const CACHE_PATH = isServerless
+  ? path.join(os.tmpdir(), 'cache.db')
+  : path.join(process.cwd(), 'data', 'cache.db')
 
 // ── Singletons ────────────────────────────────────────────────────────────────
 
@@ -30,6 +38,12 @@ export function getLexicon(): Database.Database {
 
 export function getCache(): Database.Database {
   if (!_cache) {
+    // Pe serverless, /tmp e efemer (gol la fiecare cold start) —
+    // copiem seed-ul existent dacă există, ca să nu pornim mereu de la zero.
+    if (isServerless && !existsSync(CACHE_PATH)) {
+      const seed = path.join(process.cwd(), 'data', 'cache.db')
+      if (existsSync(seed)) copyFileSync(seed, CACHE_PATH)
+    }
     // Create if not exists — do NOT use fileMustExist
     _cache = new Database(CACHE_PATH)
     _cache.pragma('journal_mode = WAL')
