@@ -1,3 +1,4 @@
 node_modules
 data/
 tsconfig.tsbuildinfo
+.next/
