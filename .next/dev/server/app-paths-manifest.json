@@ -1,0 +1,5 @@
+{
+  "/api/speak/route": "app/api/speak/route.js",
+  "/learn/page": "app/learn/page.js",
+  "/page": "app/page.js"
+}
