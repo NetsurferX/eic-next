@@ -177,12 +177,10 @@ button, textarea, input {
 }
 
 .eic-syllabic-vr {
-  border: 1px solid #000;
+  color: #000;
   border-radius: 2px;
-  margin: 0 .5px;
-  padding: 0;
   line-height: 1;
-  color: #fff !important;
+  box-shadow: 0 0 0 .5px #fff, 0 0 0 1.1px #000;
 }
 
 .eic-superscript {

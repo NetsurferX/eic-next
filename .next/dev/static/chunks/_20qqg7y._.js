@@ -1036,6 +1036,12 @@ const TRANSFORMS = [
         'ɔɹ',
         'or'
     ],
+    // RULE 11 (spec 2026-07-31): -or-/-ar- spelling + /ɔr/~/ɔːr/~/ɒr/ ⇒ /or/.
+    // ɔːr/ɔr/ɔɹ already covered above; ɒr was the missing attested variant.
+    [
+        'ɒr',
+        'or'
+    ],
     // Diphthongs
     [
         'ɔɪ',
@@ -1064,6 +1070,14 @@ const TRANSFORMS = [
     [
         'oʊ',
         'əw'
+    ],
+    // RULE 14 (spec 2026-07-31): /ʊə/⇒/uə/, except when the /ʊ/ was already
+    // consumed by a preceding aʊ/oʊ/əʊ match above (e.g. "allowance" aʊ‍əns —
+    // aʊ is matched first at this position, so plain ʊə never gets a chance
+    // to fire there; no explicit aʊə guard needed, priority order does it).
+    [
+        'ʊə',
+        'uə'
     ],
     // ER
     [
@@ -1920,7 +1934,83 @@ function buildUnderlineSet(nodes, diphthongGlide) {
     }
     return result;
 }
-function resolveDisplay(nodes) {
+// ── Word-final 's' → ṡ (ULS rule) ───────────────────────────────────────────
+// Deterministic SPELLING rule (not IPA-driven) — ported 1:1 from the
+// reference implementation. Only ever touches the word's last character.
+//   1. -kes (cakes, bikes)               → unchanged (silent e hides the
+//      voiceless consonant from check #2)
+//   2. voiceless consonant directly       → unchanged (stops, cats, books,
+//      before 's' (p, t, k, f)             laughs... except digraph spellings,
+//                                           see note below)
+//   3. -ths: C+ths (months) / V+ths       → unchanged (/θs/)
+//      (maths) stay plain; VV+ths
+//      (mouths, oaths) get the dot        → dotted (/ðz/)
+//   4. everything else (vowels, -es,
+//      voiced consonants: dogs, flies,
+//      buses)                             → dotted
+const ULS_VOICELESS_BEFORE = new Set([
+    'p',
+    't',
+    'k',
+    'f'
+]);
+const ULS_VOWELS = new Set([
+    ...'aeiouy'
+]);
+function applyEicSSuffixRule(word) {
+    if (!word || word.length < 2) return word;
+    const lastChar = word[word.length - 1];
+    if (lastChar !== 's' && lastChar !== 'S') return word;
+    const lower = word.toLowerCase();
+    const sDot = lastChar === 'S' ? 'Ṡ' : 'ṡ';
+    // 1. Graphic protection for -kes (cakes, bikes)
+    if (lower.endsWith('kes')) return word;
+    // 2. Direct voiceless consonant right before 's' (p, t, k, f)
+    if (ULS_VOICELESS_BEFORE.has(lower[lower.length - 2])) return word;
+    // 3. Deterministic -ths rule
+    if (lower.endsWith('ths')) {
+        const stem = lower.slice(0, -3);
+        if (!stem) return word;
+        if (!ULS_VOWELS.has(stem[stem.length - 1])) return word // C+ths (months)
+        ;
+        if (stem.length >= 2 && ULS_VOWELS.has(stem[stem.length - 2])) {
+            return word.slice(0, -1) + sDot // VV+ths (mouths)
+            ;
+        }
+        return word // V+ths (maths)
+        ;
+    }
+    // 4. Default — vowels, -es, voiced consonants (dogs, flies, buses)
+    return word.slice(0, -1) + sDot;
+}
+// Applies applyEicSSuffixRule() at the word level, then writes the result
+// back onto whichever RenderNode holds the word's final character (grapheme
+// nodes can be more than one letter long, e.g. mute-e cases) — only that
+// node's last character is ever replaced.
+function applyVoicedFinalS(nodes) {
+    const word = nodes.map((n)=>n.t ?? '').join('');
+    const result = applyEicSSuffixRule(word);
+    if (result === word) return nodes;
+    let lastIdx = -1;
+    for(let i = nodes.length - 1; i >= 0; i--){
+        if (nodes[i].t && nodes[i].t.length > 0) {
+            lastIdx = i;
+            break;
+        }
+    }
+    if (lastIdx < 0) return nodes;
+    const out = nodes.map((n)=>({
+            ...n
+        }));
+    const t = out[lastIdx].t;
+    out[lastIdx] = {
+        ...out[lastIdx],
+        t: t.slice(0, -1) + result[result.length - 1]
+    };
+    return out;
+}
+function resolveDisplay(rawNodes) {
+    const nodes = applyVoicedFinalS(rawNodes);
     const { trueSyllabic, diphthongGlide } = classifySyllabic(nodes);
     const diphthongSet = buildDiphthongSet(nodes, diphthongGlide);
     const underlineSet = buildUnderlineSet(nodes, diphthongGlide);

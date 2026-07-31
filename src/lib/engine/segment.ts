@@ -17,11 +17,19 @@ const TRANSFORMS: [string, string][] = [
   ['ɜ',  'ər'],['ɝ',  'ər'],['ɚ',  'ər'],
   // OR
   ['ɔːr','or'],['ɔr','or'],['ɔɹ','or'],
+  // RULE 11 (spec 2026-07-31): -or-/-ar- spelling + /ɔr/~/ɔːr/~/ɒr/ ⇒ /or/.
+  // ɔːr/ɔr/ɔɹ already covered above; ɒr was the missing attested variant.
+  ['ɒr','or'],
   // Diphthongs
   ['ɔɪ','oỷ'],['oɪ','oỷ'],
   ['aɪ','aỷ'],['eɪ','eỷ'],
   ['aʊ','aw'],
   ['əʊ','əw'],['oʊ','əw'],
+  // RULE 14 (spec 2026-07-31): /ʊə/⇒/uə/, except when the /ʊ/ was already
+  // consumed by a preceding aʊ/oʊ/əʊ match above (e.g. "allowance" aʊ‍əns —
+  // aʊ is matched first at this position, so plain ʊə never gets a chance
+  // to fire there; no explicit aʊə guard needed, priority order does it).
+  ['ʊə','uə'],
   // ER
   ['ɛːr','er'],['ɛr','er'],['ɛɹ','er'],
   // Long vowels
