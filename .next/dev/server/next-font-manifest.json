@@ -1,6 +1,17 @@
 {
-  "app": {},
-  "appUsingSizeAdjust": false,
+  "app": {
+    "[project]/src/app/learn/page": [
+      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "static/media/5e5dfa9e86f764b8-s.p.22x-ws2e_cdqh.woff2",
+      "static/media/8c2eb9ceedecfc8e-s.p.23aeddxv5enbo.woff2"
+    ],
+    "[project]/src/app/page": [
+      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "static/media/5e5dfa9e86f764b8-s.p.22x-ws2e_cdqh.woff2",
+      "static/media/8c2eb9ceedecfc8e-s.p.23aeddxv5enbo.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
   "pages": {},
   "pagesUsingSizeAdjust": false
 }
