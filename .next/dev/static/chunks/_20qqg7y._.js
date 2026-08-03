@@ -156,7 +156,7 @@ const SOUND_COLORS = [
     {
         sounds: [
             'eɪ',
-            'eỷ'
+            'ey̓'
         ],
         hex: '#00246C',
         label: 'eɪ',
@@ -170,7 +170,7 @@ const SOUND_COLORS = [
     {
         sounds: [
             'ju',
-            'ỷu',
+            'y̓u',
             'juː'
         ],
         hex: '#833C0B',
@@ -185,7 +185,7 @@ const SOUND_COLORS = [
     {
         sounds: [
             'aɪ',
-            'aỷ'
+            'ay̓'
         ],
         hex: '#4472C4',
         label: 'aɪ',
@@ -224,10 +224,10 @@ const SOUND_COLORS = [
     {
         sounds: [
             'j',
-            'ỷ'
+            'y̓'
         ],
         hex: '#CC0000',
-        label: 'j / ỷ',
+        label: 'j / y̓',
         example: 'yes',
         category: 'semivowel',
         note: 'SPEC CORRECTION (Tabelul 5/6): same red as i/ɪ, not its own hue.'
@@ -769,6 +769,7 @@ function applyRegexOverrides(word, nodes, rules) {
             if (rule.action.underline) out[i].underlineOverride = rule.action.underline;
             if (rule.action.syllabicR) out[i].syllabicOverride = true;
             if (rule.action.superscript) out[i].superscriptOverride = rule.action.superscript;
+            if (rule.action.glyph) out[i].glyphOverride = rule.action.glyph;
         }
     }
     return out;
@@ -1045,19 +1046,19 @@ const TRANSFORMS = [
     // Diphthongs
     [
         'ɔɪ',
-        'oỷ'
+        'oy̓'
     ],
     [
         'oɪ',
-        'oỷ'
+        'o'
     ],
     [
         'aɪ',
-        'aỷ'
+        'ay̓'
     ],
     [
         'eɪ',
-        'eỷ'
+        'ey̓'
     ],
     [
         'aʊ',
@@ -1172,15 +1173,19 @@ const TRANSFORMS = [
     // the plain 'j' identity mapping below or it will never be reached.
     [
         'juː',
-        'ỷu'
+        'y̓u'
     ],
     [
         'jʊ',
-        'ỷu'
+        'y̓u'
     ],
     [
         'ju',
-        'ỷu'
+        'y̓u'
+    ],
+    [
+        'jɛ',
+        'y̓e'
     ],
     // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
     // isVowelSound() already returns true for these (see rules/colors.ts);
@@ -1194,8 +1199,8 @@ const TRANSFORMS = [
         'w'
     ],
     [
-        'ỷ',
-        'ỷ'
+        'y̓',
+        'y̓'
     ],
     [
         'ɐ',
@@ -1230,7 +1235,7 @@ const STRIP = new Set([
     ...'/,.ˌːˑ'
 ]);
 const VOWEL_FALLBACK = new Set([
-    ...'aeioujæɑɔəwɛɪʊʌyøœɒỷɐ'
+    ...'aeioujæɑɔəwɛɪʊʌyøœɒy̓ɐ'
 ]);
 /**
  * Stress anchoring needs a DIFFERENT notion of "vowel" than sound
@@ -1243,7 +1248,7 @@ const VOWEL_FALLBACK = new Set([
  * VOWEL_CHARS treats 'w' as a stop-here vowel and the scan halted early).
  */ const STRESS_ANCHOR_CHARS = new Set([
     ...__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["VOWEL_CHARS"]
-].filter((c)=>c !== 'j' && c !== 'w' && c !== 'ỷ' && c !== 'y'));
+].filter((c)=>c !== 'j' && c !== 'w' && c !== 'y̓' && c !== 'y'));
 function findStressPos(rawIpa) {
     const ipa = [
         ...rawIpa
@@ -1852,8 +1857,18 @@ function isGraphicConsonant(t) {
     ].every((c)=>GRAPHIC_CONSONANT_LETTERS.has(c));
 }
 function isMute(n) {
-    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
     if (!n.t || n.t.length === 0) return false;
+    // A genuine glide (y/w/j) that consumed a letter is never "mute" — it's
+    // a real semivowel phoneme, not a silent-consonant accident. MUST come
+    // before the COLOR_SILENT check below: COLOR_SILENT and COLOR_CONSONANT
+    // share the same hex ('#000000'), so a black-coloured 'w' (§5.2: w is
+    // negru by design) would otherwise trip that check and get wrongly
+    // marked mute — which is what silently blocked "woman"/"lawyer"/"wet"
+    // from ever underlining their leading w (§4.2/§5: y/w are graphic
+    // consonant letters too, so isGraphicConsonant() alone can't tell them
+    // apart from an actually-silent letter either).
+    if (isGlideNode(n)) return false;
+    if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
     // A node is mute when the engine gave it a vowel color (meaning it carries
     // a vowel phoneme) but its letters are all graphic consonants — classic
     // "silent consonant" case, e.g. 'k' in 'knight'.
@@ -1866,6 +1881,46 @@ function isVowelNode(n) {
     if (isMute(n)) return false;
     if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"] || n.x || n.c === '') return false;
     return true;
+}
+// ── Leading semivowel (y/w) — B_tehnic §4.2/§5.1/§5.2 ─────────────────────────
+// A glide (`j`, `ỷ`, `w`) that sits immediately BEFORE a stressed vowel
+// ("yes", "yesterday", "wet", "woman") is a SEPARATE phoneme from that
+// vowel — not a fused diphthong. It shares the underline with the stressed
+// vowel (§3: "diftong → se subliniază întregul diftong") but keeps its OWN
+// colour, both for the letter and for the underline drawn under it (§5.1:
+// "își păstrează culoarea roșie ... a literei și a sublinierei de sub y").
+// This is distinct from `diphthongGlide` below (SYLLABIC_MARKER-driven),
+// which IS one fused phoneme and correctly shares a single colour.
+const GLIDE_SOUNDS = new Set([
+    'j',
+    'ỷ',
+    'w'
+]);
+function isGlideNode(n) {
+    return GLIDE_SOUNDS.has(n.s);
+}
+// ── Glide grapheme → diacritic glyph (B_tehnic Tabelul 5) ─────────────────────
+// The /j/ semivowel (display 'j' or 'ỷ') gets a diacritic mark on whichever
+// letter carries it, so the phoneme is visible on the grapheme itself, not
+// just via colour: y→ỷ (yes, yesterday, you, yellow — the regular case).
+// NOTE: 'w' never gets a diacritic in the spec (stays a plain black letter).
+// The irregular cases where /j/ falls on a DIFFERENT letter — lawyer (on the
+// 'w'), Freudian/rooibos/buoyant/buoyed (on 'u'), fjord (on the 'j' itself)
+// — are Tabelul 5's manual exceptions; they're not covered by this general
+// table and need a per-word override (see yw-exceptions.ts) to carry their
+// own glyph too. That's a follow-up, not handled here.
+const J_GLIDE_SOUNDS = new Set([
+    'j',
+    'ỷ'
+]);
+const GRAPHEME_GLYPH = {
+    y: 'ỷ',
+    Y: 'Ỷ',
+    j: 'j̉'
+};
+function glideGlyph(n) {
+    if (!J_GLIDE_SOUNDS.has(n.s)) return undefined;
+    return GRAPHEME_GLYPH[n.t] ?? undefined;
 }
 // ── Syllabic / diphthong glide classification ─────────────────────────────────
 // Nodes with SYLLABIC_MARKER as their sound are either:
@@ -1899,12 +1954,17 @@ function buildDiphthongSet(nodes, diphthongGlide) {
     return result;
 }
 // ── Underline run ─────────────────────────────────────────────────────────────
-// Starts at a stressed vowel node (n.u === true) and extends rightward
-// through consecutive vowels, glides, and diphthong glides.
+// Starts at a stressed vowel node (n.u === true) and extends:
+//   - LEFTWARD by exactly one node, if it's a leading glide (y/w) —
+//     tracked separately in `leadingGlideSet` so its colour is never
+//     overwritten by the run's anchor colour.
+//   - RIGHTWARD through consecutive diphthong glide nodes (fused diphthong,
+//     shares the anchor colour — unchanged behaviour).
 // Monosyllabic words never have n.u === true from the engine, so they
 // naturally produce no underline here — no explicit monosyllabic check needed.
 function buildUnderlineSet(nodes, diphthongGlide) {
     const result = new Set();
+    const leadingGlideSet = new Set();
     for(let i = 0; i < nodes.length; i++){
         const n = nodes[i];
         if (n.underlineOverride === 'deny') continue;
@@ -1917,6 +1977,15 @@ function buildUnderlineSet(nodes, diphthongGlide) {
         // Consonants (n.x === true) are never underlined, period.
         if (!n.u || n.x || !isVowelNode(n) || isMute(n)) continue;
         result.add(i);
+        // B_tehnic §3/§5.1/§5.2: a leading semivowel (y/w) immediately before
+        // the stressed vowel shares the underline but keeps ITS OWN colour —
+        // "yes", "wet", "yesterday", "woman" — distinct from a fused diphthong
+        // glide (which shares the anchor colour, handled in the extension below).
+        const prev = i > 0 ? nodes[i - 1] : null;
+        if (prev && isGlideNode(prev) && !prev.x && prev.underlineOverride !== 'deny') {
+            result.add(i - 1);
+            leadingGlideSet.add(i - 1);
+        }
         // Extend ONLY through immediately following diphthong glide nodes.
         // Do NOT extend into the next syllable's vowel — that would be a
         // different phoneme, different syllable, wrong underline span.
@@ -1932,7 +2001,10 @@ function buildUnderlineSet(nodes, diphthongGlide) {
             }
         }
     }
-    return result;
+    return {
+        underlineSet: result,
+        leadingGlideSet
+    };
 }
 // ── Word-final 's' → ṡ (ULS rule) ───────────────────────────────────────────
 // Deterministic SPELLING rule (not IPA-driven) — ported 1:1 from the
@@ -2013,8 +2085,11 @@ function resolveDisplay(rawNodes) {
     const nodes = applyVoicedFinalS(rawNodes);
     const { trueSyllabic, diphthongGlide } = classifySyllabic(nodes);
     const diphthongSet = buildDiphthongSet(nodes, diphthongGlide);
-    const underlineSet = buildUnderlineSet(nodes, diphthongGlide);
-    // Build per-run underline color: anchor to first real vowel in the run.
+    const { underlineSet, leadingGlideSet } = buildUnderlineSet(nodes, diphthongGlide);
+    // Build per-run underline color: anchor to first real vowel in the run,
+    // SKIPPING leading-glide nodes (y/w before the vowel) — they must never
+    // become the anchor, or the whole run would wrongly take the glide's
+    // colour instead of the vowel's (B_tehnic §5.1/§5.2).
     const underlineColorMap = new Map();
     let runStart = null;
     for(let i = 0; i <= nodes.length; i++){
@@ -2023,6 +2098,7 @@ function resolveDisplay(rawNodes) {
         if ((!hit || i === nodes.length) && runStart !== null) {
             let anchorColor;
             for(let k = runStart; k < i; k++){
+                if (leadingGlideSet.has(k)) continue;
                 const rn = nodes[k];
                 if (isVowelNode(rn) && !isMute(rn)) {
                     anchorColor = rn.c;
@@ -2033,7 +2109,11 @@ function resolveDisplay(rawNodes) {
                 const rn = nodes[runStart];
                 anchorColor = rn.c && rn.c !== '' ? rn.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
             }
-            for(let j = runStart; j < i; j++)underlineColorMap.set(j, anchorColor);
+            for(let j = runStart; j < i; j++){
+                // Leading glide nodes keep their OWN colour as their underline
+                // colour too (§5.1: "și a sublinierei de sub y").
+                underlineColorMap.set(j, leadingGlideSet.has(j) ? nodes[j].c : anchorColor);
+            }
             runStart = null;
         }
     }
@@ -2042,16 +2122,19 @@ function resolveDisplay(rawNodes) {
         const isGlide = diphthongGlide.has(i);
         const isDiph = diphthongSet.has(i);
         const isUnder = underlineSet.has(i);
+        const isLeadGlide = leadingGlideSet.has(i);
         const isSylVR = !!n.syllabicOverride // B_tehnic §6.1 — alb cu chenar negru
         ;
         const mute = isMute(n) || isGlide && !isDiph;
         const simpleHex = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null;
         const runAnchor = underlineColorMap.get(i) ?? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+        const ownColor = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
         // Final color decision — one place, one pass, explicit priority:
         let color;
         let gradientCss;
         if (isSylVR) color = '#FFFFFF'; // forced V-R syllabic (white fill)
         else if (isTrueSyl) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]; // syllabic consonant
+        else if (isLeadGlide) color = ownColor; // §5.1/§5.2: leading y/w keeps its own colour, never the run's
         else if (isDiph) color = isUnder && !mute // diphthong with underline → solid
          ? runAnchor : 'transparent'; // gradient handled via gradient flag
         else if (simpleHex) {
@@ -2065,8 +2148,8 @@ function resolveDisplay(rawNodes) {
                 gradientCss = simpleGradientCss(simpleHex);
             }
         } else if (mute) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
-        else color = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
-        if (isUnder && !isTrueSyl && !isSylVR && !mute) color = runAnchor;
+        else color = ownColor;
+        if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide) color = runAnchor;
         return {
             t: n.t ?? '',
             color,
@@ -2077,7 +2160,8 @@ function resolveDisplay(rawNodes) {
             syllabic: isTrueSyl,
             syllabicVR: isSylVR,
             superscript: n.superscriptOverride ?? '',
-            underlineColor: runAnchor,
+            glyph: glideGlyph(n),
+            underlineColor: isLeadGlide ? ownColor : runAnchor,
             sound: n.s && n.s !== SYLLABIC_MARKER ? n.s : ''
         };
     });
@@ -2181,7 +2265,7 @@ function WordRenderer({ nodes, wordStr }) {
                 className: classes,
                 title: d.sound || undefined,
                 children: [
-                    d.t,
+                    d.glyph ?? d.t,
                     d.superscript && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("sup", {
                         className: "eic-superscript",
                         children: d.superscript

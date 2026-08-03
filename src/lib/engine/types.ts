@@ -18,6 +18,7 @@ export interface RenderNode {
   // as a superscript glyph attached to the previous/next grapheme instead
   // of being silently dropped. Set via ruleConfig.ts regex rules.
   superscriptOverride?: string
+  glyphOverride?: string   // set by ruleConfig.ts's applyRegexOverrides() — Tabelul 5 manual exceptions
 }
 
 /** One IPA phoneme after transform + stress detection, before grapheme mapping. */

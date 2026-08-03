@@ -21,8 +21,8 @@ const TRANSFORMS: [string, string][] = [
   // ɔːr/ɔr/ɔɹ already covered above; ɒr was the missing attested variant.
   ['ɒr','or'],
   // Diphthongs
-  ['ɔɪ','oỷ'],['oɪ','oỷ'],
-  ['aɪ','aỷ'],['eɪ','eỷ'],
+  ['ɔɪ','oy̓'],['oɪ','o'],
+  ['aɪ','ay̓'],['eɪ','ey̓'],
   ['aʊ','aw'],
   ['əʊ','əw'],['oʊ','əw'],
   // RULE 14 (spec 2026-07-31): /ʊə/⇒/uə/, except when the /ʊ/ was already
@@ -34,7 +34,7 @@ const TRANSFORMS: [string, string][] = [
   ['ɛːr','er'],['ɛr','er'],['ɛɹ','er'],
   // Long vowels
   ['iː','i'],['uː','u'],
-  ['ɑː','ɑ'],['ɔː','ɔ'],
+  ['ɑː','ɑ'],['ɔː','ɔ'],   
   ['æː','æ'],['eː','e'],
   // Consonant digraphs
   ['tʃ','ch'],['dʒ','j'],
@@ -46,11 +46,11 @@ const TRANSFORMS: [string, string][] = [
   ['ɡz','gz'],['gz','gz'],['kʃ','kʃ'],
   // SPEC ADDITION (§9 Tabel 2): /juː/ ("cute, beauty") — must come before
   // the plain 'j' identity mapping below or it will never be reached.
-  ['juː','ỷu'],['jʊ','ỷu'],['ju','ỷu'],
+  ['juː','y̓u'],['jʊ','y̓u'],['ju','y̓u'], ['jɛ','y̓e'],
   // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
   // isVowelSound() already returns true for these (see rules/colors.ts);
   // align.ts treats them exactly like any other vowel sound.
-  ['j','j'],['w','w'],['ỷ','ỷ'],
+  ['j','j'],['w','w'],['y̓','y̓'],
   ['ɐ',  'ə'],  // near-open central vowel, UK variant of schwa (e.g. "power" UK)
   ['ɑ','ɑ'],['ɒ','ɒ'],
   ['ɛ','ɛ'],['ʌ','ʌ'],
@@ -58,7 +58,7 @@ const TRANSFORMS: [string, string][] = [
 ]
 
 const STRIP = new Set([...'/,.ˌːˑ'])
-const VOWEL_FALLBACK = new Set([...'aeioujæɑɔəwɛɪʊʌyøœɒỷɐ'])
+const VOWEL_FALLBACK = new Set([...'aeioujæɑɔəwɛɪʊʌyøœɒy̓ɐ'])
 
 /**
  * Stress anchoring needs a DIFFERENT notion of "vowel" than sound
@@ -71,7 +71,7 @@ const VOWEL_FALLBACK = new Set([...'aeioujæɑɔəwɛɪʊʌyøœɒỷɐ'])
  * VOWEL_CHARS treats 'w' as a stop-here vowel and the scan halted early).
  */
 const STRESS_ANCHOR_CHARS = new Set(
-  [...VOWEL_CHARS].filter(c => c !== 'j' && c !== 'w' && c !== 'ỷ' && c !== 'y')
+  [...VOWEL_CHARS].filter(c => c !== 'j' && c !== 'w' && c !== 'y̓' && c !== 'y')
 )
 
 function findStressPos(rawIpa: string): { clean: string; stressPos: number } {

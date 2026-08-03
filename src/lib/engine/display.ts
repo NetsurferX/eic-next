@@ -46,8 +46,18 @@ function isGraphicConsonant(t: string): boolean {
 }
 
 function isMute(n: RenderNode): boolean {
-  if (n.c === COLOR_SILENT) return true
   if (!n.t || n.t.length === 0) return false
+  // A genuine glide (y/w/j) that consumed a letter is never "mute" — it's
+  // a real semivowel phoneme, not a silent-consonant accident. MUST come
+  // before the COLOR_SILENT check below: COLOR_SILENT and COLOR_CONSONANT
+  // share the same hex ('#000000'), so a black-coloured 'w' (§5.2: w is
+  // negru by design) would otherwise trip that check and get wrongly
+  // marked mute — which is what silently blocked "woman"/"lawyer"/"wet"
+  // from ever underlining their leading w (§4.2/§5: y/w are graphic
+  // consonant letters too, so isGraphicConsonant() alone can't tell them
+  // apart from an actually-silent letter either).
+  if (isGlideNode(n)) return false
+  if (n.c === COLOR_SILENT) return true
   // A node is mute when the engine gave it a vowel color (meaning it carries
   // a vowel phoneme) but its letters are all graphic consonants — classic
   // "silent consonant" case, e.g. 'k' in 'knight'.
@@ -61,6 +71,38 @@ function isVowelNode(n: RenderNode): boolean {
   if (isMute(n)) return false
   if (n.c === COLOR_CONSONANT || n.x || n.c === '') return false
   return true
+}
+
+// ── Leading semivowel (y/w) — B_tehnic §4.2/§5.1/§5.2 ─────────────────────────
+// A glide (`j`, `ỷ`, `w`) that sits immediately BEFORE a stressed vowel
+// ("yes", "yesterday", "wet", "woman") is a SEPARATE phoneme from that
+// vowel — not a fused diphthong. It shares the underline with the stressed
+// vowel (§3: "diftong → se subliniază întregul diftong") but keeps its OWN
+// colour, both for the letter and for the underline drawn under it (§5.1:
+// "își păstrează culoarea roșie ... a literei și a sublinierei de sub y").
+// This is distinct from `diphthongGlide` below (SYLLABIC_MARKER-driven),
+// which IS one fused phoneme and correctly shares a single colour.
+const GLIDE_SOUNDS = new Set(['j', 'ỷ', 'w'])
+function isGlideNode(n: RenderNode): boolean {
+  return GLIDE_SOUNDS.has(n.s)
+}
+
+// ── Glide grapheme → diacritic glyph (B_tehnic Tabelul 5) ─────────────────────
+// The /j/ semivowel (display 'j' or 'ỷ') gets a diacritic mark on whichever
+// letter carries it, so the phoneme is visible on the grapheme itself, not
+// just via colour: y→ỷ (yes, yesterday, you, yellow — the regular case).
+// NOTE: 'w' never gets a diacritic in the spec (stays a plain black letter).
+// The irregular cases where /j/ falls on a DIFFERENT letter — lawyer (on the
+// 'w'), Freudian/rooibos/buoyant/buoyed (on 'u'), fjord (on the 'j' itself)
+// — are Tabelul 5's manual exceptions; they're not covered by this general
+// table and need a per-word override (see yw-exceptions.ts) to carry their
+// own glyph too. That's a follow-up, not handled here.
+const J_GLIDE_SOUNDS = new Set(['j', 'ỷ'])
+const GRAPHEME_GLYPH: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', j: 'j̉' }
+
+function glideGlyph(n: RenderNode): string | undefined {
+  if (!J_GLIDE_SOUNDS.has(n.s)) return undefined
+  return GRAPHEME_GLYPH[n.t] ?? undefined
 }
 
 // ── Syllabic / diphthong glide classification ─────────────────────────────────
@@ -99,16 +141,21 @@ function buildDiphthongSet(nodes: RenderNode[], diphthongGlide: Set<number>): Se
 }
 
 // ── Underline run ─────────────────────────────────────────────────────────────
-// Starts at a stressed vowel node (n.u === true) and extends rightward
-// through consecutive vowels, glides, and diphthong glides.
+// Starts at a stressed vowel node (n.u === true) and extends:
+//   - LEFTWARD by exactly one node, if it's a leading glide (y/w) —
+//     tracked separately in `leadingGlideSet` so its colour is never
+//     overwritten by the run's anchor colour.
+//   - RIGHTWARD through consecutive diphthong glide nodes (fused diphthong,
+//     shares the anchor colour — unchanged behaviour).
 // Monosyllabic words never have n.u === true from the engine, so they
 // naturally produce no underline here — no explicit monosyllabic check needed.
 
 function buildUnderlineSet(
   nodes: RenderNode[],
   diphthongGlide: Set<number>
-): Set<number> {
+): { underlineSet: Set<number>; leadingGlideSet: Set<number> } {
   const result = new Set<number>()
+  const leadingGlideSet = new Set<number>()
 
   for (let i = 0; i < nodes.length; i++) {
     const n = nodes[i]
@@ -126,6 +173,16 @@ function buildUnderlineSet(
 
     result.add(i)
 
+    // B_tehnic §3/§5.1/§5.2: a leading semivowel (y/w) immediately before
+    // the stressed vowel shares the underline but keeps ITS OWN colour —
+    // "yes", "wet", "yesterday", "woman" — distinct from a fused diphthong
+    // glide (which shares the anchor colour, handled in the extension below).
+    const prev = i > 0 ? nodes[i - 1] : null
+    if (prev && isGlideNode(prev) && !prev.x && prev.underlineOverride !== 'deny') {
+      result.add(i - 1)
+      leadingGlideSet.add(i - 1)
+    }
+
     // Extend ONLY through immediately following diphthong glide nodes.
     // Do NOT extend into the next syllable's vowel — that would be a
     // different phoneme, different syllable, wrong underline span.
@@ -142,7 +199,7 @@ function buildUnderlineSet(
     }
   }
 
-  return result
+  return { underlineSet: result, leadingGlideSet }
 }
 
 // ── Word-final 's' → ṡ (ULS rule) ───────────────────────────────────────────
@@ -226,6 +283,7 @@ export interface DisplayNode {
   syllabic:   boolean  // is syllabic consonant (black fill/border)?
   syllabicVR: boolean  // B_tehnic §6.1 forced V-R schwa+consonant (white fill/border)
   superscript: string  // B_tehnic §2.f letterless-phoneme glyph, rendered raised
+  glyph?:      string  // B_tehnic Tabelul 5 diacritic form of this grapheme (e.g. 'y' → 'ỷ'), shown instead of `t` when present
   underlineColor: string  // color for the underline decoration
   sound:      string   // tooltip (IPA sound)
 }
@@ -236,9 +294,12 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
   const nodes = applyVoicedFinalS(rawNodes)
   const { trueSyllabic, diphthongGlide } = classifySyllabic(nodes)
   const diphthongSet  = buildDiphthongSet(nodes, diphthongGlide)
-  const underlineSet  = buildUnderlineSet(nodes, diphthongGlide)
+  const { underlineSet, leadingGlideSet } = buildUnderlineSet(nodes, diphthongGlide)
 
-  // Build per-run underline color: anchor to first real vowel in the run.
+  // Build per-run underline color: anchor to first real vowel in the run,
+  // SKIPPING leading-glide nodes (y/w before the vowel) — they must never
+  // become the anchor, or the whole run would wrongly take the glide's
+  // colour instead of the vowel's (B_tehnic §5.1/§5.2).
   const underlineColorMap = new Map<number, string>()
   let runStart: number | null = null
   for (let i = 0; i <= nodes.length; i++) {
@@ -247,6 +308,7 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     if ((!hit || i === nodes.length) && runStart !== null) {
       let anchorColor: string | undefined
       for (let k = runStart; k < i; k++) {
+        if (leadingGlideSet.has(k)) continue
         const rn = nodes[k]
         if (isVowelNode(rn) && !isMute(rn)) { anchorColor = rn.c; break }
       }
@@ -254,30 +316,37 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
         const rn = nodes[runStart]
         anchorColor = rn.c && rn.c !== '' ? rn.c : COLOR_CONSONANT
       }
-      for (let j = runStart; j < i; j++) underlineColorMap.set(j, anchorColor)
+      for (let j = runStart; j < i; j++) {
+        // Leading glide nodes keep their OWN colour as their underline
+        // colour too (§5.1: "și a sublinierei de sub y").
+        underlineColorMap.set(j, leadingGlideSet.has(j) ? nodes[j].c : anchorColor)
+      }
       runStart = null
     }
   }
 
   return nodes.map((n, i) => {
-    const isTrueSyl  = trueSyllabic.has(i)
-    const isGlide    = diphthongGlide.has(i)
-    const isDiph     = diphthongSet.has(i)
-    const isUnder    = underlineSet.has(i)
-    const isSylVR    = !!n.syllabicOverride   // B_tehnic §6.1 — alb cu chenar negru
-    const mute       = isMute(n) || (isGlide && !isDiph)
-    const simpleHex  = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null
+    const isTrueSyl   = trueSyllabic.has(i)
+    const isGlide     = diphthongGlide.has(i)
+    const isDiph      = diphthongSet.has(i)
+    const isUnder     = underlineSet.has(i)
+    const isLeadGlide = leadingGlideSet.has(i)
+    const isSylVR     = !!n.syllabicOverride   // B_tehnic §6.1 — alb cu chenar negru
+    const mute        = isMute(n) || (isGlide && !isDiph)
+    const simpleHex   = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null
 
-    const runAnchor  = underlineColorMap.get(i) ?? COLOR_CONSONANT
+    const runAnchor   = underlineColorMap.get(i) ?? COLOR_CONSONANT
+    const ownColor    = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
 
     // Final color decision — one place, one pass, explicit priority:
     let color: string
     let gradientCss: string | undefined
-    if (isSylVR)        color = '#FFFFFF'               // forced V-R syllabic (white fill)
-    else if (isTrueSyl) color = COLOR_CONSONANT         // syllabic consonant
-    else if (isDiph)    color = isUnder && !mute        // diphthong with underline → solid
-                          ? runAnchor
-                          : 'transparent'               // gradient handled via gradient flag
+    if (isSylVR)          color = '#FFFFFF'               // forced V-R syllabic (white fill)
+    else if (isTrueSyl)   color = COLOR_CONSONANT         // syllabic consonant
+    else if (isLeadGlide) color = ownColor                // §5.1/§5.2: leading y/w keeps its own colour, never the run's
+    else if (isDiph)      color = isUnder && !mute        // diphthong with underline → solid
+                            ? runAnchor
+                            : 'transparent'               // gradient handled via gradient flag
     else if (simpleHex) {
       // B_tehnic §9 — stressed occurrence renders solid (matches the
       // existing diphthong stressed-underline behaviour); unstressed
@@ -290,9 +359,9 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
       }
     }
     else if (mute)      color = COLOR_SILENT
-    else                color = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
+    else                color = ownColor
 
-    if (isUnder && !isTrueSyl && !isSylVR && !mute) color = runAnchor
+    if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide) color = runAnchor
 
     return {
       t:              n.t ?? '',
@@ -304,7 +373,8 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
       syllabic:       isTrueSyl,
       syllabicVR:     isSylVR,
       superscript:    n.superscriptOverride ?? '',
-      underlineColor: runAnchor,
+      glyph:          glideGlyph(n),
+      underlineColor: isLeadGlide ? ownColor : runAnchor,
       sound:          n.s && n.s !== SYLLABIC_MARKER ? n.s : '',
     }
   })

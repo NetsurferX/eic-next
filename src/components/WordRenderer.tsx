@@ -44,7 +44,7 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
 
         return (
           <span key={i} style={style} className={classes} title={d.sound || undefined}>
-            {d.t}
+            {d.glyph ?? d.t}
             {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>
         )

@@ -67,17 +67,17 @@ export const SOUND_COLORS: SoundColor[] = [
       + 'placeholder until that lands.',
   },
   {
-    sounds: ['eɪ', 'eỷ'], hex: '#00246C', label: 'eɪ', example: 'day, name', category: 'vowel',
+    sounds: ['eɪ', 'ey̓'], hex: '#00246C', label: 'eɪ', example: 'day, name', category: 'vowel',
     neighbors: ['#4472C4'],
     note: 'SPEC CORRECTION (§9): own dark blue, not a variant of e/ɛ.',
   },
   {
-    sounds: ['ju', 'ỷu', 'juː'], hex: '#833C0B', label: 'juː', example: 'cute, beauty', category: 'vowel',
+    sounds: ['ju', 'y̓u', 'juː'], hex: '#833C0B', label: 'juː', example: 'cute, beauty', category: 'vowel',
     neighbors: ['#7030A0'],
     note: 'SPEC ADDITION (§9): was previously unmapped.',
   },
   {
-    sounds: ['aɪ', 'aỷ'], hex: '#4472C4', label: 'aɪ', example: 'night, my', category: 'vowel',
+    sounds: ['aɪ', 'ay̓'], hex: '#4472C4', label: 'aɪ', example: 'night, my', category: 'vowel',
     neighbors: ['#00246C'],
   },
   {
@@ -92,7 +92,7 @@ export const SOUND_COLORS: SoundColor[] = [
       + 'start-colour as a placeholder for now.',
   },
   {
-    sounds: ['j', 'ỷ'], hex: '#CC0000', label: 'j / ỷ', example: 'yes', category: 'semivowel',
+    sounds: ['j', 'y̓'], hex: '#CC0000', label: 'j / y̓', example: 'yes', category: 'semivowel',
     note: 'SPEC CORRECTION (Tabelul 5/6): same red as i/ɪ, not its own hue.',
   },
   {

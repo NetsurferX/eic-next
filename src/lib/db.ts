@@ -122,6 +122,29 @@ function stmtUs() {
   return _stmtUs
 }
 
+// ── IPA cleanup ────────────────────────────────────────────────────────────────
+// lexicon.db's `us` table lists MULTIPLE pronunciations for ~7.5k words as one
+// comma-separated string, e.g. "/ˈeɪ/, /ə/" or "/ˈɫɔɪɝ/, /ˈɫɔjɝ/" (the `uk`
+// table never does this). Until this fix, that whole string — slashes, comma,
+// space, second pronunciation and all — was passed straight into segment(),
+// which happily "segmented" it as if it were one word's IPA: it matches
+// TRANSFORMS across the boundary, then the leftover comma/space/second-variant
+// characters fall through as bogus consonant-fallback segments that align.ts
+// then matches against the WORD's real letters — silently misconsuming them.
+// ("lawyer" is a concrete case: /ˈɫɔɪɝ/, /ˈɫɔjɝ/ → 8 segments instead of 3-4
+// for a 6-letter word — the trailing "y" ends up consumed by the FIRST
+// variant's /ɝ/ segment instead of getting its own /j/ colour, and "er" is
+// left as an unclassified silent tail.)
+//
+// Fix: only the FIRST slash-delimited pronunciation is ever used — dictionary
+// convention lists the primary/most common one first. Strip the ZWJ artifact
+// at the same step (existing behaviour, unchanged).
+function firstIpaVariant(raw: string): string {
+  const noZwj = raw.replace(/\u200d/g, '')
+  const m = noZwj.match(/\/([^/]+)\//)
+  return m ? m[1] : noZwj
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface WordResult {
@@ -142,7 +165,7 @@ function tryPluralFallback(word: string): WordResult | null {
   if (!ukRow && !usRow) return null
 
   function build(ipa: string): RenderNode[] {
-    const baseNodes = processIpa(base, ipa.replace(/\u200d/g, ''))
+    const baseNodes = processIpa(base, firstIpaVariant(ipa))
     const soundNodes = baseNodes.filter(n => n.s !== '')
     const lastPhoneme = soundNodes.length
       ? soundNodes[soundNodes.length - 1].s
@@ -203,18 +226,13 @@ export function getBestNodes(word: string): WordResult | null {
   }
 
   // 3. Process through pipeline
-  const ukNodes = ukRow ? processIpa(word, stripIpaArtifacts(ukRow.ipa)) : null
-  const usNodes = usRow ? processIpa(word, stripIpaArtifacts(usRow.ipa)) : null
-
-  // UK lexicon source inserts U+200D (zero-width joiner) between the two
-  // characters of a diphthong (e‍ɪ, ə‍ʊ...) — an export artifact, not a
-  // phonetic marker (verified: 0 legitimate syllabic-consonant uses found in
-  // either table). Strip it here, at the data boundary, so segment.ts's
-  // TRANSFORMS can match diphthongs normally. Do NOT strip inside segment.ts
-  // itself — SYLLABIC_MARKER there is a distinct, internal mechanism.
-  function stripIpaArtifacts(ipa: string): string {
-    return ipa.replace(/\u200d/g, '')
-  }
+  // firstIpaVariant() does two things at this data boundary: strips the UK
+  // source's U+200D (zero-width joiner) diphthong-export artifact (e‍ɪ, ə‍ʊ...
+  // verified: 0 legitimate syllabic-consonant uses in either table), AND
+  // takes only the FIRST pronunciation when the `us` row lists several
+  // comma-separated ones (~7.5k words — see firstIpaVariant's own comment).
+  const ukNodes = ukRow ? processIpa(word, firstIpaVariant(ukRow.ipa)) : null
+  const usNodes = usRow ? processIpa(word, firstIpaVariant(usRow.ipa)) : null
 
   // 4. Select best variant
   const result = selectBest(ukNodes, usNodes)

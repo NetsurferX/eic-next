@@ -20,6 +20,13 @@ export interface RegexRuleAction {
   // B_tehnic §2.f — render this string as a superscript glyph on the
   // matched grapheme(s) instead of hiding a letterless phoneme.
   superscript?: string
+  // B_tehnic Tabelul 5 — force this diacritic glyph (e.g. 'ỷ', 'ủ', 'ỉ') to
+  // render instead of the matched grapheme's plain letter. For the manual
+  // exception words where the /j/ semivowel falls on an unexpected letter
+  // (lawyer→w̶... actually on 'y'; Freudian→'u'; rooibos→'i'; buoyant/buoyed
+  // →'y') — the general table in engine/display.ts only covers the regular
+  // y/j case.
+  glyph?: string
 }
 
 export interface RegexRule {

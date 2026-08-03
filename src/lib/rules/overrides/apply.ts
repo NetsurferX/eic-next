@@ -18,6 +18,7 @@ export function applyRegexOverrides<
     underlineOverride?: 'force' | 'deny'
     syllabicOverride?: boolean
     superscriptOverride?: string
+    glyphOverride?: string
   }
 >(word: string, nodes: T[], rules: RegexRule[]): T[] {
   if (!rules?.length) return nodes
@@ -67,6 +68,7 @@ export function applyRegexOverrides<
       if (rule.action.underline)   out[i].underlineOverride = rule.action.underline
       if (rule.action.syllabicR)   out[i].syllabicOverride = true
       if (rule.action.superscript) out[i].superscriptOverride = rule.action.superscript
+      if (rule.action.glyph)       out[i].glyphOverride = rule.action.glyph
     }
   }
 
