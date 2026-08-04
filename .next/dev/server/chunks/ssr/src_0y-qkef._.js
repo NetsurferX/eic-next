@@ -485,64 +485,68 @@ __turbopack_context__.s([
 const YW_EXCEPTION_RULES = [
     {
         id: 'oy-lawyer',
-        label: 'lawyer — ỷ grapheme on w',
+        label: 'lawyer — ỷ grapheme on y',
         enabled: true,
-        pattern: '^lawyer$',
+        pattern: '^law(y)er$',
         flags: 'i',
-        group: 0,
+        group: 1,
         action: {
-            color: '#CC0000'
+            color: '#CC0000',
+            glyph: 'ỷ'
         },
         priority: 210,
-        notes: 'Manual exception from Tabelul 5 — /ɔɪ/ = o+ỷ, grapheme falls on the "w".',
+        notes: 'Manual exception from Tabelul 5 — /ɔɪ/ = o+ỷ, glyph falls on the "y" (not the whole word).',
         testWords: [
             'lawyer'
         ]
     },
     {
         id: 'oy-freudian',
-        label: 'Freudian — ủ grapheme',
+        label: 'Freudian — ủ grapheme on u',
         enabled: true,
-        pattern: '^freudian$',
+        pattern: '^fre(u)dian$',
         flags: 'i',
-        group: 0,
+        group: 1,
         action: {
-            color: '#CC0000'
+            color: '#CC0000',
+            glyph: 'ủ'
         },
         priority: 210,
-        notes: 'Manual exception from Tabelul 5.',
+        notes: 'Manual exception from Tabelul 5 — glyph falls on the "u".',
         testWords: [
             'Freudian'
         ]
     },
     {
         id: 'oy-rooibos',
-        label: 'rooibos — ủ grapheme',
+        label: 'rooibos — ỉ grapheme on i',
         enabled: true,
-        pattern: '^rooibos$',
+        pattern: '^roo(i)bos$',
         flags: 'i',
-        group: 0,
+        group: 1,
         action: {
-            color: '#CC0000'
+            color: '#CC0000',
+            glyph: 'ỉ'
         },
         priority: 210,
-        notes: 'Manual exception from Tabelul 5.',
+        notes: 'Manual exception from Tabelul 5 — glyph falls on the "i".',
         testWords: [
             'rooibos'
         ]
     },
     {
         id: 'oy-buoyant-buoyed',
-        label: 'buoyant/buoyed — ủ grapheme',
+        label: 'buoyant/buoyed — ỷ grapheme on y',
         enabled: true,
-        pattern: '^(buoyant|buoyed)$',
+        pattern: '^buo(y)(?:ant|ed)$',
         flags: 'i',
-        group: 0,
+        group: 1,
         action: {
-            color: '#CC0000'
+            color: '#CC0000',
+            glyph: 'ỷ'
         },
         priority: 210,
-        notes: 'Manual exception from Tabelul 5.',
+        notes: 'Manual exception from Tabelul 5 — glyph falls on the "y".',
         testWords: [
             'buoyant',
             'buoyed'
@@ -552,11 +556,12 @@ const YW_EXCEPTION_RULES = [
         id: 'j-fjord',
         label: 'fjord — j̉ grapheme on j',
         enabled: true,
-        pattern: '^fjord$',
+        pattern: '^f(j)ord$',
         flags: 'i',
-        group: 0,
+        group: 1,
         action: {
-            color: '#CC0000'
+            color: '#CC0000',
+            glyph: 'j̉'
         },
         priority: 210,
         notes: 'Only word in the spec where the semivowel grapheme itself is "j".',
@@ -1825,6 +1830,7 @@ function isMute(n) {
     // consonant letters too, so isGraphicConsonant() alone can't tell them
     // apart from an actually-silent letter either).
     if (isGlideNode(n)) return false;
+    if (n.glyphOverride) return false;
     if (n.c === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_SILENT"]) return true;
     // A node is mute when the engine gave it a vowel color (meaning it carries
     // a vowel phoneme) but its letters are all graphic consonants — classic
@@ -2086,12 +2092,14 @@ function resolveDisplay(rawNodes) {
         const simpleHex = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null;
         const runAnchor = underlineColorMap.get(i) ?? __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
         const ownColor = n.c && n.c !== '' ? n.c : __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"];
+        const isGlyphOverride = !!n.glyphOverride;
         // Final color decision — one place, one pass, explicit priority:
         let color;
         let gradientCss;
         if (isSylVR) color = '#FFFFFF'; // forced V-R syllabic (white fill)
         else if (isTrueSyl) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_CONSONANT"]; // syllabic consonant
         else if (isLeadGlide) color = ownColor; // §5.1/§5.2: leading y/w keeps its own colour, never the run's
+        else if (isGlyphOverride) color = ownColor;
         else if (isDiph) color = isUnder && !mute // diphthong with underline → solid
          ? runAnchor : 'transparent'; // gradient handled via gradient flag
         else if (simpleHex) {
@@ -2106,19 +2114,19 @@ function resolveDisplay(rawNodes) {
             }
         } else if (mute) color = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$rules$2f$colors$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["COLOR_SILENT"];
         else color = ownColor;
-        if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide) color = runAnchor;
+        if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide && !isGlyphOverride) color = runAnchor;
         return {
             t: n.t ?? '',
             color,
             underline: isUnder && !isTrueSyl && !isSylVR && !mute,
-            gradient: isDiph && !(isUnder && !mute) || !!gradientCss,
+            gradient: !isGlyphOverride && (isDiph && !(isUnder && !mute) || !!gradientCss),
             gradientCss,
             mute,
             syllabic: isTrueSyl,
             syllabicVR: isSylVR,
             superscript: n.superscriptOverride ?? '',
-            glyph: glideGlyph(n),
-            underlineColor: isLeadGlide ? ownColor : runAnchor,
+            glyph: n.glyphOverride ?? glideGlyph(n),
+            underlineColor: isLeadGlide || isGlyphOverride ? ownColor : runAnchor,
             sound: n.s && n.s !== SYLLABIC_MARKER ? n.s : ''
         };
     });

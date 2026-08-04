@@ -57,6 +57,7 @@ function isMute(n: RenderNode): boolean {
   // consonant letters too, so isGraphicConsonant() alone can't tell them
   // apart from an actually-silent letter either).
   if (isGlideNode(n)) return false
+  if (n.glyphOverride) return false
   if (n.c === COLOR_SILENT) return true
   // A node is mute when the engine gave it a vowel color (meaning it carries
   // a vowel phoneme) but its letters are all graphic consonants — classic
@@ -337,6 +338,8 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
 
     const runAnchor   = underlineColorMap.get(i) ?? COLOR_CONSONANT
     const ownColor    = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
+    const isGlyphOverride = !!n.glyphOverride  
+
 
     // Final color decision — one place, one pass, explicit priority:
     let color: string
@@ -344,6 +347,7 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     if (isSylVR)          color = '#FFFFFF'               // forced V-R syllabic (white fill)
     else if (isTrueSyl)   color = COLOR_CONSONANT         // syllabic consonant
     else if (isLeadGlide) color = ownColor                // §5.1/§5.2: leading y/w keeps its own colour, never the run's
+    else if (isGlyphOverride) color = ownColor
     else if (isDiph)      color = isUnder && !mute        // diphthong with underline → solid
                             ? runAnchor
                             : 'transparent'               // gradient handled via gradient flag
@@ -361,20 +365,21 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     else if (mute)      color = COLOR_SILENT
     else                color = ownColor
 
-    if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide) color = runAnchor
+    if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide && !isGlyphOverride) color = runAnchor
 
     return {
       t:              n.t ?? '',
       color,
       underline:      isUnder && !isTrueSyl && !isSylVR && !mute,
-      gradient:       (isDiph && !(isUnder && !mute)) || !!gradientCss,
+      gradient:       !isGlyphOverride && ((isDiph && !(isUnder && !mute)) || !!gradientCss),
+
       gradientCss,
       mute,
       syllabic:       isTrueSyl,
       syllabicVR:     isSylVR,
       superscript:    n.superscriptOverride ?? '',
-      glyph:          glideGlyph(n),
-      underlineColor: isLeadGlide ? ownColor : runAnchor,
+      glyph:          n.glyphOverride ?? glideGlyph(n),
+      underlineColor: (isLeadGlide || isGlyphOverride) ? ownColor : runAnchor,
       sound:          n.s && n.s !== SYLLABIC_MARKER ? n.s : '',
     }
   })

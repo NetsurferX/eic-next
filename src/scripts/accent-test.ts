@@ -33,7 +33,8 @@ function show(word: string, ipa: string) {
 }
 
 const cases: [string, string][] = [
-  ['place', 'plˈe‍ɪs'],
+  ['lawyer', 'ˈɫɔjɝ'],
+  // /ˈɫɔɪɝ/, /ˈɫɔjɝ/, lˈɔ‍ɪɐ
 ]
 
 for (const [w, ipa] of cases) show(w, ipa)

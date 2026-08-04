@@ -1,16 +1,14 @@
-{"timestamp":"00:00:30.368","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 216ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
-{"timestamp":"00:01:08.381","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:01:11.405","source":"Server","level":"LOG","message":"○ Compiling / ..."}
-{"timestamp":"00:01:19.904","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:06:14.366","source":"Server","level":"LOG","message":"○ Compiling /learn ..."}
-{"timestamp":"00:27:20.225","source":"Server","level":"LOG","message":"✓ Compiled in 314ms"}
-{"timestamp":"00:49:46.645","source":"Server","level":"LOG","message":"✓ Compiled in 5.5s"}
-{"timestamp":"00:51:52.770","source":"Server","level":"LOG","message":"✓ Compiled in 38ms"}
-{"timestamp":"00:57:52.012","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}
-{"timestamp":"00:58:18.380","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}
-{"timestamp":"01:00:42.906","source":"Server","level":"LOG","message":"✓ Compiled in 2s"}
-{"timestamp":"02:09:11.595","source":"Server","level":"LOG","message":"✓ Compiled in 341ms"}
-{"timestamp":"02:10:26.982","source":"Server","level":"LOG","message":"✓ Compiled in 3.1s"}
-{"timestamp":"02:40:42.861","source":"Server","level":"LOG","message":"✓ Compiled in 226ms"}
-{"timestamp":"02:46:08.543","source":"Server","level":"LOG","message":"✓ Compiled in 69ms"}
-{"timestamp":"02:51:47.033","source":"Server","level":"LOG","message":"✓ Compiled in 1813ms"}
+{"timestamp":"00:00:01.323","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:08.063","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:00:11.436","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:28:40.631","source":"Server","level":"LOG","message":"✓ Compiled in 2.1s"}
+{"timestamp":"00:29:13.161","source":"Server","level":"LOG","message":"✓ Compiled in 60ms"}
+{"timestamp":"00:37:38.353","source":"Server","level":"LOG","message":"✓ Compiled in 37ms"}
+{"timestamp":"00:38:40.934","source":"Server","level":"LOG","message":"✓ Compiled in 44ms"}
+{"timestamp":"00:38:42.077","source":"Browser","level":"ERROR","message":"uncaughtError: ReferenceError: isGlyphOverride is not defined"}
+{"timestamp":"00:39:09.080","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload due to a runtime error."}
+{"timestamp":"00:39:09.083","source":"Server","level":"LOG","message":"✓ Compiled in 24ms"}
+{"timestamp":"00:39:11.119","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:40:05.845","source":"Server","level":"LOG","message":"✓ Compiled in 26ms"}
+{"timestamp":"00:41:01.301","source":"Server","level":"LOG","message":"✓ Compiled in 22ms"}
+{"timestamp":"00:42:10.381","source":"Server","level":"LOG","message":"✓ Compiled in 41ms"}
