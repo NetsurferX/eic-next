@@ -1,14 +1,7 @@
-{"timestamp":"00:00:01.323","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:08.063","source":"Server","level":"LOG","message":"○ Compiling / ..."}
-{"timestamp":"00:00:11.436","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:28:40.631","source":"Server","level":"LOG","message":"✓ Compiled in 2.1s"}
-{"timestamp":"00:29:13.161","source":"Server","level":"LOG","message":"✓ Compiled in 60ms"}
-{"timestamp":"00:37:38.353","source":"Server","level":"LOG","message":"✓ Compiled in 37ms"}
-{"timestamp":"00:38:40.934","source":"Server","level":"LOG","message":"✓ Compiled in 44ms"}
-{"timestamp":"00:38:42.077","source":"Browser","level":"ERROR","message":"uncaughtError: ReferenceError: isGlyphOverride is not defined"}
-{"timestamp":"00:39:09.080","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload due to a runtime error."}
-{"timestamp":"00:39:09.083","source":"Server","level":"LOG","message":"✓ Compiled in 24ms"}
-{"timestamp":"00:39:11.119","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:40:05.845","source":"Server","level":"LOG","message":"✓ Compiled in 26ms"}
-{"timestamp":"00:41:01.301","source":"Server","level":"LOG","message":"✓ Compiled in 22ms"}
-{"timestamp":"00:42:10.381","source":"Server","level":"LOG","message":"✓ Compiled in 41ms"}
+{"timestamp":"00:00:28.979","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 370ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
+{"timestamp":"00:00:39.261","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:01:22.221","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:01:52.666","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:16:44.467","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:30:42.228","source":"Server","level":"LOG","message":"✓ Compiled in 8.8s"}
+{"timestamp":"00:31:08.700","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

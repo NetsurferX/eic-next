@@ -1154,10 +1154,6 @@ const TRANSFORMS = [
         'ju',
         'y̓u'
     ],
-    [
-        'jɛ',
-        'y̓e'
-    ],
     // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
     // isVowelSound() already returns true for these (see rules/colors.ts);
     // align.ts treats them exactly like any other vowel sound.

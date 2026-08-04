@@ -46,7 +46,7 @@ const TRANSFORMS: [string, string][] = [
   ['ɡz','gz'],['gz','gz'],['kʃ','kʃ'],
   // SPEC ADDITION (§9 Tabel 2): /juː/ ("cute, beauty") — must come before
   // the plain 'j' identity mapping below or it will never be reached.
-  ['juː','y̓u'],['jʊ','y̓u'],['ju','y̓u'], ['jɛ','y̓e'],
+  ['juː','y̓u'],['jʊ','y̓u'],['ju','y̓u'],
   // j/w/ỷ — vowel-adjacent sounds, no special "semivowel" category.
   // isVowelSound() already returns true for these (see rules/colors.ts);
   // align.ts treats them exactly like any other vowel sound.
