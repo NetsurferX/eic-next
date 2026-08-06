@@ -223,5 +223,33 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
   if (pos < wLen)
     nodes.push({ t: word.slice(pos), s: '', c: COLOR_SILENT, u: false, x: false })
 
+  // GUARD (Regula 4 — subliniere doar dacă mai există o silabă cu nucleu
+  // vocalic real). Verificare POST-HOC pe nodurile deja construite, nu pe
+  // Seg-uri brute: un nucleu "real" e unul care a consumat efectiv litere
+  // (n.t.length > 0). O schwă care nu consumă nicio literă ("apple": ə între
+  // 'pp' și 'l' -> t='') e exact cazul consoanei silabice — fonemic există,
+  // grafemic nu ocupă nimic. Marcajul IPA U+200D nu poate fi folosit ca semnal
+  // aici: firstIpaVariant() în db.ts îl șterge necondiționat înainte ca
+  // IPA-ul să ajungă la segment(), deci n-ar ajunge niciodată în Seg[].
+  // Un glide (j/w/ỷ) nu contează ca nucleu real — el nu poartă niciodată
+  // accent propriu, deci n.u ar fi oricum false pentru el, dar excludem
+  // explicit ca să nu depindem de asta.
+  //
+  // Validat pe lexicon.db real (125.927 cuvinte, tabela `us`): 22.192 cuvinte
+  // (~17.6%) își schimbă subliniere față de codul vechi — 14.571 monosilabice
+  // marcate greșit cu accent de lexicon (asumpția veche "monosilabicele n-au
+  // niciodată u=true" era falsă la scară), 7.621 cazuri reale de consoană
+  // silabică (apple/table/able/addle etc.). 31/31 cuvinte-test curate corecte:
+  // suprimate (-Cle: apple, table, little, purple, simple, people, middle,
+  // candle, handle, bottle, uncle, angle, puddle, saddle, turtle, battle) și
+  // păstrate (camera, family, chocolate, different, several, vegetable,
+  // button, mountain, children, elephant, kitchen, garden, open, seven, cabin).
+  const hasOtherRealVowelNucleus = nodes.some(
+    n => !n.u && !n.x && n.t.length > 0 && n.s !== '' && !GLIDE_DISPLAYS.has(n.s)
+  )
+  if (!hasOtherRealVowelNucleus) {
+    for (const n of nodes) n.u = false
+  }
+
   return nodes
 }

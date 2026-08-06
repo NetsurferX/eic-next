@@ -74,10 +74,11 @@ const LESSONS: Lesson[] = [
   },
 ]
 
-const STORAGE_KEY = 'eic-lesson-progress-v2'
-const AUTO_DELAY_MS = 550   // gap between words
-const TROPHY_PAUSE_MS = 900 // pause on a column's trophy before moving to the next one
+const STORAGE_KEY = 'eic-lesson-progress-v3'
+const AUTO_DELAY_MS = 1650   // gap between words — tripled from the original 550ms
 const REPS_PER_LESSON = 5
+const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
+const MASTER_POP_MS   = 1300   // how long the master-cup celebration plays
 
 // Renders a word so that only the letters carrying the target sound get colour;
 // everything else stays black.
@@ -93,23 +94,85 @@ function MarkedWord({ text, mark }: { text: string; mark: string }) {
   )
 }
 
+// ── Cupă de umplere reutilizabilă — un lichid colorat urcă spre buza cupei
+//    pe măsură ce progresul crește. Folosită atât pentru "cupa cupelor" din
+//    header (progres pe tot exercițiul), cât și pentru cupa proprie a fiecărei
+//    coloane (progres 0-5 stele), doar cu culoare și mărime diferite. ──
+function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, allFull = false, idSuffix, confettiCount = 14 }: {
+  progressPct: number; size?: number; color?: string; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number
+}) {
+  const innerTop = 15, innerBottom = 85
+  const fillHeight = ((innerBottom - innerTop) * Math.max(0, Math.min(100, progressPct))) / 100
+  const fillY = innerBottom - fillHeight
+  const gradId = `cupGrad-${idSuffix}`
+  const clipId = `cupClip-${idSuffix}`
+  return (
+    <div
+      className={`fill-cup ${allFull ? 'is-full' : ''} ${celebrating ? 'is-celebrating' : ''}`}
+      style={{ width: size, height: size, '--cup-color': color } as CSSProperties}
+    >
+      <svg viewBox="0 0 100 100" className="fill-cup-svg" aria-hidden="true">
+        <defs>
+          <clipPath id={clipId}>
+            <path d="M20,15 L80,15 L72,70 Q72,85 50,85 Q28,85 28,70 Z" />
+          </clipPath>
+          <linearGradient id={gradId} x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor={color} />
+            <stop offset="100%" stopColor={`color-mix(in srgb, ${color} 55%, white)`} />
+          </linearGradient>
+        </defs>
+        <g clipPath={`url(#${clipId})`}>
+          <rect className="fill-cup-liquid" x="15" y={fillY} width="70" height={fillHeight} fill={`url(#${gradId})`} />
+        </g>
+        <path className="fill-cup-outline" d="M20,15 L80,15 L72,70 Q72,85 50,85 Q28,85 28,70 Z" />
+        <path className="fill-cup-outline" d="M20,20 Q4,20 4,35 Q4,52 23,49" />
+        <path className="fill-cup-outline" d="M80,20 Q96,20 96,35 Q96,52 77,49" />
+        <rect className="fill-cup-outline-fill" x="41" y="85" width="18" height="7" />
+        <rect className="fill-cup-outline-fill" x="29" y="92" width="42" height="5" rx="2" />
+      </svg>
+      {celebrating && (
+        <span className="fill-cup-sparkles" aria-hidden="true">
+          <Confetti count={confettiCount} />
+        </span>
+      )}
+    </div>
+  )
+}
+
+// ── Confetti — o mică explozie de particule în culorile celor 4 lecții
+//    (+ auriu pentru cupa mare), pur CSS, fără librării externe. ──
+const CONFETTI_COLORS = ['#008E40', '#EE5B00', '#FF3399', '#CC0000', '#FFB300']
+
+function Confetti({ count = 14 }: { count?: number }) {
+  return (
+    <span className="confetti-burst" aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <span
+          key={i}
+          className={`confetti-piece cp-${i % 8}`}
+          style={{ '--confetti-color': CONFETTI_COLORS[i % CONFETTI_COLORS.length] } as CSSProperties}
+        />
+      ))}
+    </span>
+  )
+}
+
 export default function LearnPage() {
-  const [unlocked, setUnlocked] = useState<boolean[]>([true, false, false, false])
-  const [trophies, setTrophies] = useState<boolean[]>([false, false, false, false])
-  const [active, setActive] = useState(0)
-  const [currentRep, setCurrentRep] = useState(0)              // 0 = not currently running a rep
-  const [starsThisRun, setStarsThisRun] = useState<number[]>([0, 0, 0, 0])
+  const [unlocked, setUnlocked]       = useState<boolean[]>([true, false, false, false])
+  const [starsEarned, setStarsEarned] = useState<number[]>([0, 0, 0, 0])
+  const [active, setActive]           = useState(0)
   const [playingWord, setPlayingWord] = useState<string | null>(null)
-  const [isRunning, setIsRunning] = useState(false)
-  const [justCompleted, setJustCompleted] = useState<number | null>(null)
+  const [isPlayingRep, setIsPlayingRep]     = useState(false)
+  const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
+  const [celebrating, setCelebrating]       = useState(false)
+  const [readyToContinue, setReadyToContinue] = useState(false)
+  const [masterCelebrating, setMasterCelebrating] = useState(false)
 
   const hydrated    = useRef(false)
   const autoCancel  = useRef(false)
   // Holds a { pause } handle for whatever's currently speaking (Web Speech API),
   // so the cleanup/stop logic below can silence it instantly either way.
   const currentAudio = useRef<{ pause: () => void } | null>(null)
-  const repRef      = useRef(0)   // rep in progress when stopped — 0 = nothing in progress
-  const wordIdxRef  = useRef(0)   // word index in progress within that rep
 
   // ── Warm up the speech-synthesis voice list so the first playWord() has it ready ──
   useEffect(() => { warmUpVoices() }, [])
@@ -121,7 +184,7 @@ export default function LearnPage() {
       if (raw) {
         const saved = JSON.parse(raw)
         if (saved.unlocked) setUnlocked(saved.unlocked)
-        if (saved.trophies) setTrophies(saved.trophies)
+        if (saved.starsEarned) setStarsEarned(saved.starsEarned)
       }
     } catch { /* ignore */ }
     hydrated.current = true
@@ -129,10 +192,16 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (!hydrated.current) return
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ unlocked, trophies })) } catch { /* ignore */ }
-  }, [unlocked, trophies])
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ unlocked, starsEarned })) } catch { /* ignore */ }
+  }, [unlocked, starsEarned])
 
-  // ── Safety net: leaving the page any other way (back button, another link) also stops playback ──
+  // ── Leaving the column (or the page) mid-repetition also stops playback ──
+  useEffect(() => {
+    setCelebrating(false)
+    setReadyToContinue(false)
+    setPoppingStarIndex(null)
+  }, [active])
+
   useEffect(() => {
     return () => {
       autoCancel.current = true
@@ -140,7 +209,14 @@ export default function LearnPage() {
     }
   }, [])
 
-  const lesson = LESSONS[active]
+  const lesson    = LESSONS[active]
+  const earned    = starsEarned[active]
+  const hasTrophy = earned >= REPS_PER_LESSON
+
+  const totalStars  = starsEarned.reduce((a, b) => a + b, 0)
+  const maxStars     = LESSONS.length * REPS_PER_LESSON
+  const allMastered  = totalStars >= maxStars
+  const progressPct  = Math.round((totalStars / maxStars) * 100)
 
   const playWord = useCallback(async (word: string) => {
     setPlayingWord(word)
@@ -153,122 +229,153 @@ export default function LearnPage() {
     setPlayingWord(null)
   }, [])
 
-  // ── Main automatic sequence: for every column, play the word list five times,
-  //    one star per completed pass, a trophy — and the next column — once all five are done.
-  //    Resumes exactly where a previous "Oprește" left off (same rep, same word). ──
-  const startGame = useCallback(async () => {
-    if (isRunning) return
+  // ── Plays every word in a column exactly once, in order ──
+  const playColumnOnce = useCallback(async (l: Lesson) => {
+    for (let wi = 0; wi < l.words.length; wi++) {
+      if (autoCancel.current) break
+      await playWord(l.words[wi].text)
+      if (autoCancel.current) break
+      if (wi < l.words.length - 1) {
+        await new Promise(res => setTimeout(res, AUTO_DELAY_MS))
+      }
+    }
+  }, [playWord])
+
+  // ── Main button: one press = one repetition of the active column,
+  //    or — once 5 stars are reached — advances to the next column. ──
+  const handleMainButton = useCallback(async () => {
+    if (isPlayingRep) return
+
+    if (readyToContinue) {
+      setReadyToContinue(false)
+      setCelebrating(false)
+      const next = active + 1
+      if (next < LESSONS.length) setActive(next)
+      return
+    }
+
     autoCancel.current = false
-    setIsRunning(true)
-    setJustCompleted(null)
+    setIsPlayingRep(true)
+    await playColumnOnce(lesson)
+    setIsPlayingRep(false)
+    if (autoCancel.current) return
 
-    const resumeLessonIdx = active
-    let firstLesson = true
+    // Already mastered — this is just a free practice replay, no star/trophy changes.
+    if (starsEarned[active] >= REPS_PER_LESSON) return
 
-    for (let lessonIdx = resumeLessonIdx; lessonIdx < LESSONS.length; lessonIdx++) {
-      if (autoCancel.current) break
-      setActive(lessonIdx)
-      const currentLesson = LESSONS[lessonIdx]
+    const newCount = Math.min(starsEarned[active] + 1, REPS_PER_LESSON)
+    setPoppingStarIndex(newCount - 1)
+    setTimeout(() => setPoppingStarIndex(null), POP_DURATION_MS)
 
-      // Only the lesson we were stopped on resumes mid-way; every lesson after starts clean.
-      const resuming  = firstLesson && repRef.current > 0
-      let repStart    = resuming ? repRef.current : 1
-      let wordStart   = resuming ? wordIdxRef.current : 0
-      firstLesson = false
+    const updatedStars = starsEarned.map((v, idx) => (idx === active ? newCount : v))
+    setStarsEarned(updatedStars)
 
-      if (!resuming) {
-        setCurrentRep(0)
-        setStarsThisRun(prev => { const copy = [...prev]; copy[lessonIdx] = 0; return copy })
-      }
-
-      for (let rep = repStart; rep <= REPS_PER_LESSON; rep++) {
-        if (autoCancel.current) break
-        repRef.current = rep
-        setCurrentRep(rep)
-        for (let wi = wordStart; wi < currentLesson.words.length; wi++) {
-          if (autoCancel.current) break
-          wordIdxRef.current = wi
-          await playWord(currentLesson.words[wi].text)
-          if (autoCancel.current) break
-          await new Promise(res => setTimeout(res, AUTO_DELAY_MS))
-          if (autoCancel.current) break
-          wordIdxRef.current = wi + 1
-        }
-        wordStart = 0
-        if (autoCancel.current) break
-        wordIdxRef.current = 0
-        setStarsThisRun(prev => { const copy = [...prev]; copy[lessonIdx] = rep; return copy })
-      }
-      if (autoCancel.current) break
-
-      repRef.current = 0
-      wordIdxRef.current = 0
-      setTrophies(prev => { const copy = [...prev]; copy[lessonIdx] = true; return copy })
-      setJustCompleted(lessonIdx)
+    if (newCount === REPS_PER_LESSON) {
+      setCelebrating(true)
+      setReadyToContinue(true)
       setUnlocked(prev => {
-        if (lessonIdx + 1 < LESSONS.length && !prev[lessonIdx + 1]) {
-          const copy = [...prev]; copy[lessonIdx + 1] = true; return copy
+        if (active + 1 < LESSONS.length && !prev[active + 1]) {
+          const copy = [...prev]; copy[active + 1] = true; return copy
         }
         return prev
       })
-      await new Promise(res => setTimeout(res, TROPHY_PAUSE_MS))
+      // Every column mastered → the big master cup gets its own celebration.
+      if (updatedStars.every(v => v >= REPS_PER_LESSON)) {
+        setMasterCelebrating(true)
+        setTimeout(() => setMasterCelebrating(false), MASTER_POP_MS)
+      }
     }
+  }, [isPlayingRep, readyToContinue, active, lesson, starsEarned, playColumnOnce])
 
-    setCurrentRep(0)
-    setIsRunning(false)
-  }, [active, isRunning, playWord])
+  const selectColumn = useCallback((i: number) => {
+    if (isPlayingRep || !unlocked[i] || i === active) return
+    setActive(i)
+  }, [isPlayingRep, unlocked, active])
 
-  const stopGame = useCallback(() => {
+  const stopPlayback = useCallback(() => {
     autoCancel.current = true
-    currentAudio.current?.pause()   // silences the word being spoken right away
-    setIsRunning(false)
+    currentAudio.current?.pause()
   }, [])
 
-  const toggleGame = useCallback(() => {
-    if (isRunning) stopGame(); else startGame()
-  }, [isRunning, startGame, stopGame])
+  let buttonLabel: string
+  if (isPlayingRep) buttonLabel = '🔊 Ascultă…'
+  else if (readyToContinue) buttonLabel = active + 1 < LESSONS.length ? 'Continuă →' : '🎉 Gata!'
+  else if (hasTrophy) buttonLabel = '🔁 Exersează din nou'
+  else buttonLabel = `▶ Repetă (${earned}/${REPS_PER_LESSON})`
 
   return (
     <main className="lesson-page">
       <div className="lesson-back-row">
-        <Link href="/" className="lesson-back-btn" onClick={stopGame}>← Pagina principală</Link>
+        <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
       </div>
 
       <header className="lesson-header">
         <h1 className="lesson-title">EiC · English in Colors</h1>
-        <p className="lesson-subhead">Repetă în glas fiecare cuvânt pe care îl auzi</p>
-        <button className={`shadow-repeat-btn ${isRunning ? 'is-stop' : ''}`} onClick={toggleGame}>
-          {isRunning ? '■ Oprește' : trophies[active] ? '🔁 Exersează din nou' : '▶ Start'}
+
+        <Cup progressPct={progressPct} size={88} color="#FFB300" celebrating={masterCelebrating} allFull={allMastered} idSuffix="master" confettiCount={22} />
+        <p className="lesson-progress-caption">
+          {allMastered ? '🎉 Cupa e plină — ai terminat toate lecțiile!' : `${totalStars} / ${maxStars} — scopul: umple cupa`}
+        </p>
+
+        <p className="lesson-subhead">Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare</p>
+        <button
+          className={`shadow-repeat-btn ${readyToContinue ? 'is-continue' : ''}`}
+          onClick={handleMainButton}
+          disabled={isPlayingRep}
+          style={readyToContinue ? { background: lesson.color, borderColor: 'transparent', color: '#fff' } : undefined}
+        >
+          {buttonLabel}
         </button>
       </header>
 
       <div className="lesson-grid">
         {LESSONS.map((l, i) => {
-          const isUnlocked = unlocked[i]
-          const isActive   = active === i
-          const stars      = trophies[i] ? REPS_PER_LESSON : (isActive ? starsThisRun[i] : 0)
+          const isUnlocked   = unlocked[i]
+          const isActive     = active === i
+          const stars        = starsEarned[i]
+          const trophyEarned = stars >= REPS_PER_LESSON
           const style = { '--lesson-color': l.color } as CSSProperties
           return (
             <div
               key={l.id}
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''}`}
               style={style}
+              onClick={() => selectColumn(i)}
             >
               <div className="lesson-col-head">
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">🔒</span>}
                 <div className="lesson-letter">{l.letter}</div>
-                {trophies[i] && <span className="lesson-trophy" aria-label="trofeu câștigat">🏆</span>}
               </div>
+
+              {isUnlocked && (
+                <Cup
+                  progressPct={(stars / REPS_PER_LESSON) * 100}
+                  size={42}
+                  color={l.color}
+                  celebrating={isActive && celebrating}
+                  allFull={trophyEarned}
+                  idSuffix={l.id}
+                />
+              )}
 
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
                 {Array.from({ length: REPS_PER_LESSON }).map((_, s) => (
-                  <span key={s} className={`lesson-star ${s < stars ? 'is-filled' : ''}`}>★</span>
+                  <span key={s} className={`lesson-star-slot ${s < stars ? 'is-filled' : ''}`}>
+                    <span className="lesson-star-icon">★</span>
+                    {isActive && poppingStarIndex === s && (
+                      <span className="lesson-star-pop" aria-hidden="true">
+                        <span className="pop-cup">🏆</span>
+                        <span className="pop-star">★</span>
+                        <Confetti count={7} />
+                      </span>
+                    )}
+                  </span>
                 ))}
               </div>
 
               <div className="lesson-words">
                 {l.words.map((w) => {
-                  const isPlaying = isActive && playingWord === w.text
+                  const isPlaying = isActive && isPlayingRep && playingWord === w.text
                   return (
                     <div
                       key={w.text}

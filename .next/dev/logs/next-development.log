@@ -1,7 +1,3 @@
-{"timestamp":"00:00:28.979","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 370ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
-{"timestamp":"00:00:39.261","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:01:22.221","source":"Server","level":"LOG","message":"○ Compiling / ..."}
-{"timestamp":"00:01:52.666","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:16:44.467","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:30:42.228","source":"Server","level":"LOG","message":"✓ Compiled in 8.8s"}
-{"timestamp":"00:31:08.700","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:01.473","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 273ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
+{"timestamp":"00:00:01.502","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:02.608","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
