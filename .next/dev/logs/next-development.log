@@ -1,3 +1,12 @@
-{"timestamp":"00:00:01.473","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 273ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
-{"timestamp":"00:00:01.502","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:02.608","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:10.909","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 249ms. If /home/user_normal/Музыка/eic-next/.next/dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
+{"timestamp":"00:00:30.258","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:33.293","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:00:39.494","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:14:46.383","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:15:18.352","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:33:32.784","source":"Server","level":"LOG","message":"✓ Compiled in 25.2s"}
+{"timestamp":"00:33:58.066","source":"Server","level":"LOG","message":"✓ Compiled in 10.2s"}
+{"timestamp":"00:40:07.502","source":"Server","level":"LOG","message":"✓ Compiled in 386ms"}
+{"timestamp":"00:40:31.774","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:40:41.342","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:41:34.756","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

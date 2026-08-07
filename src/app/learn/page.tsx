@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect, useRef, type CSSProperties } from 're
 import Link from 'next/link'
 
 // ── Fixed lesson data — colours match the canonical EiC sound map exactly ──
-// (ɑ/ʌ → green, e/ɛ → orange, ɒ/ɔ → pink, i/ɪ → red — see lib/rules/colors.ts)
+// (see lib/rules/colors.ts — SOUND_COLORS is the single source of truth)
 interface LessonWord {
   text: string
   mark: string   // substring of `text` that carries the target sound — only this part gets coloured
@@ -13,72 +13,205 @@ interface LessonWord {
 
 interface Lesson {
   id: string
-  letter: string     // sound letter shown at the top of the column — no slashes
+  letter: string     // sound shown at the top of the column — no slashes
   color: string
   tabLabel: string   // Romanian colour-name shown on the tabs
   words: LessonWord[]
 }
 
-const LESSONS: Lesson[] = [
+// A level is a set of 4 columns (4 rules). Finishing all 4 columns of a
+// level unlocks the next level's 4 columns, with 4 new EiC rules/sounds.
+// TO ADD A NEW LEVEL: append a Level object here — everything else (progress
+// state, unlock logic, animations) is driven off LEVELS.length automatically.
+interface Level {
+  id: string
+  name: string        // shown under the title, e.g. "Nivelul 2 · Alte vocale"
+  lessons: Lesson[]    // always 4
+}
+
+const LEVELS: Level[] = [
   {
-    id: 'a', letter: 'a', color: '#008E40', tabLabel: 'Verde',
-    words: [
-      { text: 'dark',   mark: 'a' },
-      { text: 'cart',   mark: 'a' },
-      { text: 'father', mark: 'a' },
-      { text: 'star',   mark: 'a' },
-      { text: 'farm',   mark: 'a' },
-      { text: 'hard',   mark: 'a' },
-      { text: 'park',   mark: 'a' },
-      { text: 'calm',   mark: 'a' },
+    id: 'lvl1',
+    name: 'Nivelul 1 · Vocale scurte',
+    lessons: [
+      {
+        id: 'a', letter: 'a', color: '#008E40', tabLabel: 'Verde',
+        words: [
+          { text: 'dark',   mark: 'a' },
+          { text: 'cart',   mark: 'a' },
+          { text: 'father', mark: 'a' },
+          { text: 'star',   mark: 'a' },
+          { text: 'farm',   mark: 'a' },
+          { text: 'hard',   mark: 'a' },
+          { text: 'park',   mark: 'a' },
+          { text: 'calm',   mark: 'a' },
+        ],
+      },
+      {
+        id: 'e', letter: 'e', color: '#EE5B00', tabLabel: 'Portocaliu',
+        words: [
+          { text: 'bed',    mark: 'e' },
+          { text: 'head',   mark: 'ea' },
+          { text: 'said',   mark: 'ai' },
+          { text: 'bread',  mark: 'ea' },
+          { text: 'friend', mark: 'ie' },
+          { text: 'left',   mark: 'e' },
+          { text: 'best',   mark: 'e' },
+          { text: 'red',    mark: 'e' },
+        ],
+      },
+      {
+        id: 'o', letter: 'o', color: '#FF3399', tabLabel: 'Roz',
+        words: [
+          { text: 'hot',   mark: 'o' },
+          { text: 'top',   mark: 'o' },
+          { text: 'stop',  mark: 'o' },
+          { text: 'clock', mark: 'o' },
+          { text: 'dog',   mark: 'o' },
+          { text: 'box',   mark: 'o' },
+          { text: 'lot',   mark: 'o' },
+          { text: 'not',   mark: 'o' },
+        ],
+      },
+      {
+        id: 'i', letter: 'i', color: '#CC0000', tabLabel: 'Roșu',
+        words: [
+          { text: 'sit',  mark: 'i' },
+          { text: 'tip',  mark: 'i' },
+          { text: 'big',  mark: 'i' },
+          { text: 'fish', mark: 'i' },
+          { text: 'hit',  mark: 'i' },
+          { text: 'list', mark: 'i' },
+          { text: 'ship', mark: 'i' },
+          { text: 'wind', mark: 'i' },
+        ],
+      },
     ],
   },
   {
-    id: 'e', letter: 'e', color: '#EE5B00', tabLabel: 'Portocaliu',
-    words: [
-      { text: 'bed',    mark: 'e' },
-      { text: 'head',   mark: 'ea' },
-      { text: 'said',   mark: 'ai' },
-      { text: 'bread',  mark: 'ea' },
-      { text: 'friend', mark: 'ie' },
-      { text: 'left',   mark: 'e' },
-      { text: 'best',   mark: 'e' },
-      { text: 'red',    mark: 'e' },
+    id: 'lvl2',
+    name: 'Nivelul 2 · Alte vocale',
+    lessons: [
+      {
+        id: 'ae', letter: 'æ', color: '#00b0f0', tabLabel: 'Bleu',
+        words: [
+          { text: 'cat',  mark: 'a' },
+          { text: 'hat',  mark: 'a' },
+          { text: 'bag',  mark: 'a' },
+          { text: 'man',  mark: 'a' },
+          { text: 'sad',  mark: 'a' },
+          { text: 'flag', mark: 'a' },
+          { text: 'black', mark: 'a' },
+          { text: 'hand', mark: 'a' },
+        ],
+      },
+      {
+        id: 'u', letter: 'uː', color: '#7030A0', tabLabel: 'Mov',
+        words: [
+          { text: 'moon', mark: 'oo' },
+          { text: 'food', mark: 'oo' },
+          { text: 'room', mark: 'oo' },
+          { text: 'soon', mark: 'oo' },
+          { text: 'book', mark: 'oo' },
+          { text: 'good', mark: 'oo' },
+          { text: 'look', mark: 'oo' },
+          { text: 'foot', mark: 'oo' },
+        ],
+      },
+      {
+        id: 'ou', letter: 'oʊ', color: '#FCD116', tabLabel: 'Galben',
+        words: [
+          { text: 'go',   mark: 'o' },
+          { text: 'boat', mark: 'oa' },
+          { text: 'coat', mark: 'oa' },
+          { text: 'road', mark: 'oa' },
+          { text: 'home', mark: 'o' },
+          { text: 'snow', mark: 'ow' },
+          { text: 'show', mark: 'ow' },
+          { text: 'slow', mark: 'ow' },
+        ],
+      },
+      {
+        id: 'ei', letter: 'eɪ', color: '#00246C', tabLabel: 'Bleumarin',
+        words: [
+          { text: 'day',  mark: 'ay' },
+          { text: 'name', mark: 'a' },
+          { text: 'cake', mark: 'a' },
+          { text: 'rain', mark: 'ai' },
+          { text: 'play', mark: 'ay' },
+          { text: 'gate', mark: 'a' },
+          { text: 'wait', mark: 'ai' },
+          { text: 'say',  mark: 'ay' },
+        ],
+      },
     ],
   },
   {
-    id: 'o', letter: 'o', color: '#FF3399', tabLabel: 'Roz',
-    words: [
-      { text: 'hot',   mark: 'o' },
-      { text: 'top',   mark: 'o' },
-      { text: 'stop',  mark: 'o' },
-      { text: 'clock', mark: 'o' },
-      { text: 'dog',   mark: 'o' },
-      { text: 'box',   mark: 'o' },
-      { text: 'lot',   mark: 'o' },
-      { text: 'not',   mark: 'o' },
-    ],
-  },
-  {
-    id: 'i', letter: 'i', color: '#CC0000', tabLabel: 'Roșu',
-    words: [
-      { text: 'sit',  mark: 'i' },
-      { text: 'tip',  mark: 'i' },
-      { text: 'big',  mark: 'i' },
-      { text: 'fish', mark: 'i' },
-      { text: 'hit',  mark: 'i' },
-      { text: 'list', mark: 'i' },
-      { text: 'ship', mark: 'i' },
-      { text: 'wind', mark: 'i' },
+    id: 'lvl3',
+    name: 'Nivelul 3 · Diftongi',
+    lessons: [
+      {
+        id: 'ju', letter: 'juː', color: '#833C0B', tabLabel: 'Maro',
+        words: [
+          { text: 'cute',     mark: 'u' },
+          { text: 'music',    mark: 'u' },
+          { text: 'use',      mark: 'u' },
+          { text: 'computer', mark: 'u' },
+          { text: 'unit',     mark: 'u' },
+          { text: 'human',    mark: 'u' },
+          { text: 'few',      mark: 'ew' },
+          { text: 'pupil',    mark: 'u' },
+        ],
+      },
+      {
+        id: 'ai', letter: 'aɪ', color: '#4472C4', tabLabel: 'Albastru',
+        words: [
+          { text: 'night', mark: 'i' },
+          { text: 'my',    mark: 'y' },
+          { text: 'time',  mark: 'i' },
+          { text: 'like',  mark: 'i' },
+          { text: 'fly',   mark: 'y' },
+          { text: 'high',  mark: 'igh' },
+          { text: 'light', mark: 'igh' },
+          { text: 'five',  mark: 'i' },
+        ],
+      },
+      {
+        id: 'au', letter: 'aʊ', color: '#23D300', tabLabel: 'Verde deschis',
+        words: [
+          { text: 'loud',  mark: 'ou' },
+          { text: 'cow',   mark: 'ow' },
+          { text: 'house', mark: 'ou' },
+          { text: 'now',   mark: 'ow' },
+          { text: 'mouth', mark: 'ou' },
+          { text: 'down',  mark: 'ow' },
+          { text: 'cloud', mark: 'ou' },
+          { text: 'brown', mark: 'ow' },
+        ],
+      },
+      {
+        id: 'oi', letter: 'oɪ', color: '#FF3399', tabLabel: 'Roz-roșu',
+        words: [
+          { text: 'boy',   mark: 'oy' },
+          { text: 'coin',  mark: 'oi' },
+          { text: 'toy',   mark: 'oy' },
+          { text: 'voice', mark: 'oi' },
+          { text: 'enjoy', mark: 'oy' },
+          { text: 'point', mark: 'oi' },
+          { text: 'noise', mark: 'oi' },
+          { text: 'joy',   mark: 'oy' },
+        ],
+      },
     ],
   },
 ]
 
-const STORAGE_KEY = 'eic-lesson-progress-v3'
+const STORAGE_KEY = 'eic-lesson-progress-v5'   // bumped — v4 saves could carry the "next level's column 0 never unlocks" bug
 const AUTO_DELAY_MS = 1650   // gap between words — tripled from the original 550ms
 const REPS_PER_LESSON = 5
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
-const MASTER_POP_MS   = 1300   // how long the master-cup celebration plays
+const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
+const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
 
 // Renders a word so that only the letters carrying the target sound get colour;
 // everything else stays black.
@@ -95,9 +228,9 @@ function MarkedWord({ text, mark }: { text: string; mark: string }) {
 }
 
 // ── Cupă de umplere reutilizabilă — un lichid colorat urcă spre buza cupei
-//    pe măsură ce progresul crește. Folosită atât pentru "cupa cupelor" din
-//    header (progres pe tot exercițiul), cât și pentru cupa proprie a fiecărei
-//    coloane (progres 0-5 stele), doar cu culoare și mărime diferite. ──
+//    pe măsură ce progresul crește. Folosită pentru cupa de nivel din header,
+//    cupa fiecărei coloane, cupa mare de finalizare de nivel și insignele
+//    din raftul de trofee — doar cu culoare și mărime diferite. ──
 function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, allFull = false, idSuffix, confettiCount = 14 }: {
   progressPct: number; size?: number; color?: string; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number
 }) {
@@ -139,8 +272,7 @@ function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, a
   )
 }
 
-// ── Confetti — o mică explozie de particule în culorile celor 4 lecții
-//    (+ auriu pentru cupa mare), pur CSS, fără librării externe. ──
+// ── Confetti — o mică explozie de particule, pur CSS, fără librării externe. ──
 const CONFETTI_COLORS = ['#008E40', '#EE5B00', '#FF3399', '#CC0000', '#FFB300']
 
 function Confetti({ count = 14 }: { count?: number }) {
@@ -157,16 +289,33 @@ function Confetti({ count = 14 }: { count?: number }) {
   )
 }
 
+interface SavedProgress {
+  levelIndex: number
+  unlockedLevels: boolean[]
+  colUnlocked: boolean[][]
+  starsEarned: number[][]
+  active: number
+  allDone: boolean
+}
+
 export default function LearnPage() {
-  const [unlocked, setUnlocked]       = useState<boolean[]>([true, false, false, false])
-  const [starsEarned, setStarsEarned] = useState<number[]>([0, 0, 0, 0])
-  const [active, setActive]           = useState(0)
-  const [playingWord, setPlayingWord] = useState<string | null>(null)
+  const [levelIndex, setLevelIndex]         = useState(0)
+  const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
+  const [colUnlocked, setColUnlocked]       = useState<boolean[][]>(() => LEVELS.map((_, i) => [i === 0, false, false, false]))
+  const [starsEarned, setStarsEarned]       = useState<number[][]>(() => LEVELS.map(() => [0, 0, 0, 0]))
+  const [active, setActive]                 = useState(0)
+  const [allDone, setAllDone]               = useState(false)
+
+  const [playingWord, setPlayingWord]       = useState<string | null>(null)
   const [isPlayingRep, setIsPlayingRep]     = useState(false)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
   const [readyToContinue, setReadyToContinue] = useState(false)
-  const [masterCelebrating, setMasterCelebrating] = useState(false)
+
+  // ── Level-scope celebration state ──
+  const [levelCelebrating, setLevelCelebrating]   = useState(false)
+  const [readyForNextLevel, setReadyForNextLevel] = useState(false)
+  const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
 
   const hydrated    = useRef(false)
   const autoCancel  = useRef(false)
@@ -182,9 +331,13 @@ export default function LearnPage() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
-        const saved = JSON.parse(raw)
-        if (saved.unlocked) setUnlocked(saved.unlocked)
+        const saved = JSON.parse(raw) as Partial<SavedProgress>
+        if (saved.levelIndex !== undefined) setLevelIndex(saved.levelIndex)
+        if (saved.unlockedLevels) setUnlockedLevels(saved.unlockedLevels)
+        if (saved.colUnlocked) setColUnlocked(saved.colUnlocked)
         if (saved.starsEarned) setStarsEarned(saved.starsEarned)
+        if (saved.active !== undefined) setActive(saved.active)
+        if (saved.allDone) setAllDone(saved.allDone)
       }
     } catch { /* ignore */ }
     hydrated.current = true
@@ -192,15 +345,18 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (!hydrated.current) return
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ unlocked, starsEarned })) } catch { /* ignore */ }
-  }, [unlocked, starsEarned])
+    try {
+      const toSave: SavedProgress = { levelIndex, unlockedLevels, colUnlocked, starsEarned, active, allDone }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
+    } catch { /* ignore */ }
+  }, [levelIndex, unlockedLevels, colUnlocked, starsEarned, active, allDone])
 
-  // ── Leaving the column (or the page) mid-repetition also stops playback ──
+  // ── Leaving the column (or the level) mid-repetition also stops playback ──
   useEffect(() => {
     setCelebrating(false)
     setReadyToContinue(false)
     setPoppingStarIndex(null)
-  }, [active])
+  }, [active, levelIndex])
 
   useEffect(() => {
     return () => {
@@ -209,14 +365,29 @@ export default function LearnPage() {
     }
   }, [])
 
-  const lesson    = LESSONS[active]
-  const earned    = starsEarned[active]
+  const level     = LEVELS[levelIndex]
+  const lesson    = level.lessons[active]
+  const earned    = starsEarned[levelIndex][active]
   const hasTrophy = earned >= REPS_PER_LESSON
 
-  const totalStars  = starsEarned.reduce((a, b) => a + b, 0)
-  const maxStars     = LESSONS.length * REPS_PER_LESSON
-  const allMastered  = totalStars >= maxStars
-  const progressPct  = Math.round((totalStars / maxStars) * 100)
+  const levelStars    = starsEarned[levelIndex]
+  const totalLevelStars = levelStars.reduce((a, b) => a + b, 0)
+  const maxLevelStars   = level.lessons.length * REPS_PER_LESSON
+  const levelMastered   = totalLevelStars >= maxLevelStars
+  const progressPct     = Math.round((totalLevelStars / maxLevelStars) * 100)
+
+  const isLastLevel = levelIndex === LEVELS.length - 1
+  const nextLevel   = !isLastLevel ? LEVELS[levelIndex + 1] : null
+
+  // Levels strictly before the current one are, by construction, always
+  // fully mastered (that's what unlocked them) — plus the current one if
+  // the whole journey just ended on it.
+  const completedLevels = [...Array(levelIndex).keys(), ...(allDone ? [levelIndex] : [])]
+
+  // The single locked column right after the active one — the one that's
+  // "about to be offered". Progression is strictly linear so at most one
+  // column ever carries this state.
+  const nextUpIndex = colUnlocked[levelIndex].findIndex((u, i) => !u && (i === 0 || colUnlocked[levelIndex][i - 1]))
 
   const playWord = useCallback(async (word: string) => {
     setPlayingWord(word)
@@ -241,16 +412,38 @@ export default function LearnPage() {
     }
   }, [playWord])
 
-  // ── Main button: one press = one repetition of the active column,
-  //    or — once 5 stars are reached — advances to the next column. ──
+  // ── Main button: one press = one repetition of the active column, or —
+  //    once 5 stars are reached — advances to the next column, or — once a
+  //    whole level is mastered — advances into the next level's 4 columns. ──
   const handleMainButton = useCallback(async () => {
     if (isPlayingRep) return
+
+    if (readyForNextLevel && nextLevel) {
+      setReadyForNextLevel(false)
+      setLevelCelebrating(false)
+      const next = levelIndex + 1
+      setUnlockedLevels(prev => {
+        if (prev[next]) return prev
+        const copy = [...prev]; copy[next] = true; return copy
+      })
+      setColUnlocked(prev => {
+        if (prev[next][0]) return prev
+        const copy = prev.map(row => [...row])
+        copy[next][0] = true
+        return copy
+      })
+      setLevelIndex(next)
+      setActive(0)
+      setJustRevealedIndex(0)
+      setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
+      return
+    }
 
     if (readyToContinue) {
       setReadyToContinue(false)
       setCelebrating(false)
       const next = active + 1
-      if (next < LESSONS.length) setActive(next)
+      if (next < level.lessons.length) setActive(next)
       return
     }
 
@@ -261,36 +454,47 @@ export default function LearnPage() {
     if (autoCancel.current) return
 
     // Already mastered — this is just a free practice replay, no star/trophy changes.
-    if (starsEarned[active] >= REPS_PER_LESSON) return
+    if (starsEarned[levelIndex][active] >= REPS_PER_LESSON) return
 
-    const newCount = Math.min(starsEarned[active] + 1, REPS_PER_LESSON)
+    const newCount = Math.min(starsEarned[levelIndex][active] + 1, REPS_PER_LESSON)
     setPoppingStarIndex(newCount - 1)
     setTimeout(() => setPoppingStarIndex(null), POP_DURATION_MS)
 
-    const updatedStars = starsEarned.map((v, idx) => (idx === active ? newCount : v))
-    setStarsEarned(updatedStars)
+    const updatedLevelStars = levelStars.map((v, idx) => (idx === active ? newCount : v))
+    setStarsEarned(prev => prev.map((row, li) => (li === levelIndex ? updatedLevelStars : row)))
 
     if (newCount === REPS_PER_LESSON) {
       setCelebrating(true)
-      setReadyToContinue(true)
-      setUnlocked(prev => {
-        if (active + 1 < LESSONS.length && !prev[active + 1]) {
-          const copy = [...prev]; copy[active + 1] = true; return copy
-        }
-        return prev
-      })
-      // Every column mastered → the big master cup gets its own celebration.
-      if (updatedStars.every(v => v >= REPS_PER_LESSON)) {
-        setMasterCelebrating(true)
-        setTimeout(() => setMasterCelebrating(false), MASTER_POP_MS)
+
+      const isLastColumn = active + 1 >= level.lessons.length
+      if (!isLastColumn) {
+        setReadyToContinue(true)
+        setColUnlocked(prev => {
+          if (prev[levelIndex][active + 1]) return prev
+          const copy = prev.map(row => [...row])
+          copy[levelIndex][active + 1] = true
+          return copy
+        })
+        setJustRevealedIndex(active + 1)
+        setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
+      }
+
+      // Every column in the level mastered → the level gets its own beautiful
+      // cup + celebration, then either the next level unlocks or, on the
+      // final level, the whole journey is done.
+      if (updatedLevelStars.every(v => v >= REPS_PER_LESSON)) {
+        setLevelCelebrating(true)
+        setTimeout(() => setLevelCelebrating(false), LEVEL_POP_MS)
+        if (isLastLevel) setAllDone(true)
+        else setReadyForNextLevel(true)
       }
     }
-  }, [isPlayingRep, readyToContinue, active, lesson, starsEarned, playColumnOnce])
+  }, [isPlayingRep, readyForNextLevel, nextLevel, readyToContinue, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel])
 
   const selectColumn = useCallback((i: number) => {
-    if (isPlayingRep || !unlocked[i] || i === active) return
+    if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
     setActive(i)
-  }, [isPlayingRep, unlocked, active])
+  }, [isPlayingRep, colUnlocked, levelIndex, active])
 
   const stopPlayback = useCallback(() => {
     autoCancel.current = true
@@ -299,7 +503,9 @@ export default function LearnPage() {
 
   let buttonLabel: string
   if (isPlayingRep) buttonLabel = '🔊 Ascultă…'
-  else if (readyToContinue) buttonLabel = active + 1 < LESSONS.length ? 'Continuă →' : '🎉 Gata!'
+  else if (readyForNextLevel && nextLevel) buttonLabel = `🏆 Spre ${nextLevel.name} →`
+  else if (readyToContinue) buttonLabel = 'Continuă →'
+  else if (allDone) buttonLabel = '🎉 Gata!'
   else if (hasTrophy) buttonLabel = '🔁 Exersează din nou'
   else buttonLabel = `▶ Repetă (${earned}/${REPS_PER_LESSON})`
 
@@ -311,15 +517,42 @@ export default function LearnPage() {
 
       <header className="lesson-header">
         <h1 className="lesson-title">EiC · English in Colors</h1>
+        <p className="lesson-level-label">{level.name}</p>
 
-        <Cup progressPct={progressPct} size={88} color="#FFB300" celebrating={masterCelebrating} allFull={allMastered} idSuffix="master" confettiCount={22} />
-        <p className="lesson-progress-caption">
-          {allMastered ? '🎉 Cupa e plină — ai terminat toate lecțiile!' : `${totalStars} / ${maxStars} — scopul: umple cupa`}
+        {completedLevels.length > 0 && (
+          <div className="lesson-trophy-shelf" aria-label="Niveluri finalizate">
+            {completedLevels.map(i => (
+              <div key={LEVELS[i].id} className="lesson-trophy-badge" title={LEVELS[i].name}>
+                <Cup progressPct={100} size={30} color="#FFB300" allFull idSuffix={`shelf-${LEVELS[i].id}`} />
+                <span className="lesson-trophy-num">{i + 1}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(levelCelebrating || readyForNextLevel) ? (
+          <div className="lesson-level-complete">
+            <Cup progressPct={100} size={104} color="#FFB300" celebrating={levelCelebrating} allFull idSuffix={`level-${level.id}`} confettiCount={26} />
+            <p className="lesson-level-complete-text">
+              🏆 {level.name} — finalizat!
+              {nextLevel && <><br />Se deschide <strong>{nextLevel.name}</strong></>}
+              {!nextLevel && <><br />Ai terminat tot EiC!</>}
+            </p>
+          </div>
+        ) : (
+          <>
+            <Cup progressPct={progressPct} size={88} color="#FFB300" allFull={levelMastered} idSuffix="master" />
+            <p className="lesson-progress-caption">
+              {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
+            </p>
+          </>
+        )}
+
+        <p className="lesson-subhead">
+          {allDone ? '🎉 Ai finalizat toate nivelurile EiC!' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
         </p>
-
-        <p className="lesson-subhead">Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare</p>
         <button
-          className={`shadow-repeat-btn ${readyToContinue ? 'is-continue' : ''}`}
+          className={`shadow-repeat-btn ${readyToContinue || (readyForNextLevel && nextLevel) ? 'is-continue' : ''}`}
           onClick={handleMainButton}
           disabled={isPlayingRep}
           style={readyToContinue ? { background: lesson.color, borderColor: 'transparent', color: '#fff' } : undefined}
@@ -329,21 +562,23 @@ export default function LearnPage() {
       </header>
 
       <div className="lesson-grid">
-        {LESSONS.map((l, i) => {
-          const isUnlocked   = unlocked[i]
+        {level.lessons.map((l, i) => {
+          const isUnlocked   = colUnlocked[levelIndex][i]
           const isActive     = active === i
-          const stars        = starsEarned[i]
+          const stars        = starsEarned[levelIndex][i]
           const trophyEarned = stars >= REPS_PER_LESSON
+          const isNextUp     = i === nextUpIndex
+          const isRevealing  = justRevealedIndex === i
           const style = { '--lesson-color': l.color } as CSSProperties
           return (
             <div
               key={l.id}
-              className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''}`}
+              className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectColumn(i)}
             >
               <div className="lesson-col-head">
-                {!isUnlocked && <span className="lesson-lock" aria-label="blocat">🔒</span>}
+                {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
                 <div className="lesson-letter">{l.letter}</div>
               </div>
 
@@ -356,6 +591,9 @@ export default function LearnPage() {
                   allFull={trophyEarned}
                   idSuffix={l.id}
                 />
+              )}
+              {!isUnlocked && isNextUp && (
+                <p className="lesson-next-hint">se deschide imediat</p>
               )}
 
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
@@ -390,6 +628,21 @@ export default function LearnPage() {
           )
         })}
       </div>
+
+      {nextLevel && !levelCelebrating && !readyForNextLevel && (
+        <div className="lesson-next-level-teaser">
+          <span className="lesson-next-level-lock" aria-hidden="true">🔒</span>
+          <div className="lesson-next-level-info">
+            <p className="lesson-next-level-name">{nextLevel.name}</p>
+            <div className="lesson-next-level-dots">
+              {nextLevel.lessons.map(nl => (
+                <span key={nl.id} className="lesson-next-level-dot" style={{ '--dot-color': nl.color } as CSSProperties} />
+              ))}
+            </div>
+          </div>
+          <span className="lesson-next-level-caption">se deschide după finalizarea acestui nivel</span>
+        </div>
+      )}
     </main>
   )
 }
