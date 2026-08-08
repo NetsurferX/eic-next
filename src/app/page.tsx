@@ -1,9 +1,9 @@
 'use client'
 
 import { useRef } from 'react'
-import Link from 'next/link'
 import WordRenderer from '@/components/WordRenderer'
 import { useColorizer } from '@/lib/useColorizer'
+import LevelTeaser from '@/components/game/LevelTeaser'
 
 export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -27,7 +27,7 @@ export default function Home() {
       {/* Minimal top bar — brand + entry point into the game, nothing else */}
       <div className="eic-topbar">
         <span className="eic-brand">English in Colours</span>
-        <Link href="/learn" className="eic-learn-btn">Learn EiC</Link>
+        <LevelTeaser />
       </div>
 
       {/* The tool itself: one generous input, nothing competing for attention */}

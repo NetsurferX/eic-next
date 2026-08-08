@@ -1,214 +1,13 @@
 'use client'
 
 import { speakWord, warmUpVoices } from '@/lib/speak'
+import { playStarChime, playLevelFanfare } from '@/lib/sound'
+import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress, type Lesson } from '@/lib/levels'
+import { Cup, Confetti } from '@/components/game/Cup'
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
 import Link from 'next/link'
 
-// ── Fixed lesson data — colours match the canonical EiC sound map exactly ──
-// (see lib/rules/colors.ts — SOUND_COLORS is the single source of truth)
-interface LessonWord {
-  text: string
-  mark: string   // substring of `text` that carries the target sound — only this part gets coloured
-}
-
-interface Lesson {
-  id: string
-  letter: string     // sound shown at the top of the column — no slashes
-  color: string
-  tabLabel: string   // Romanian colour-name shown on the tabs
-  words: LessonWord[]
-}
-
-// A level is a set of 4 columns (4 rules). Finishing all 4 columns of a
-// level unlocks the next level's 4 columns, with 4 new EiC rules/sounds.
-// TO ADD A NEW LEVEL: append a Level object here — everything else (progress
-// state, unlock logic, animations) is driven off LEVELS.length automatically.
-interface Level {
-  id: string
-  name: string        // shown under the title, e.g. "Nivelul 2 · Alte vocale"
-  lessons: Lesson[]    // always 4
-}
-
-const LEVELS: Level[] = [
-  {
-    id: 'lvl1',
-    name: 'Nivelul 1 · Vocale scurte',
-    lessons: [
-      {
-        id: 'a', letter: 'a', color: '#008E40', tabLabel: 'Verde',
-        words: [
-          { text: 'dark',   mark: 'a' },
-          { text: 'cart',   mark: 'a' },
-          { text: 'father', mark: 'a' },
-          { text: 'star',   mark: 'a' },
-          { text: 'farm',   mark: 'a' },
-          { text: 'hard',   mark: 'a' },
-          { text: 'park',   mark: 'a' },
-          { text: 'calm',   mark: 'a' },
-        ],
-      },
-      {
-        id: 'e', letter: 'e', color: '#EE5B00', tabLabel: 'Portocaliu',
-        words: [
-          { text: 'bed',    mark: 'e' },
-          { text: 'head',   mark: 'ea' },
-          { text: 'said',   mark: 'ai' },
-          { text: 'bread',  mark: 'ea' },
-          { text: 'friend', mark: 'ie' },
-          { text: 'left',   mark: 'e' },
-          { text: 'best',   mark: 'e' },
-          { text: 'red',    mark: 'e' },
-        ],
-      },
-      {
-        id: 'o', letter: 'o', color: '#FF3399', tabLabel: 'Roz',
-        words: [
-          { text: 'hot',   mark: 'o' },
-          { text: 'top',   mark: 'o' },
-          { text: 'stop',  mark: 'o' },
-          { text: 'clock', mark: 'o' },
-          { text: 'dog',   mark: 'o' },
-          { text: 'box',   mark: 'o' },
-          { text: 'lot',   mark: 'o' },
-          { text: 'not',   mark: 'o' },
-        ],
-      },
-      {
-        id: 'i', letter: 'i', color: '#CC0000', tabLabel: 'Roșu',
-        words: [
-          { text: 'sit',  mark: 'i' },
-          { text: 'tip',  mark: 'i' },
-          { text: 'big',  mark: 'i' },
-          { text: 'fish', mark: 'i' },
-          { text: 'hit',  mark: 'i' },
-          { text: 'list', mark: 'i' },
-          { text: 'ship', mark: 'i' },
-          { text: 'wind', mark: 'i' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'lvl2',
-    name: 'Nivelul 2 · Alte vocale',
-    lessons: [
-      {
-        id: 'ae', letter: 'æ', color: '#00b0f0', tabLabel: 'Bleu',
-        words: [
-          { text: 'cat',  mark: 'a' },
-          { text: 'hat',  mark: 'a' },
-          { text: 'bag',  mark: 'a' },
-          { text: 'man',  mark: 'a' },
-          { text: 'sad',  mark: 'a' },
-          { text: 'flag', mark: 'a' },
-          { text: 'black', mark: 'a' },
-          { text: 'hand', mark: 'a' },
-        ],
-      },
-      {
-        id: 'u', letter: 'uː', color: '#7030A0', tabLabel: 'Mov',
-        words: [
-          { text: 'moon', mark: 'oo' },
-          { text: 'food', mark: 'oo' },
-          { text: 'room', mark: 'oo' },
-          { text: 'soon', mark: 'oo' },
-          { text: 'book', mark: 'oo' },
-          { text: 'good', mark: 'oo' },
-          { text: 'look', mark: 'oo' },
-          { text: 'foot', mark: 'oo' },
-        ],
-      },
-      {
-        id: 'ou', letter: 'oʊ', color: '#FCD116', tabLabel: 'Galben',
-        words: [
-          { text: 'go',   mark: 'o' },
-          { text: 'boat', mark: 'oa' },
-          { text: 'coat', mark: 'oa' },
-          { text: 'road', mark: 'oa' },
-          { text: 'home', mark: 'o' },
-          { text: 'snow', mark: 'ow' },
-          { text: 'show', mark: 'ow' },
-          { text: 'slow', mark: 'ow' },
-        ],
-      },
-      {
-        id: 'ei', letter: 'eɪ', color: '#00246C', tabLabel: 'Bleumarin',
-        words: [
-          { text: 'day',  mark: 'ay' },
-          { text: 'name', mark: 'a' },
-          { text: 'cake', mark: 'a' },
-          { text: 'rain', mark: 'ai' },
-          { text: 'play', mark: 'ay' },
-          { text: 'gate', mark: 'a' },
-          { text: 'wait', mark: 'ai' },
-          { text: 'say',  mark: 'ay' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'lvl3',
-    name: 'Nivelul 3 · Diftongi',
-    lessons: [
-      {
-        id: 'ju', letter: 'juː', color: '#833C0B', tabLabel: 'Maro',
-        words: [
-          { text: 'cute',     mark: 'u' },
-          { text: 'music',    mark: 'u' },
-          { text: 'use',      mark: 'u' },
-          { text: 'computer', mark: 'u' },
-          { text: 'unit',     mark: 'u' },
-          { text: 'human',    mark: 'u' },
-          { text: 'few',      mark: 'ew' },
-          { text: 'pupil',    mark: 'u' },
-        ],
-      },
-      {
-        id: 'ai', letter: 'aɪ', color: '#4472C4', tabLabel: 'Albastru',
-        words: [
-          { text: 'night', mark: 'i' },
-          { text: 'my',    mark: 'y' },
-          { text: 'time',  mark: 'i' },
-          { text: 'like',  mark: 'i' },
-          { text: 'fly',   mark: 'y' },
-          { text: 'high',  mark: 'igh' },
-          { text: 'light', mark: 'igh' },
-          { text: 'five',  mark: 'i' },
-        ],
-      },
-      {
-        id: 'au', letter: 'aʊ', color: '#23D300', tabLabel: 'Verde deschis',
-        words: [
-          { text: 'loud',  mark: 'ou' },
-          { text: 'cow',   mark: 'ow' },
-          { text: 'house', mark: 'ou' },
-          { text: 'now',   mark: 'ow' },
-          { text: 'mouth', mark: 'ou' },
-          { text: 'down',  mark: 'ow' },
-          { text: 'cloud', mark: 'ou' },
-          { text: 'brown', mark: 'ow' },
-        ],
-      },
-      {
-        id: 'oi', letter: 'oɪ', color: '#FF3399', tabLabel: 'Roz-roșu',
-        words: [
-          { text: 'boy',   mark: 'oy' },
-          { text: 'coin',  mark: 'oi' },
-          { text: 'toy',   mark: 'oy' },
-          { text: 'voice', mark: 'oi' },
-          { text: 'enjoy', mark: 'oy' },
-          { text: 'point', mark: 'oi' },
-          { text: 'noise', mark: 'oi' },
-          { text: 'joy',   mark: 'oy' },
-        ],
-      },
-    ],
-  },
-]
-
-const STORAGE_KEY = 'eic-lesson-progress-v5'   // bumped — v4 saves could carry the "next level's column 0 never unlocks" bug
 const AUTO_DELAY_MS = 1650   // gap between words — tripled from the original 550ms
-const REPS_PER_LESSON = 5
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
@@ -227,77 +26,6 @@ function MarkedWord({ text, mark }: { text: string; mark: string }) {
   )
 }
 
-// ── Cupă de umplere reutilizabilă — un lichid colorat urcă spre buza cupei
-//    pe măsură ce progresul crește. Folosită pentru cupa de nivel din header,
-//    cupa fiecărei coloane, cupa mare de finalizare de nivel și insignele
-//    din raftul de trofee — doar cu culoare și mărime diferite. ──
-function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, allFull = false, idSuffix, confettiCount = 14 }: {
-  progressPct: number; size?: number; color?: string; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number
-}) {
-  const innerTop = 15, innerBottom = 85
-  const fillHeight = ((innerBottom - innerTop) * Math.max(0, Math.min(100, progressPct))) / 100
-  const fillY = innerBottom - fillHeight
-  const gradId = `cupGrad-${idSuffix}`
-  const clipId = `cupClip-${idSuffix}`
-  return (
-    <div
-      className={`fill-cup ${allFull ? 'is-full' : ''} ${celebrating ? 'is-celebrating' : ''}`}
-      style={{ width: size, height: size, '--cup-color': color } as CSSProperties}
-    >
-      <svg viewBox="0 0 100 100" className="fill-cup-svg" aria-hidden="true">
-        <defs>
-          <clipPath id={clipId}>
-            <path d="M20,15 L80,15 L72,70 Q72,85 50,85 Q28,85 28,70 Z" />
-          </clipPath>
-          <linearGradient id={gradId} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0%" stopColor={color} />
-            <stop offset="100%" stopColor={`color-mix(in srgb, ${color} 55%, white)`} />
-          </linearGradient>
-        </defs>
-        <g clipPath={`url(#${clipId})`}>
-          <rect className="fill-cup-liquid" x="15" y={fillY} width="70" height={fillHeight} fill={`url(#${gradId})`} />
-        </g>
-        <path className="fill-cup-outline" d="M20,15 L80,15 L72,70 Q72,85 50,85 Q28,85 28,70 Z" />
-        <path className="fill-cup-outline" d="M20,20 Q4,20 4,35 Q4,52 23,49" />
-        <path className="fill-cup-outline" d="M80,20 Q96,20 96,35 Q96,52 77,49" />
-        <rect className="fill-cup-outline-fill" x="41" y="85" width="18" height="7" />
-        <rect className="fill-cup-outline-fill" x="29" y="92" width="42" height="5" rx="2" />
-      </svg>
-      {celebrating && (
-        <span className="fill-cup-sparkles" aria-hidden="true">
-          <Confetti count={confettiCount} />
-        </span>
-      )}
-    </div>
-  )
-}
-
-// ── Confetti — o mică explozie de particule, pur CSS, fără librării externe. ──
-const CONFETTI_COLORS = ['#008E40', '#EE5B00', '#FF3399', '#CC0000', '#FFB300']
-
-function Confetti({ count = 14 }: { count?: number }) {
-  return (
-    <span className="confetti-burst" aria-hidden="true">
-      {Array.from({ length: count }).map((_, i) => (
-        <span
-          key={i}
-          className={`confetti-piece cp-${i % 8}`}
-          style={{ '--confetti-color': CONFETTI_COLORS[i % CONFETTI_COLORS.length] } as CSSProperties}
-        />
-      ))}
-    </span>
-  )
-}
-
-interface SavedProgress {
-  levelIndex: number
-  unlockedLevels: boolean[]
-  colUnlocked: boolean[][]
-  starsEarned: number[][]
-  active: number
-  allDone: boolean
-}
-
 export default function LearnPage() {
   const [levelIndex, setLevelIndex]         = useState(0)
   const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
@@ -311,10 +39,11 @@ export default function LearnPage() {
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
   const [readyToContinue, setReadyToContinue] = useState(false)
+  const [freePracticeCount, setFreePracticeCount] = useState(0)
 
   // ── Level-scope celebration state ──
   const [levelCelebrating, setLevelCelebrating]   = useState(false)
-  const [readyForNextLevel, setReadyForNextLevel] = useState(false)
+  const [showLevelOverlay, setShowLevelOverlay]   = useState(false)
   const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
 
   const hydrated    = useRef(false)
@@ -356,6 +85,7 @@ export default function LearnPage() {
     setCelebrating(false)
     setReadyToContinue(false)
     setPoppingStarIndex(null)
+    setFreePracticeCount(0)
   }, [active, levelIndex])
 
   useEffect(() => {
@@ -364,6 +94,12 @@ export default function LearnPage() {
       currentAudio.current?.pause()
     }
   }, [])
+
+  // ── Overlay-ul de nivel e un modal pe tot ecranul — blocăm scroll-ul de fundal cât e deschis ──
+  useEffect(() => {
+    document.body.style.overflow = showLevelOverlay ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [showLevelOverlay])
 
   const level     = LEVELS[levelIndex]
   const lesson    = level.lessons[active]
@@ -378,11 +114,6 @@ export default function LearnPage() {
 
   const isLastLevel = levelIndex === LEVELS.length - 1
   const nextLevel   = !isLastLevel ? LEVELS[levelIndex + 1] : null
-
-  // Levels strictly before the current one are, by construction, always
-  // fully mastered (that's what unlocked them) — plus the current one if
-  // the whole journey just ended on it.
-  const completedLevels = [...Array(levelIndex).keys(), ...(allDone ? [levelIndex] : [])]
 
   // The single locked column right after the active one — the one that's
   // "about to be offered". Progression is strictly linear so at most one
@@ -418,24 +149,26 @@ export default function LearnPage() {
   const handleMainButton = useCallback(async () => {
     if (isPlayingRep) return
 
-    if (readyForNextLevel && nextLevel) {
-      setReadyForNextLevel(false)
+    if (showLevelOverlay) {
+      setShowLevelOverlay(false)
       setLevelCelebrating(false)
-      const next = levelIndex + 1
-      setUnlockedLevels(prev => {
-        if (prev[next]) return prev
-        const copy = [...prev]; copy[next] = true; return copy
-      })
-      setColUnlocked(prev => {
-        if (prev[next][0]) return prev
-        const copy = prev.map(row => [...row])
-        copy[next][0] = true
-        return copy
-      })
-      setLevelIndex(next)
-      setActive(0)
-      setJustRevealedIndex(0)
-      setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
+      if (nextLevel) {
+        const next = levelIndex + 1
+        setUnlockedLevels(prev => {
+          if (prev[next]) return prev
+          const copy = [...prev]; copy[next] = true; return copy
+        })
+        setColUnlocked(prev => {
+          if (prev[next][0]) return prev
+          const copy = prev.map(row => [...row])
+          copy[next][0] = true
+          return copy
+        })
+        setLevelIndex(next)
+        setActive(0)
+        setJustRevealedIndex(0)
+        setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
+      }
       return
     }
 
@@ -453,12 +186,17 @@ export default function LearnPage() {
     setIsPlayingRep(false)
     if (autoCancel.current) return
 
-    // Already mastered — this is just a free practice replay, no star/trophy changes.
-    if (starsEarned[levelIndex][active] >= REPS_PER_LESSON) return
+    // Already mastered — this is just a free practice replay, no star/trophy changes,
+    // but the button keeps counting 1→5→1… so it still feels like a game, not a dead end.
+    if (starsEarned[levelIndex][active] >= REPS_PER_LESSON) {
+      setFreePracticeCount(c => c + 1)
+      return
+    }
 
     const newCount = Math.min(starsEarned[levelIndex][active] + 1, REPS_PER_LESSON)
     setPoppingStarIndex(newCount - 1)
     setTimeout(() => setPoppingStarIndex(null), POP_DURATION_MS)
+    playStarChime()
 
     const updatedLevelStars = levelStars.map((v, idx) => (idx === active ? newCount : v))
     setStarsEarned(prev => prev.map((row, li) => (li === levelIndex ? updatedLevelStars : row)))
@@ -479,17 +217,18 @@ export default function LearnPage() {
         setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
       }
 
-      // Every column in the level mastered → the level gets its own beautiful
-      // cup + celebration, then either the next level unlocks or, on the
-      // final level, the whole journey is done.
+      // Every column in the level mastered → a full-screen overlay celebrates
+      // the level with its own beautiful cup, then either the next level
+      // unlocks or, on the final level, the whole journey is done.
       if (updatedLevelStars.every(v => v >= REPS_PER_LESSON)) {
         setLevelCelebrating(true)
+        setShowLevelOverlay(true)
+        playLevelFanfare()
         setTimeout(() => setLevelCelebrating(false), LEVEL_POP_MS)
         if (isLastLevel) setAllDone(true)
-        else setReadyForNextLevel(true)
       }
     }
-  }, [isPlayingRep, readyForNextLevel, nextLevel, readyToContinue, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel])
+  }, [isPlayingRep, showLevelOverlay, nextLevel, readyToContinue, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel])
 
   const selectColumn = useCallback((i: number) => {
     if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
@@ -502,63 +241,49 @@ export default function LearnPage() {
   }, [])
 
   let buttonLabel: string
-  if (isPlayingRep) buttonLabel = '🔊 Ascultă…'
-  else if (readyForNextLevel && nextLevel) buttonLabel = `🏆 Spre ${nextLevel.name} →`
+  if (isPlayingRep) buttonLabel = 'Repetă în glas'
   else if (readyToContinue) buttonLabel = 'Continuă →'
-  else if (allDone) buttonLabel = '🎉 Gata!'
-  else if (hasTrophy) buttonLabel = '🔁 Exersează din nou'
-  else buttonLabel = `▶ Repetă (${earned}/${REPS_PER_LESSON})`
+  else if (hasTrophy) buttonLabel = `Repetă (${(freePracticeCount % REPS_PER_LESSON) + 1}/${REPS_PER_LESSON})`
+  else buttonLabel = `Repetă (${earned + 1}/${REPS_PER_LESSON})`
 
   return (
     <main className="lesson-page">
-      <div className="lesson-back-row">
+      <div className="lesson-top-row">
         <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
+        <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
 
       <header className="lesson-header">
-        <h1 className="lesson-title">EiC · English in Colors</h1>
-        <p className="lesson-level-label">{level.name}</p>
-
-        {completedLevels.length > 0 && (
-          <div className="lesson-trophy-shelf" aria-label="Niveluri finalizate">
-            {completedLevels.map(i => (
-              <div key={LEVELS[i].id} className="lesson-trophy-badge" title={LEVELS[i].name}>
-                <Cup progressPct={100} size={30} color="#FFB300" allFull idSuffix={`shelf-${LEVELS[i].id}`} />
-                <span className="lesson-trophy-num">{i + 1}</span>
+        <div className="lesson-stepper" aria-label="Niveluri">
+          {LEVELS.map((lv, i) => {
+            const done = i < levelIndex || (i === levelIndex && allDone)
+            const isCurrent = i === levelIndex && !allDone
+            const locked = i > levelIndex
+            const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
+            return (
+              <div
+                key={lv.id}
+                className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${isCurrent ? 'is-current' : ''} ${locked ? 'is-locked' : ''}`}
+                style={pillStyle}
+                title={lv.name}
+              >
+                <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
+                <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
               </div>
-            ))}
-          </div>
-        )}
+            )
+          })}
+        </div>
 
-        {(levelCelebrating || readyForNextLevel) ? (
-          <div className="lesson-level-complete">
-            <Cup progressPct={100} size={104} color="#FFB300" celebrating={levelCelebrating} allFull idSuffix={`level-${level.id}`} confettiCount={26} />
-            <p className="lesson-level-complete-text">
-              🏆 {level.name} — finalizat!
-              {nextLevel && <><br />Se deschide <strong>{nextLevel.name}</strong></>}
-              {!nextLevel && <><br />Ai terminat tot EiC!</>}
-            </p>
-          </div>
-        ) : (
-          <>
-            <Cup progressPct={progressPct} size={88} color="#FFB300" allFull={levelMastered} idSuffix="master" />
-            <p className="lesson-progress-caption">
-              {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
-            </p>
-          </>
-        )}
+        <div className="lesson-progress-inline">
+          <Cup progressPct={progressPct} size={48} color="#FFB300" allFull={levelMastered} idSuffix="master" className="lesson-progress-cup" showBubbles ring />
+          <p className="lesson-progress-caption">
+            {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
+          </p>
+        </div>
 
         <p className="lesson-subhead">
-          {allDone ? '🎉 Ai finalizat toate nivelurile EiC!' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
+          {allDone ? 'Repetă cuvintele cu voce tare' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
         </p>
-        <button
-          className={`shadow-repeat-btn ${readyToContinue || (readyForNextLevel && nextLevel) ? 'is-continue' : ''}`}
-          onClick={handleMainButton}
-          disabled={isPlayingRep}
-          style={readyToContinue ? { background: lesson.color, borderColor: 'transparent', color: '#fff' } : undefined}
-        >
-          {buttonLabel}
-        </button>
       </header>
 
       <div className="lesson-grid">
@@ -590,6 +315,8 @@ export default function LearnPage() {
                   celebrating={isActive && celebrating}
                   allFull={trophyEarned}
                   idSuffix={l.id}
+                  showBubbles
+                  activePulse={isActive && !trophyEarned}
                 />
               )}
               {!isUnlocked && isNextUp && (
@@ -624,23 +351,52 @@ export default function LearnPage() {
                   )
                 })}
               </div>
+
+              {isActive && isUnlocked && (
+                <button
+                  className={`lesson-col-btn ${readyToContinue ? 'is-continue' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); handleMainButton() }}
+                  disabled={isPlayingRep}
+                  style={{ background: l.color }}
+                >
+                  {buttonLabel}
+                </button>
+              )}
             </div>
           )
         })}
       </div>
 
-      {nextLevel && !levelCelebrating && !readyForNextLevel && (
-        <div className="lesson-next-level-teaser">
-          <span className="lesson-next-level-lock" aria-hidden="true">🔒</span>
-          <div className="lesson-next-level-info">
-            <p className="lesson-next-level-name">{nextLevel.name}</p>
-            <div className="lesson-next-level-dots">
-              {nextLevel.lessons.map(nl => (
-                <span key={nl.id} className="lesson-next-level-dot" style={{ '--dot-color': nl.color } as CSSProperties} />
-              ))}
+      {showLevelOverlay && (
+        <div className="level-overlay" role="dialog" aria-modal="true" aria-label="Nivel finalizat">
+          <div className="level-overlay-card">
+            <div className="level-overlay-cupwrap">
+              <span className="level-overlay-rays" style={{ '--ray-color': '#FFB300' } as CSSProperties} aria-hidden="true" />
+              <Cup
+                progressPct={100}
+                size={132}
+                color="#FFB300"
+                celebrating={levelCelebrating}
+                allFull
+                idSuffix={`overlay-${level.id}`}
+                confettiCount={32}
+                big
+                showBubbles
+              />
+              <span className="level-overlay-mascot" aria-hidden="true">🥳</span>
             </div>
+            <p className="level-overlay-title">🏆 {level.name}</p>
+            <p className="level-overlay-sub">
+              {nextLevel ? <>Se deschide <strong>{nextLevel.name}</strong></> : 'Ai finalizat tot EiC — felicitări!'}
+            </p>
+            <button
+              className="level-overlay-btn"
+              onClick={handleMainButton}
+              style={{ background: nextLevel ? nextLevel.lessons[0].color : '#FFB300' }}
+            >
+              {nextLevel ? `Spre ${nextLevel.name} →` : '🎉 Minunat!'}
+            </button>
           </div>
-          <span className="lesson-next-level-caption">se deschide după finalizarea acestui nivel</span>
         </div>
       )}
     </main>
