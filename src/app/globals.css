@@ -1711,3 +1711,26 @@ button, textarea, input { font-family: var(--font-sans); }
   .lesson-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lesson-stepper-label { display: none; }
 }
+
+/* ── Stivă de 2 butoane în lesson-top-row: „Pagina principală” + link spre
+   pagina de prezentare (hero), unul sub altul, fără să lărgească rândul. ── */
+.lesson-top-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  justify-self: start;
+}
+.lesson-hero-btn {
+  opacity: 0.75;
+}
+.lesson-hero-btn:hover {
+  opacity: 1;
+}
+
+/* ── /welcome — wrapper-ul rutei hero. .eic-hero însuși are deja
+   max-width/margin auto/padding proprii; asta e doar respirația de
+   pagină, ca la celelalte rute (.lesson-page, .rules-page etc.). ── */
+.welcome-page {
+  padding: 2rem 1rem 3rem;
+}

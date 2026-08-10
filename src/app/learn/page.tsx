@@ -46,7 +46,7 @@ export default function LearnPage() {
   const [showLevelOverlay, setShowLevelOverlay]   = useState(false)
   const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
 
-  const hydrated    = useRef(false)
+  const [hydrated, setHydrated] = useState(false)
   const autoCancel  = useRef(false)
   // Holds a { pause } handle for whatever's currently speaking (Web Speech API),
   // so the cleanup/stop logic below can silence it instantly either way.
@@ -69,16 +69,22 @@ export default function LearnPage() {
         if (saved.allDone) setAllDone(saved.allDone)
       }
     } catch { /* ignore */ }
-    hydrated.current = true
+    // `hydrated` is real state (not a ref) on purpose: the save-effect below
+    // is gated on it via its dependency array, so it only actually runs on
+    // the render AFTER these restored values have landed — never on the
+    // same pass, with the still-default values, which used to silently
+    // overwrite a real saved progress with zeros every time this page
+    // remounted (e.g. going home and back mid-lesson).
+    setHydrated(true)
   }, [])
 
   useEffect(() => {
-    if (!hydrated.current) return
+    if (!hydrated) return
     try {
       const toSave: SavedProgress = { levelIndex, unlockedLevels, colUnlocked, starsEarned, active, allDone }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     } catch { /* ignore */ }
-  }, [levelIndex, unlockedLevels, colUnlocked, starsEarned, active, allDone])
+  }, [hydrated, levelIndex, unlockedLevels, colUnlocked, starsEarned, active, allDone])
 
   // ── Leaving the column (or the level) mid-repetition also stops playback ──
   useEffect(() => {
@@ -249,7 +255,11 @@ export default function LearnPage() {
   return (
     <main className="lesson-page">
       <div className="lesson-top-row">
-        <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
+        <div className="lesson-top-links">
+          <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
+          {/* ADAPT: schimbă "/welcome" cu ruta reală a hero-ului, dacă diferă */}
+          <Link href="/welcome" className="lesson-back-btn lesson-hero-btn" onClick={stopPlayback}>✨ Vezi pagina de prezentare</Link>
+        </div>
         <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
 

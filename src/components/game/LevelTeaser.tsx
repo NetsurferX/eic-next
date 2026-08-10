@@ -39,8 +39,7 @@ export default function LevelTeaser() {
     <Link href="/learn" className="eic-level-teaser">
       <Cup progressPct={pct} size={34} color="#FFB300" allFull={total >= max} idSuffix="landing-teaser" />
       <span className="eic-level-teaser-text">
-        <strong>{progress.allDone ? 'Toate nivelurile finalizate 🎉' : level.name}</strong>
-        {!progress.allDone && <em>{total}/{max} — continuă →</em>}
+        <strong>{progress.allDone ? 'Învață EiC' : level.name}</strong>
       </span>
     </Link>
   )
