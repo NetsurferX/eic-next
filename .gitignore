@@ -4,3 +4,4 @@ tsconfig.tsbuildinfo
 .next/
 .vercel
 .env*
+graphify-out/
