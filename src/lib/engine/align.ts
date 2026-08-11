@@ -78,6 +78,21 @@ const CONSONANT_SPELLINGS = new Map<string, string[]>([
   ['kʃ',  ['x']],           // /kʃ/ — "sexual"
 ])
 
+// ── Silent letter within a consonant digraph ──────────────────────────────────
+// B_tehnic — principiul literei mute (a), "grafemele-consoane": o parte din
+// digraful care sună identifică sunetul (negru, normal), cealaltă parte NU se
+// pronunță deloc și trebuie desprinsă ca nod gri separat, nu contopită într-un
+// singur nod uniform colorat cu restul digrafului.
+// display → spelling (lowercase) → [start,end) felia din spelling care e mută.
+// Cheia e sunetul-țintă (`display`), deci "wh" apare de două ori cu felii
+// diferite: pt /h/ (who) 'w'-ul e mut; pt /w/ (what) 'h'-ul e mut.
+const SILENT_WITHIN_SPELLING: Record<string, Record<string, [number, number]>> = {
+  n: { kn: [0, 1], gn: [0, 1] },   // knight, gnome — k/g mut, n sună
+  r: { wr: [0, 1], rh: [1, 2] },   // write — w mut; rhythm — h mut
+  h: { wh: [0, 1] },               // who, whole, whose — w mut
+  w: { wh: [1, 2] },               // what, when, why — h mut
+}
+
 function tryConsSpellings(display: string, word: string, pos: number): string {
   const spellings = CONSONANT_SPELLINGS.get(display)
   if (!spellings) return ''
@@ -95,14 +110,14 @@ function consumeVowel(
   word: string,
   pos: number,
   nextDisplay: string | undefined
-): { consumed: string; newPos: number } {
+): { consumed: string; newPos: number; muteTail: string } {
   const wLen = word.length
 
   // Glide sound: consume exactly 1 letter (it may be a consonant-looking letter
   // like 'u' in "queen" or 'o' in "one") — never extend into the adjacent vowel run
   if (GLIDE_DISPLAYS.has(display)) {
     const consumed = pos < wLen ? word[pos] : ''
-    return { consumed, newPos: pos + (consumed ? 1 : 0) }
+    return { consumed, newPos: pos + (consumed ? 1 : 0), muteTail: '' }
   }
 
   // True vowel: consume the consecutive vowel-letter run.
@@ -140,13 +155,22 @@ function consumeVowel(
     // Trailing w/y digraph (ow/aw/ay/oy/ey) — only when run had a real vowel start
     if (graphicVowelCount > 0 && pos < wLen && 'wyWY'.includes(word[pos])) pos++
 
-    // Silent 'gh' after vowel run (night, high, caught, though).
+    // Silent 'gh' after vowel run (night, high, caught, though). B_tehnic —
+    // principiul literei mute (a): 'gh' aici e o pereche "grafeme-consoane"
+    // complet mută și trebuie desprinsă ca nod gri propriu, NU inclusă în
+    // grafemul colorat al vocalei (altfel "igh" ar fi colorat uniform, dar
+    // spec cere 'i' colorat + 'gh' gri separat, ca în knight/sigh). Poziția
+    // dinaintea lui 'gh' e reținută separat (preGhPos) tocmai ca `consumed`
+    // de mai jos să NU includă gh-ul.
+    let ghLen = 0
     if (pos > start && pos + 1 < wLen
         && (word[pos] === 'g' || word[pos] === 'G')
         && (word[pos + 1] === 'h' || word[pos + 1] === 'H')
         && nextDisplay !== 'f' && nextDisplay !== 'g') {
-      pos += 2
+      ghLen = 2
     }
+    const preGhPos = pos
+    pos += ghLen
 
     // R-controlled absorption:
     // a) Display IS r-colored (ər, er…): always absorb the 'r' letter.
@@ -160,9 +184,20 @@ function consumeVowel(
     if (pos < wLen && (word[pos] === 'r' || word[pos] === 'R') && nextDisplay !== 'r') {
       if (R_COLORED.has(display) || (nextIsConsonant && graphicVowelCount <= 1)) pos++
     }
+
+    // consumed = tot run-ul (start..pos), MINUS doar felia gh (dacă există) —
+    // nu doar prefixul de dinainte de gh, ca să nu pierdem litere absorbite
+    // DUPĂ gh (ex. un eventual 'r' r-controlled — caz teoretic, dar corect).
+    const wholeRun = word.slice(start, pos)
+    const ghRelStart = preGhPos - start
+    const consumed = ghLen > 0
+      ? wholeRun.slice(0, ghRelStart) + wholeRun.slice(ghRelStart + ghLen)
+      : wholeRun
+    const muteTail = ghLen > 0 ? wholeRun.slice(ghRelStart, ghRelStart + ghLen) : ''
+    return { consumed, newPos: pos, muteTail }
   }
 
-  return { consumed: word.slice(start, pos), newPos: pos }
+  return { consumed: word.slice(start, pos), newPos: pos, muteTail: '' }
 }
 
 // ── Main alignment ────────────────────────────────────────────────────────────
@@ -186,22 +221,49 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
     }
 
     let consumed = ''
+    let muteTail = ''      // B_tehnic (a) — 'gh' mut desprins din grupul de vocale
+    let silentSlice: [number, number] | undefined
 
     if (isVowel) {
       const r = consumeVowel(display, word, pos, nextDisplay)
       consumed = r.consumed
       pos = r.newPos
+      muteTail = r.muteTail
     } else {
       // 1. Try spelling table (handles ti→sh, rr→r, ch→k, ph→f, kn→n, etc.)
       const fromTable = tryConsSpellings(display, word, pos)
       if (fromTable) {
         consumed = fromTable
         pos += fromTable.length
+        silentSlice = SILENT_WITHIN_SPELLING[display]?.[fromTable.toLowerCase()]
       } else if (pos < wLen && isGraphicCons(word[pos])) {
         // 2. Generic fallback: 1 letter (2 for IPA digraphs like th, ng)
         consumed = word[pos++]
         if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos]))
           consumed += word[pos++]
+      } else if (
+        // B_tehnic (b): 'e' mut de sufix poate sta chiar înaintea consoanei
+        // finale (played/walked → -ed; legumes/molecules → -es/-s, /z/),
+        // nu doar fuzionat într-un digraf vocalic (cooed, tratat separat
+        // prin splitMuteEdSuffix mai jos). General pentru ULTIMUL fonem al
+        // cuvântului: dacă nu s-a găsit nimic la poziția curentă și litera
+        // curentă e 'e', încearcă litera următoare — dacă se potrivește,
+        // 'e' devine nod gri separat, iar consoana găsită își ia locul ei.
+        // Sigur: se declanșează DOAR pe eșec total de potrivire (înainte
+        // fonemul rămânea complet invizibil), deci nu poate strica un caz
+        // care oricum funcționa.
+        si === segs.length - 1
+        && pos < wLen && (word[pos] === 'e' || word[pos] === 'E')
+      ) {
+        const afterE = tryConsSpellings(display, word, pos + 1)
+          || (pos + 1 < wLen && isGraphicCons(word[pos + 1]) ? word[pos + 1] : '')
+        if (afterE) {
+          nodes.push({ t: word[pos], s: '', c: COLOR_SILENT, u: false, x: false })
+          pos += 1
+          consumed = afterE
+          pos += afterE.length
+          silentSlice = SILENT_WITHIN_SPELLING[display]?.[afterE.toLowerCase()]
+        }
       }
       // 3. Nothing matched → consumed stays '' (truly latent phoneme)
     }
@@ -210,6 +272,40 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
     const isCons     = !color
     const isStressed = accented && isVowel
 
+    // B_tehnic — principiul literei mute (a): digraf consonantic cu o
+    // literă complet mută (kn, gn, wr, rh, wh) → două noduri, nu unul:
+    // litera mută (gri) + litera care sună (normal).
+    if (!isVowel && silentSlice) {
+      const [ss, se] = silentSlice
+      const muteText = consumed.slice(ss, se)
+      const realText = consumed.slice(0, ss) + consumed.slice(se)
+      const realNode: RenderNode = { t: realText, s: display, c: color ?? COLOR_CONSONANT, u: false, x: true }
+      const silentNode: RenderNode = { t: muteText, s: '', c: COLOR_SILENT, u: false, x: false }
+      if (ss === 0) nodes.push(silentNode, realNode)
+      else nodes.push(realNode, silentNode)
+      continue
+    }
+
+    // B_tehnic — regula (e): un fonem fără nicio literă/grup de litere
+    // corespondent (consumed==='') apare ca ridicare la putere, nu dispare
+    // silențios. Excepție — regula (d): dacă e chiar sunetul /w/ prins
+    // între o schwă și un fonem consonantic, se colorează gri (fără
+    // superscript), nu ridicare la putere.
+    // EXCEPȚIE separată, nu din spec ci din arhitectura deja existentă:
+    // schwa (/ə/) latentă (t='') e mecanismul deliberat de "consoană
+    // silabică" din Regula 4 (apple/table/button — validat pe date reale
+    // în sesiuni anterioare, vezi [[eic-lexicon-db]]) — rămâne complet
+    // invizibilă (fără superscript), altfel s-ar strica acel guard.
+    if (consumed === '' && display !== 'ə') {
+      const prevDisplay = si > 0 ? segs[si - 1].display : undefined
+      const isPhantomWAfterSchwa = display === 'w' && prevDisplay === 'ə'
+        && nextDisplay !== undefined && !isVowelDisplay(nextDisplay)
+      nodes.push(isPhantomWAfterSchwa
+        ? { t: '', s: display, c: COLOR_SILENT, u: false, x: isCons }
+        : { t: '', s: display, c: color ?? (isCons ? COLOR_CONSONANT : COLOR_SILENT), u: isStressed, x: isCons, superscriptOverride: display })
+      continue
+    }
+
     nodes.push({
       t: consumed,
       s: display,
@@ -217,6 +313,13 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
       u: isStressed,
       x: isCons,
     })
+
+    // B_tehnic — principiul literei mute (a): 'gh' mut desprins din grupul
+    // de vocale al lui knight/sigh/night/caught etc., ca nod gri separat,
+    // nu contopit cu culoarea vocalei.
+    if (muteTail) {
+      nodes.push({ t: muteTail, s: '', c: COLOR_SILENT, u: false, x: false })
+    }
   }
 
   // Remaining letters → silent tail
@@ -251,5 +354,36 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
     for (const n of nodes) n.u = false
   }
 
-  return nodes
+  return splitMuteEdSuffix(word, nodes)
+}
+
+// B_tehnic — principiul literei mute (b): "E mut prevăzut expres1" — 'e'-ul
+// din sufixul "-ed" rămâne mut când n-are propriul fonem în transcriere,
+// chiar dacă a fost consumat ca parte dintr-un grup de vocale deja complet
+// (ex. cooed /kuːd/: digraful "oo" duce singur /uː/-ul, iar 'e' de la "-ed"
+// nu are propriul segment — trebuie desprins ca nod gri, nu contopit cu "oo").
+//
+// Semnal folosit: cuvântul se termină în "ed", iar nodul-vocală imediat
+// dinaintea consoanei finale 'd' a consumat un run de ≥3 litere terminat în
+// 'e'. Un digraf englezesc normal are 2 litere (oo, ee, oa, oe, ow...); a
+// treia literă vocalică e semnul că 'e' e adăugarea sufixului, nu parte din
+// digraf. De-asta "hoed"/"freed"/"seed" (run de 2 litere: "oe"/"ee") NU se
+// despart — acolo 'e' e organic parte a digrafului/temei, corect.
+function splitMuteEdSuffix(word: string, nodes: RenderNode[]): RenderNode[] {
+  if (!/ed$/i.test(word) || nodes.length < 2) return nodes
+  const last = nodes[nodes.length - 1]
+  const prev = nodes[nodes.length - 2]
+  const lastIsFinalD = last.x && last.t.length > 0 && last.t.toLowerCase() === 'd'
+  const prevIsVowelRun = !prev.x && prev.t.length >= 3
+    && prev.t[prev.t.length - 1].toLowerCase() === 'e'
+  if (!lastIsFinalD || !prevIsVowelRun) return nodes
+
+  const stem = prev.t.slice(0, -1)
+  const muteE = prev.t[prev.t.length - 1]
+  return [
+    ...nodes.slice(0, -2),
+    { ...prev, t: stem },
+    { t: muteE, s: '', c: COLOR_SILENT, u: false, x: false },
+    last,
+  ]
 }

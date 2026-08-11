@@ -258,7 +258,6 @@ export default function LearnPage() {
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
           {/* ADAPT: schimbă "/culise" cu ruta reală a hero-ului, dacă diferă */}
-          <Link href="/culise" className="lesson-back-btn lesson-hero-btn" onClick={stopPlayback}>✨ Vezi pagina de prezentare</Link>
         </div>
         <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
