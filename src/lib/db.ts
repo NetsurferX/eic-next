@@ -152,6 +152,35 @@ export interface WordResult {
   variant: 'uk' | 'us' | 'coin' | 'derived'
 }
 
+export interface VariantResult {
+  ipa:   string
+  nodes: RenderNode[]
+}
+
+// ── Dual-accent raw lookup (debug/culise page) ─────────────────────────────────
+// Unlike getBestNodes(), this never picks a "winner" — it returns both the uk
+// and us rows straight from lexicon.db (A), each run through the same
+// processIpa()/firstIpaVariant() pipeline as the real lookup, so a debug view
+// can show exactly what each accent resolves to, side by side. No cache (B)
+// involvement — always fresh off the lexicon, mirroring what accent-test.ts
+// already does for its own two example cases.
+export function getRawVariants(word: string): { uk: VariantResult | null; us: VariantResult | null } {
+  word = word.toLowerCase().trim()
+  if (!word || !/^[a-z'-]+$/.test(word)) return { uk: null, us: null }
+
+  const ukRow = stmtUk().get(word) as { ipa: string } | undefined
+  const usRow = stmtUs().get(word) as { ipa: string } | undefined
+
+  const uk = ukRow
+    ? { ipa: firstIpaVariant(ukRow.ipa), nodes: processIpa(word, firstIpaVariant(ukRow.ipa)) }
+    : null
+  const us = usRow
+    ? { ipa: firstIpaVariant(usRow.ipa), nodes: processIpa(word, firstIpaVariant(usRow.ipa)) }
+    : null
+
+  return { uk, us }
+}
+
 // ── -s suffix fallback ────────────────────────────────────────────────────────
 // Cuvântul cerut nu e în lexicon (ex: "cats" nu are rând propriu), dar dacă
 // e "bază + s" și baza există în lexicon, sintetizăm nodul de sufix în loc

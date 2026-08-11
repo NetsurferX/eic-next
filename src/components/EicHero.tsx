@@ -211,6 +211,7 @@ export default function EicHero() {
   const lookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestId = useRef(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const key = query.trim().toLowerCase();
   const demoEntry = DEMO[key];
@@ -307,34 +308,27 @@ export default function EicHero() {
           max-width: 780px;
           margin: 0 auto;
         }
-        .eic-eyebrow {
-          font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
-          font-size: 0.72rem;
+        .eic-hero-top {
+          display: flex;
+          margin-bottom: 1.6rem;
+        }
+        .eic-back-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 12px;
           font-weight: 600;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
+          font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
           color: var(--color-text-secondary, #000000);
-          opacity: 0.7;
-          margin: 0 0 1rem;
+          text-decoration: none;
+          padding: 5px 12px;
+          border: 1px solid var(--color-border, #e8e6e1);
+          border-radius: var(--radius-md, 14px);
+          background: var(--color-surface, #f8f7f4);
+          transition: background 0.15s;
         }
-        .eic-headline {
-          font-family: var(--font-serif, Georgia, serif);
-          font-weight: 400;
-          font-size: clamp(2.1rem, 5vw, 3.1rem);
-          line-height: 1.12;
-          margin: 0 0 0.85rem;
-          letter-spacing: -0.01em;
-        }
-        .eic-headline em {
-          font-style: italic;
-        }
-        .eic-sub {
-          color: var(--color-text-secondary, #000000);
-          opacity: 0.75;
-          font-size: 1.02rem;
-          line-height: 1.55;
-          max-width: 46ch;
-          margin: 0 0 2.4rem;
+        .eic-back-btn:hover {
+          background: var(--color-surface-2, #f1f0ec);
         }
         .eic-card {
           background: var(--color-surface, #f8f7f4);
@@ -342,40 +336,46 @@ export default function EicHero() {
           border-radius: var(--radius-xl, 28px);
           padding: 1.6rem 1.7rem 1.4rem;
         }
-        .eic-input-row {
-          display: flex;
-          align-items: baseline;
-          gap: 0.6rem;
+        /* One field, not two: a colored/underlined overlay sits behind a
+           transparent-text input sharing its exact font metrics (same
+           trick as .eic-highlight/.eic-textarea on the home page), so
+           what you type IS the colored word — no separate render below. */
+        .eic-word-field {
+          position: relative;
+          cursor: text;
           border-bottom: 1px solid var(--color-border-soft, #f0efe9);
           padding-bottom: 0.9rem;
           margin-bottom: 1.1rem;
         }
-        .eic-input-row label {
-          font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
-          font-size: 0.72rem;
-          font-weight: 600;
-          color: var(--color-text-muted, #8a8578);
-          letter-spacing: 0.08em;
-        }
-        .eic-input {
-          background: transparent;
-          border: none;
-          outline: none;
-          color: var(--color-text-primary, #1a1917);
-          font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
-          font-size: 1.5rem;
-          font-weight: 500;
-          flex: 1;
-          min-width: 0;
-        }
-        .eic-input::placeholder { color: var(--color-text-muted, #8a8578); opacity: 0.6; }
-
-        .eic-word {
+        .eic-word-highlight,
+        .eic-word-input {
           font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
           font-size: 2.4rem;
           font-weight: 600;
           letter-spacing: -0.01em;
-          margin: 0.2rem 0 0.4rem;
+          line-height: 1.15;
+        }
+        .eic-word-highlight {
+          position: relative;
+          z-index: 1;
+          pointer-events: none;
+          min-height: 1.15em;
+        }
+        .eic-word-input {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          width: 100%;
+          border: none;
+          outline: none;
+          background: transparent;
+          color: transparent;
+          caret-color: var(--color-text-primary, #1a1917);
+        }
+        .eic-word-input::placeholder { color: transparent; }
+        .eic-word-placeholder {
+          color: var(--color-text-muted, #8a8578);
+          opacity: 0.6;
         }
         .eic-ipa {
           font-family: 'Courier New', monospace;
@@ -436,69 +436,44 @@ export default function EicHero() {
           font-weight: 700;
         }
 
-        .eic-ctas {
-          display: flex;
-          gap: 0.9rem;
-          margin-top: 2.6rem;
-          flex-wrap: wrap;
-        }
-        .eic-btn {
-          font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, sans-serif);
-          font-size: 0.9rem;
-          font-weight: 600;
-          padding: 0.7rem 1.4rem;
-          border-radius: var(--radius-md, 14px);
-          cursor: pointer;
-          border: 1px solid var(--color-border, #e8e6e1);
-          background: var(--color-surface, #f8f7f4);
-          color: var(--color-text-primary, #1a1917);
-          transition: background 160ms ease, opacity 160ms ease;
-        }
-        .eic-btn.primary {
-          background: var(--color-text-primary, #1a1917);
-          border-color: var(--color-text-primary, #1a1917);
-          color: #fff;
-        }
-        .eic-btn.primary:hover { opacity: 0.85; }
-        .eic-btn:not(.primary):hover { background: var(--color-surface-2, #f1f0ec); }
-
         @media (prefers-reduced-motion: reduce) {
           .eic-node { transition: none; }
         }
       `}</style>
 
-      <p className="eic-eyebrow">English in Colours</p>
-      <h1 className="eic-headline">
-        Spelling lies.
-        <br />
-        <em>Sound doesn't.</em>
-      </h1>
-      <p className="eic-sub">
-        Type any word EiC knows and watch its real pronunciation resolve in color —
-        stress, vowels, glides, and the letters that go silent.
-      </p>
+      <div className="eic-hero-top">
+        <Link href="/learn" className="eic-back-btn">← Return to game</Link>
+      </div>
 
       <div className="eic-card">
-        <div className="eic-input-row">
-          <label htmlFor="eic-word-input">word</label>
+        <div
+          className="eic-word-field"
+          onClick={() => inputRef.current?.focus()}
+        >
+          <div className="eic-word-highlight" aria-hidden="true">
+            {entry ? (
+              entry.nodes.map((n, i) => (
+                <Node key={i} node={n} resolved={resolved} source="word" glyphOverride />
+              ))
+            ) : (
+              <span className="eic-word-placeholder">try lawyer, tower, beauty…</span>
+            )}
+          </div>
           <input
+            ref={inputRef}
             id="eic-word-input"
-            className="eic-input"
+            className="eic-word-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="try lawyer, tower, beauty…"
+            placeholder=" "
             autoComplete="off"
             spellCheck="false"
+            aria-label="word"
           />
         </div>
 
         {entry ? (
           <>
-            <div className="eic-word">
-              {entry.nodes.map((n, i) => (
-                <Node key={i} node={n} resolved={resolved} source="word" glyphOverride />
-              ))}
-            </div>
             <div className="eic-ipa">
               /{entry.nodes.map((n, i) => (
                 <Node key={i} node={n} resolved={resolved} source="ipa" />
@@ -529,11 +504,6 @@ export default function EicHero() {
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="eic-ctas">
-        <Link href="/learn" className="eic-btn primary">Learn the system</Link>
-        <Link href="/rules" className="eic-btn">Open the rules editor</Link>
       </div>
     </div>
   );

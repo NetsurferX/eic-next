@@ -147,7 +147,7 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 
 /* Literă mută */
-.eic-silent { color: #000000 !important; }
+.eic-silent { color: #8A8578 !important; }
 .eic-semivowel { color: #000000 !important; }
 
 /* Diphthong gradient — background-clip text */

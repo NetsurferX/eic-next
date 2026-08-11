@@ -103,7 +103,11 @@ export const SOUND_COLORS: SoundColor[] = [
 
 // ── Derived views — every consumer reads ONE of these, never hardcodes hex ──
 
-export const COLOR_SILENT = '#000000'
+// COLOR_SILENT used to be identical to COLOR_CONSONANT (#000000), making a
+// silent letter visually indistinguishable from an ordinary black consonant.
+// Grey sets it apart at a glance, matching the muted/secondary tone already
+// used elsewhere in the UI (EicHero's --color-text-muted fallback).
+export const COLOR_SILENT = '#8A8578'
 export const COLOR_CONSONANT = '#000000'
 
 /** Flat sound → hex lookup. What engine/align.ts and engine/display.ts use. */
