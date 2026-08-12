@@ -236,34 +236,41 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
         consumed = fromTable
         pos += fromTable.length
         silentSlice = SILENT_WITHIN_SPELLING[display]?.[fromTable.toLowerCase()]
+      } else if (
+        // B_tehnic (a)+(b) generalizat: dacă litera curentă NU spune deloc
+        // sunetul (nici prin tabel), dar litera URMĂTOARE se potrivește
+        // exact prin tabel, litera curentă e complet mută (nod gri) și
+        // sunetul se leagă de litera corectă de după ea. Trebuie verificat
+        // ÎNAINTE de fallback-ul generic de mai jos (care altfel apucă orbește
+        // orice literă consonantică, indiferent dacă spune sau nu sunetul —
+        // exact bug-ul din "calm": /m/ apuca 'l' în loc de 'm').
+        // Acoperă atât consoane pur decorative — 'l' mut înainte de /m/
+        // (calm/palm/qualm) sau de /k/ (walk/talk/chalk) — cât și 'e' mut
+        // de sufix (played/walked → -ed; legumes/molecules → -es/-s, /z/,
+        // tratat înainte separat prin cooed's splitMuteEdSuffix pt varianta
+        // fuzionată-în-vocală). Doar pt ULTIMUL fonem al cuvântului — nu
+        // poate strica un caz care oricum funcționa, se declanșează STRICT
+        // pe eșec total la poziția curentă.
+        si === segs.length - 1 && pos < wLen
+      ) {
+        const better = tryConsSpellings(display, word, pos + 1)
+        if (better) {
+          nodes.push({ t: word[pos], s: '', c: COLOR_SILENT, u: false, x: false })
+          consumed = better
+          pos = pos + 1 + better.length
+          silentSlice = SILENT_WITHIN_SPELLING[display]?.[better.toLowerCase()]
+        } else if (isGraphicCons(word[pos])) {
+          // Niciun ajutor din tabel la pos+1 → fallback vechi, ca să nu
+          // pierdem litera complet.
+          consumed = word[pos++]
+          if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos]))
+            consumed += word[pos++]
+        }
       } else if (pos < wLen && isGraphicCons(word[pos])) {
         // 2. Generic fallback: 1 letter (2 for IPA digraphs like th, ng)
         consumed = word[pos++]
         if (ipa.length >= 2 && pos < wLen && isGraphicCons(word[pos]))
           consumed += word[pos++]
-      } else if (
-        // B_tehnic (b): 'e' mut de sufix poate sta chiar înaintea consoanei
-        // finale (played/walked → -ed; legumes/molecules → -es/-s, /z/),
-        // nu doar fuzionat într-un digraf vocalic (cooed, tratat separat
-        // prin splitMuteEdSuffix mai jos). General pentru ULTIMUL fonem al
-        // cuvântului: dacă nu s-a găsit nimic la poziția curentă și litera
-        // curentă e 'e', încearcă litera următoare — dacă se potrivește,
-        // 'e' devine nod gri separat, iar consoana găsită își ia locul ei.
-        // Sigur: se declanșează DOAR pe eșec total de potrivire (înainte
-        // fonemul rămânea complet invizibil), deci nu poate strica un caz
-        // care oricum funcționa.
-        si === segs.length - 1
-        && pos < wLen && (word[pos] === 'e' || word[pos] === 'E')
-      ) {
-        const afterE = tryConsSpellings(display, word, pos + 1)
-          || (pos + 1 < wLen && isGraphicCons(word[pos + 1]) ? word[pos + 1] : '')
-        if (afterE) {
-          nodes.push({ t: word[pos], s: '', c: COLOR_SILENT, u: false, x: false })
-          pos += 1
-          consumed = afterE
-          pos += afterE.length
-          silentSlice = SILENT_WITHIN_SPELLING[display]?.[afterE.toLowerCase()]
-        }
       }
       // 3. Nothing matched → consumed stays '' (truly latent phoneme)
     }
