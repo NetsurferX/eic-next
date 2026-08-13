@@ -37,6 +37,28 @@ function Val({ v }: { v: unknown }) {
   return <span style={{ color: "#4C7A3D" }}>'{String(v)}'</span>;
 }
 
+function ColorVal({ v }: { v: unknown }) {
+  if (v === null || v === undefined || v === "" || v === "transparent")
+    return <span style={{ color: "var(--color-text-muted, #8a8578)" }}>—</span>;
+  const value = String(v);
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+      <span
+        style={{
+          display: "inline-block",
+          width: "0.9em",
+          height: "0.9em",
+          borderRadius: "3px",
+          background: value,
+          border: "1px solid var(--color-border, #e8e6e1)",
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ color: "#4C7A3D" }}>'{value}'</span>
+    </span>
+  );
+}
+
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="culise-th">{children}</th>;
 }
@@ -101,7 +123,7 @@ function Panel({
                 <Td><Val v={i} /></Td>
                 <Td><Val v={d.t} /></Td>
                 <Td><Val v={d.sound} /></Td>
-                <Td><Val v={d.color} /></Td>
+                <Td><ColorVal v={d.color} /></Td>
                 <Td><Val v={d.underline} /></Td>
                 <Td><Val v={d.mute} /></Td>
               </tr>
