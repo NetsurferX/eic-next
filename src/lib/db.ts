@@ -5,7 +5,7 @@
 
 import Database from 'better-sqlite3'
 import path from 'path'
-import { processIpa, scoreNodes, extractProps, COLOR_CONSONANT } from './engine'
+import { processIpa, extractProps, COLOR_CONSONANT } from './engine'
 import type { RenderNode } from './engine'
 import { EiCSuffixVoicingPipeline } from './engine/suffixVoicing'
 
@@ -303,20 +303,42 @@ export function getBestNodesMany(words: string[]): Map<string, WordResult> {
 }
 
 // ── Selection algorithm ───────────────────────────────────────────────────────
-
+// RULE 1 (spec 2026-08-13): "If /V/∼/Vr/ ⇒ EiC=/Vr/" — when RP (`uk`, non-
+// rhotic: bare vowel, no /r/) and GA (`us`, rhotic: vowel+/r/) attest the
+// same word, EiC prefers the rhotic form. Verified this is a SYSTEMIC split
+// between the two tables, not per-word noise: uk "near"=/nˈi‌ə/, us "near"=
+// /ˈnɪɹ/ — no /r/ sound at all in uk's transcription, same for fire/poor/
+// lawyer. So "prefer /Vr/" in practice means "prefer `us`", full stop —
+// there's no per-phoneme comparison to do here, and no scoring needed.
+//
+// This REPLACES the old scoreNodes()-based selection (which compared how
+// many letters each render coloured, with a Math.random() coin-flip on
+// ties — non-deterministic: ~half the shared uk/us vocabulary could render
+// with either accent's phonetics on any given lookup). Rule 1 makes the
+// choice a fixed, explainable default instead: `us` unless the word simply
+// isn't in `us` at all, in which case `uk` is the only option anyway.
+//
+// Colouring itself needs no separate handling here — `processIpa()` already
+// produces fully-coloured RenderNode[] for BOTH ukNodes and usNodes before
+// this function ever runs (colors.ts's getColor() applies identically
+// regardless of source table). This function only decides WHICH already-
+// coloured render wins; it was never responsible for colouring itself.
+//
+// scoreNodes()/score.ts is no longer called from here. Left in place (still
+// exported from engine/index.ts) in case another caller needs a rough
+// "how much got coloured" signal — but it's not a linguistic rule and
+// should not come back into the uk/us decision.
+//
+// CACHE NOTE: existing cache.db rows may still carry variant:'coin' from
+// before this fix — the old coin-flip choice is now permanently frozen in
+// cache for those words rather than reconsidered under Rule 1, same class
+// of staleness bug as the earlier lawyer/cache.db issue. Re-processing (or
+// a targeted `DELETE FROM words WHERE variant='coin'`) is needed to apply
+// Rule 1 retroactively to already-cached words.
 function selectBest(uk: RenderNode[] | null, us: RenderNode[] | null): WordResult | null {
   if (!uk && !us) return null
-  if (!uk) return { nodes: us!, variant: 'us' }
-  if (!us) return { nodes: uk,  variant: 'uk' }
-
-  const ukScore = scoreNodes(uk)
-  const usScore = scoreNodes(us)
-
-  if (ukScore > usScore) return { nodes: uk, variant: 'uk' }
-  if (usScore > ukScore) return { nodes: us, variant: 'us' }
-
-  const winner = Math.random() < 0.5 ? 'uk' : 'us'
-  return { nodes: winner === 'uk' ? uk : us, variant: 'coin' }
+  if (us) return { nodes: us, variant: 'us' }
+  return { nodes: uk!, variant: 'uk' }
 }
 
 // ── Prefix search (from cache first, fallback to lexicon) ─────────────────────

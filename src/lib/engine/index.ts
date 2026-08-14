@@ -8,6 +8,7 @@
 
 import { segment } from './segment'
 import { align } from './align'
+import { applyPhonologicalRules } from '../phonologicalRules'
 import { COLOR_SILENT } from '../rules/colors'
 import type { RenderNode } from './types'
 
@@ -15,7 +16,11 @@ export function processIpa(word: string, rawIpa: string): RenderNode[] {
   if (!rawIpa?.trim()) {
     return [{ t: word, s: '', c: COLOR_SILENT, u: false, x: false }]
   }
-  const segs = segment(rawIpa)
+  // Regulile 7, 8, 12 din protocolul fonologic — rulează pe IPA-ul brut,
+  // înainte de segment(), vezi engine/phonologicalRules.ts pentru ce e
+  // portat aici și ce nu (și de ce).
+  const ipa = applyPhonologicalRules(word, rawIpa)
+  const segs = segment(ipa)
   return align(word, segs)
 }
 

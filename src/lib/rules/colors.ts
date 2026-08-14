@@ -86,7 +86,14 @@ export const SOUND_COLORS: SoundColor[] = [
     note: 'SPEC CORRECTION (§9): split out of the aɪ blue group it used to share.',
   },
   {
-    sounds: ['oɪ', 'oỷ', 'ɔɪ'], hex: '#FF3399', label: 'ɔɪ', example: 'boy, coin', category: 'vowel',
+    // BUG FIX: was 'oỷ' (precomposed U+1EF7) — segment.ts's TRANSFORMS
+    // actually emits 'oy̓' (y + U+0313 combining comma-above) for /ɔɪ/,
+    // same combining convention as every other y̓-glide entry in this file
+    // (eɪ→ey̓, aɪ→ay̓, j→y̓). The mismatch was masked by getColor()'s
+    // fallback to the first character ('o'), which happens to share this
+    // same hex — see the note below. Fixing it now so it stops being
+    // silently correct only by coincidence.
+    sounds: ['oɪ', 'oy̓', 'ɔɪ'], hex: '#FF3399', label: 'ɔɪ', example: 'boy, coin', category: 'vowel',
     note: 'SPEC CORRECTION (§9): true form is a bicolor roz→roșu gradient; '
       + 'needs seg-splitting support (spec §10.3/10.4) — using the roz '
       + 'start-colour as a placeholder for now.',
