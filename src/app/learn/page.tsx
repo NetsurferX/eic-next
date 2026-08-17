@@ -13,21 +13,42 @@ const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
 
 // Renders a word letter by letter so that (a) the letters carrying the
-// target sound keep their colour and (b) whichever letter is being spoken
-// right now (activeIndex) can pop up and glow in the lesson's colour.
+// target sound keep their colour and (b) whichever letter (or, for the
+// underlined target-sound group, the whole group at once) is being spoken
+// right now can pop up and glow. The underlined group is rendered as a
+// SINGLE span (not letter-by-letter) so that scaling it up doesn't make its
+// own letters overlap each other — it inflates as one coherent block.
 function MarkedWord({ text, mark, activeIndex }: { text: string; mark: string; activeIndex: number | null }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
+
+  if (idx === -1) {
+    return (
+      <>
+        {[...text].map((ch, i) => (
+          <span key={i} className={`lw-letter ${activeIndex === i ? 'is-sounding' : ''}`}>{ch}</span>
+        ))}
+      </>
+    )
+  }
+
+  const markEnd  = idx + mark.length
+  const before   = text.slice(0, idx)
+  const markText = text.slice(idx, markEnd)
+  const after    = text.slice(markEnd)
+  const activeInMark = activeIndex !== null && activeIndex >= idx && activeIndex < markEnd
+
   return (
     <>
-      {[...text].map((ch, i) => {
-        const inMark = idx !== -1 && i >= idx && i < idx + mark.length
+      {[...before].map((ch, i) => (
+        <span key={`b${i}`} className={`lw-letter ${activeIndex === i ? 'is-sounding' : ''}`}>{ch}</span>
+      ))}
+      <span className={`lw-letter lesson-word-mark ${activeInMark ? 'is-sounding' : ''}`}>
+        {markText}
+      </span>
+      {[...after].map((ch, i) => {
+        const globalIndex = markEnd + i
         return (
-          <span
-            key={i}
-            className={`lw-letter ${inMark ? 'lesson-word-mark' : ''} ${activeIndex === i ? 'is-sounding' : ''}`}
-          >
-            {ch}
-          </span>
+          <span key={`a${i}`} className={`lw-letter ${activeIndex === globalIndex ? 'is-sounding' : ''}`}>{ch}</span>
         )
       })}
     </>

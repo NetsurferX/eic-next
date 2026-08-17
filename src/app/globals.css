@@ -1513,13 +1513,23 @@ button, textarea, input { font-family: var(--font-sans); }
   transform-origin: center;
   transition: box-shadow .2s, background .2s, transform .3s cubic-bezier(.34,1.4,.64,1);
 }
-.lesson-word-mark { color: var(--lesson-color); font-weight: 800; }
+.lesson-word-mark {
+  color: var(--lesson-color);
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: var(--lesson-color);
+  text-underline-offset: 2.7px;
+  text-decoration-thickness: 2px;
+}
 .lesson-col.is-locked .lesson-word {
   color: var(--color-text-muted);
   border-color: var(--color-border-soft);
   background: transparent;
 }
-.lesson-col.is-locked .lesson-word-mark { color: var(--color-text-muted); }
+.lesson-col.is-locked .lesson-word-mark {
+  color: var(--color-text-muted);
+  text-decoration-color: var(--color-text-muted);
+}
 .lesson-word.is-playing {
   position: relative;
   z-index: 1;
@@ -1536,15 +1546,34 @@ button, textarea, input { font-family: var(--font-sans); }
 .lw-letter {
   display: inline-block;
   transform: scale(1);
+  transition: transform .12s ease-out, filter .12s ease-out;
 }
+
+/* Litere individuale (în afara grupului subliniat) — un singur puf scurt,
+   câte una pe rând, cât vocea trece prin ele. */
 .lw-letter.is-sounding {
-  animation: lw-letter-pop 260ms ease-out;
-  color: var(--lesson-color);
+  animation: lw-letter-pop 340ms ease-out;
+  position: relative;
+  z-index: 2;
 }
 @keyframes lw-letter-pop {
-  0%   { transform: scale(1);   text-shadow: 0 0 0 transparent; }
-  40%  { transform: scale(1.4); text-shadow: 0 0 8px var(--lesson-color), 0 0 3px var(--lesson-color); }
-  100% { transform: scale(1);   text-shadow: 0 0 0 transparent; }
+  0%   { transform: scale(1);    filter: drop-shadow(0 0 0 transparent); }
+  25%  { transform: scale(1.5);  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 16px currentColor); }
+  65%  { transform: scale(1.5);  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 16px currentColor); }
+  100% { transform: scale(1);    filter: drop-shadow(0 0 0 transparent); }
+}
+
+/* Grupul subliniat (sunetul-țintă, ex. "ea" din teacher) — se umflă TOT
+   împreună și rămâne umflat + strălucitor cât timp e activ, nu doar o
+   clipă, apoi coboară lin când pronunția trece mai departe. Prin
+   specificitate (2 clase) și `animation: none` suprascrie regula de mai
+   sus pentru literele care sunt și marcate, și active. */
+.lesson-word-mark.is-sounding {
+  animation: none;
+  transform: scale(1.5);
+  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 16px currentColor);
+  position: relative;
+  z-index: 2;
 }
 
 /* ── Butonul principal — trăiește acum ÎN coloana activă (sub cuvinte),
