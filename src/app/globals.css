@@ -1528,6 +1528,25 @@ button, textarea, input { font-family: var(--font-sans); }
   transform: scale(1.45);
 }
 
+/* ── Litera care se pronunță chiar acum — se umflă și strălucește,
+   folosind culoarea coloanei/lecției curente. Rulează în interiorul
+   cuvântului deja mărit de .is-playing de mai sus, ca un al doilea val de
+   accent, sincronizat aproximativ cu vocea (vezi estimateSpeechDurationMs
+   din lib/speak.ts — Web Speech API nu dă timing real per literă). ── */
+.lw-letter {
+  display: inline-block;
+  transform: scale(1);
+}
+.lw-letter.is-sounding {
+  animation: lw-letter-pop 260ms ease-out;
+  color: var(--lesson-color);
+}
+@keyframes lw-letter-pop {
+  0%   { transform: scale(1);   text-shadow: 0 0 0 transparent; }
+  40%  { transform: scale(1.4); text-shadow: 0 0 8px var(--lesson-color), 0 0 3px var(--lesson-color); }
+  100% { transform: scale(1);   text-shadow: 0 0 0 transparent; }
+}
+
 /* ── Butonul principal — trăiește acum ÎN coloana activă (sub cuvinte),
    nu izolat sus în header, ca legătura cu ce anume controlează să fie
    evidentă dintr-o privire. ── */

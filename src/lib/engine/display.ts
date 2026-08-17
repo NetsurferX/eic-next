@@ -33,6 +33,24 @@ function simpleGradientCss(hex: string): string {
   return `linear-gradient(to right, ${hex} 0%, ${hex} 70%, #000000 100%)`
 }
 
+// §9 — /əʊ/ (display sound 'əw', fused by segment.ts's TRANSFORMS from both
+// UK əʊ and US oʊ spellings) gets the Romanian tricolor instead of the flat
+// yellow placeholder colors.ts used to fall back to.
+// VERIFIED against the reference print book (Vulpea șireată, Aug 2026):
+// the bands run TOP→BOTTOM (blue/yellow/red), not left→right, and EACH
+// LETTER of a multi-letter spelling (oa in "croak", ow in "slowly") gets
+// its own full 3-band cycle independently — not one gradient stretched
+// across the whole grapheme. Also confirmed stressed occurrences ("opened",
+// "so", "both") keep the tricolor rather than collapsing to solid — unlike
+// simpleHex below, no stressed/unstressed split for this sound.
+// The per-letter repeat is handled by WordRenderer.tsx (perLetterGradient
+// flag on DisplayNode), NOT here — this file only supplies the CSS pattern.
+const TRICOLOR_GRADIENT_SOUNDS = new Set(['əw'])
+const TRICOLOR_CSS = 'linear-gradient(to bottom, #002B7F 0%, #002B7F 33%, #FCD116 33%, #FCD116 66%, #CE1126 66%, #CE1126 100%)'
+function tricolorGradientHex(sound: string): string | null {
+  return TRICOLOR_GRADIENT_SOUNDS.has(sound) ? TRICOLOR_CSS : null
+}
+
 // Letters that are graphically consonants — used to detect the
 // "silent consonant in vowel position" case (e.g. the 'k' in 'knight'
 // gets a vowel color from the engine but its letters are all consonants,
@@ -280,6 +298,11 @@ export interface DisplayNode {
   gradientCss?: string // explicit gradient background when set (simple-vowel
                        // 70/30 split); falls back to the DIPHTHONG_START/END
                        // 2-stop blend in WordRenderer when absent
+  perLetterGradient?: boolean // when true AND `t` has >1 letter, WordRenderer
+                       // must repeat gradientCss on EACH letter independently
+                       // (verified against print reference: /əʊ/'s tricolor
+                       // bands cycle per letter, e.g. "oa" in croak, not one
+                       // gradient stretched across the whole grapheme)
   mute:       boolean  // is silent (black)?
   syllabic:   boolean  // is syllabic consonant (black fill/border)?
   syllabicVR: boolean  // B_tehnic §6.1 forced V-R schwa+consonant (white fill/border)
@@ -335,6 +358,7 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     const isSylVR     = !!n.syllabicOverride   // B_tehnic §6.1 — alb cu chenar negru
     const mute        = isMute(n) || (isGlide && !isDiph)
     const simpleHex   = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null
+    const tricolorCss = !isDiph && !isTrueSyl && !isSylVR && !mute ? tricolorGradientHex(n.s) : null
 
     const runAnchor   = underlineColorMap.get(i) ?? COLOR_CONSONANT
     const ownColor    = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
@@ -362,10 +386,17 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
         gradientCss = simpleGradientCss(simpleHex)
       }
     }
+    else if (tricolorCss) {
+      // §9 — /əʊ/ always shows the tricolor, stressed or not (unlike the
+      // simpleHex vowels, the spec note for this sound never calls for a
+      // solid-on-stress exception).
+      color = 'transparent'
+      gradientCss = tricolorCss
+    }
     else if (mute)      color = COLOR_SILENT
     else                color = ownColor
 
-    if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide && !isGlyphOverride) color = runAnchor
+    if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide && !isGlyphOverride && !tricolorCss) color = runAnchor
 
     return {
       t:              n.t ?? '',
@@ -374,6 +405,7 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
       gradient:       !isGlyphOverride && ((isDiph && !(isUnder && !mute)) || !!gradientCss),
 
       gradientCss,
+      perLetterGradient: !!tricolorCss,
       mute,
       syllabic:       isTrueSyl,
       syllabicVR:     isSylVR,

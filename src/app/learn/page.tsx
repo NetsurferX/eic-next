@@ -1,6 +1,6 @@
 'use client'
 
-import { speakWord, warmUpVoices } from '@/lib/speak'
+import { speakWord, warmUpVoices, estimateSpeechDurationMs } from '@/lib/speak'
 import { playStarChime, playLevelFanfare } from '@/lib/sound'
 import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress, type Lesson } from '@/lib/levels'
 import { Cup, Confetti } from '@/components/game/Cup'
@@ -12,16 +12,24 @@ const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animat
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
 
-// Renders a word so that only the letters carrying the target sound get colour;
-// everything else stays black.
-function MarkedWord({ text, mark }: { text: string; mark: string }) {
+// Renders a word letter by letter so that (a) the letters carrying the
+// target sound keep their colour and (b) whichever letter is being spoken
+// right now (activeIndex) can pop up and glow in the lesson's colour.
+function MarkedWord({ text, mark, activeIndex }: { text: string; mark: string; activeIndex: number | null }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
-  if (idx === -1) return <>{text}</>
   return (
     <>
-      {text.slice(0, idx)}
-      <span className="lesson-word-mark">{text.slice(idx, idx + mark.length)}</span>
-      {text.slice(idx + mark.length)}
+      {[...text].map((ch, i) => {
+        const inMark = idx !== -1 && i >= idx && i < idx + mark.length
+        return (
+          <span
+            key={i}
+            className={`lw-letter ${inMark ? 'lesson-word-mark' : ''} ${activeIndex === i ? 'is-sounding' : ''}`}
+          >
+            {ch}
+          </span>
+        )
+      })}
     </>
   )
 }
@@ -35,6 +43,7 @@ export default function LearnPage() {
   const [allDone, setAllDone]               = useState(false)
 
   const [playingWord, setPlayingWord]       = useState<string | null>(null)
+  const [playingLetterIndex, setPlayingLetterIndex] = useState<number | null>(null)
   const [isPlayingRep, setIsPlayingRep]     = useState(false)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
@@ -51,6 +60,11 @@ export default function LearnPage() {
   // Holds a { pause } handle for whatever's currently speaking (Web Speech API),
   // so the cleanup/stop logic below can silence it instantly either way.
   const currentAudio = useRef<{ pause: () => void } | null>(null)
+  // Curăță orice timer/interval legat de animația literelor — fie cel de
+  // fallback (estimare), fie doar arm-timer-ul care aștepta un 'boundary'
+  // real care n-a mai venit. Un singur ref, ca stopPlayback()/unmount să
+  // aibă un singur loc de oprit, indiferent care variantă era activă.
+  const letterAnimCleanup = useRef<(() => void) | null>(null)
 
   // ── Warm up the speech-synthesis voice list so the first playWord() has it ready ──
   useEffect(() => { warmUpVoices() }, [])
@@ -98,6 +112,7 @@ export default function LearnPage() {
     return () => {
       autoCancel.current = true
       currentAudio.current?.pause()
+      letterAnimCleanup.current?.()
     }
   }, [])
 
@@ -128,13 +143,58 @@ export default function LearnPage() {
 
   const playWord = useCallback(async (word: string) => {
     setPlayingWord(word)
+    setPlayingLetterIndex(0)
+
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null
+    let usedRealBoundary = false
+
+    const startFallback = () => {
+      if (usedRealBoundary) return // a venit între timp un 'boundary' real — nu mai suprapunem
+      const perLetterMs = estimateSpeechDurationMs(word) / word.length
+      let li = 0
+      fallbackInterval = setInterval(() => {
+        li++
+        if (li >= word.length) {
+          if (fallbackInterval) clearInterval(fallbackInterval)
+          fallbackInterval = null
+          return
+        }
+        setPlayingLetterIndex(li)
+      }, perLetterMs)
+    }
+
+    // Dă vocii ~180ms să raporteze un 'boundary' real înainte să pornim
+    // estimarea — dacă vocea îl trimite, fallback-ul nici nu mai apucă să
+    // pornească (usedRealBoundary devine true mai jos, în onBoundary).
+    const fallbackArmTimer = setTimeout(startFallback, 180)
+
+    letterAnimCleanup.current = () => {
+      clearTimeout(fallbackArmTimer)
+      if (fallbackInterval) clearInterval(fallbackInterval)
+    }
+
     try {
-      const { promise, stop } = speakWord(word)
+      const { promise, stop } = speakWord(word, {
+        onBoundary: (charIndex, charLength) => {
+          usedRealBoundary = true
+          clearTimeout(fallbackArmTimer)
+          if (fallbackInterval) { clearInterval(fallbackInterval); fallbackInterval = null }
+          // Centrăm pe mijlocul segmentului raportat de motor — unele voci
+          // dau charLength = tot cuvântul dintr-o singură dată, altele dau
+          // segmente mai fine (grup de litere/silabă).
+          const center = Math.min(word.length - 1, charIndex + Math.floor(charLength / 2))
+          setPlayingLetterIndex(center)
+        },
+      })
       currentAudio.current = { pause: stop }
       await promise
       if (currentAudio.current?.pause === stop) currentAudio.current = null
     } catch { /* ignore */ }
+
+    letterAnimCleanup.current?.()
+    letterAnimCleanup.current = null
     setPlayingWord(null)
+    setPlayingLetterIndex(null)
   }, [])
 
   // ── Plays every word in a column exactly once, in order ──
@@ -244,6 +304,9 @@ export default function LearnPage() {
   const stopPlayback = useCallback(() => {
     autoCancel.current = true
     currentAudio.current?.pause()
+    letterAnimCleanup.current?.()
+    letterAnimCleanup.current = null
+    setPlayingLetterIndex(null)
   }, [])
 
   let buttonLabel: string
@@ -355,7 +418,7 @@ export default function LearnPage() {
                       key={w.text}
                       className={`lesson-word ${isPlaying ? 'is-playing' : ''}`}
                     >
-                      <MarkedWord text={w.text} mark={w.mark} />
+                      <MarkedWord text={w.text} mark={w.mark} activeIndex={isPlaying ? playingLetterIndex : null} />
                     </div>
                   )
                 })}

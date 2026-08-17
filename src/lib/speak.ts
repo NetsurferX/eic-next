@@ -35,7 +35,19 @@ let liveUtterance: SpeechSynthesisUtterance | null = null
 // Speaks a word. Returns a promise that resolves when speech ends (naturally
 // or via stop()), plus a stop() to cut it short — mirrors the old
 // audio.pause()-triggers-'pause'-event behaviour from the fetch-based version.
-export function speakWord(word: string): { promise: Promise<void>; stop: () => void } {
+//
+// onBoundary (opțional) transmite evenimentele REALE 'boundary' ale motorului
+// de voce, cu charIndex/charLength — poziția exactă în `word` unde a ajuns
+// pronunția. Nu toate vocile le trimit (multe voci offline de desktop nu
+// raportează deloc boundary pentru un singur cuvânt), și cele care le trimit
+// nu sunt neapărat per-literă — de-aia apelantul trebuie să aibă un fallback
+// pe estimare (vezi estimateSpeechDurationMs mai jos) pentru cazul în care
+// nu vine niciun eveniment.
+export interface SpeakOptions {
+  onBoundary?: (charIndex: number, charLength: number) => void
+}
+
+export function speakWord(word: string, options: SpeakOptions = {}): { promise: Promise<void>; stop: () => void } {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
     return { promise: Promise.resolve(), stop: () => {} }
   }
@@ -62,6 +74,14 @@ export function speakWord(word: string): { promise: Promise<void>; stop: () => v
   utterance.addEventListener('end', done, { once: true })
   utterance.addEventListener('error', done, { once: true }) // fires on cancel() too
 
+  if (options.onBoundary) {
+    utterance.addEventListener('boundary', (e: SpeechSynthesisEvent) => {
+      // charLength nu e în tipurile TS mai vechi ale DOM lib, deși e în spec.
+      const charLength = (e as SpeechSynthesisEvent & { charLength?: number }).charLength ?? 1
+      if (typeof e.charIndex === 'number') options.onBoundary!(e.charIndex, charLength)
+    })
+  }
+
   // cancel() is asynchronous under the hood in Chrome — calling speak()
   // in the very same tick can silently swallow the new utterance. A 0ms
   // timeout pushes speak() to the next tick, after cancel() has settled.
@@ -79,6 +99,16 @@ export function speakWord(word: string): { promise: Promise<void>; stop: () => v
       synth.cancel()
     },
   }
+}
+
+// Estimare grosieră a duratei de pronunție a unui cuvânt — folosită DOAR ca
+// fallback, când vocea curentă nu trimite deloc evenimente 'boundary' reale
+// (vezi onBoundary de mai sus). Multe voci offline de desktop se comportă
+// exact așa pentru un singur cuvânt.
+export function estimateSpeechDurationMs(word: string, rate = 0.85): number {
+  const MS_PER_CHAR = 105
+  const MIN_MS = 380
+  return Math.max(MIN_MS, (word.length * MS_PER_CHAR) / rate)
 }
 
 // Voice list loads asynchronously in some browsers — call once on app mount.
