@@ -51,6 +51,15 @@ function tricolorGradientHex(sound: string): string | null {
   return TRICOLOR_GRADIENT_SOUNDS.has(sound) ? TRICOLOR_CSS : null
 }
 
+// The stressed-underline colour under an /əʊ/ letter must NOT use the flat
+// COLOR_MAP['əw'] value (#FCD116, yellow — a leftover placeholder from
+// before the tricolor gradient existed, still used elsewhere as the flat
+// fallback fill for contexts that don't support gradients). Per Dorel's
+// request, the underline should read as the RED band of the tricolor, not
+// the yellow one — using #CE1126 here (same red as TRICOLOR_CSS's bottom
+// stop) keeps it visually tied to the gradient it's underlining.
+const TRICOLOR_UNDERLINE_COLOR = '#CE1126'
+
 // Letters that are graphically consonants — used to detect the
 // "silent consonant in vowel position" case (e.g. the 'k' in 'knight'
 // gets a vowel color from the engine but its letters are all consonants,
@@ -324,6 +333,12 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
   // SKIPPING leading-glide nodes (y/w before the vowel) — they must never
   // become the anchor, or the whole run would wrongly take the glide's
   // colour instead of the vowel's (B_tehnic §5.1/§5.2).
+  //
+  // /əʊ/ ('əw') nodes are special-cased to TRICOLOR_UNDERLINE_COLOR instead
+  // of their own n.c (which is the flat yellow COLOR_MAP placeholder) —
+  // see the constant's comment above.
+  const anchorColorOf = (rn: RenderNode): string =>
+    rn.s === 'əw' ? TRICOLOR_UNDERLINE_COLOR : rn.c
   const underlineColorMap = new Map<number, string>()
   let runStart: number | null = null
   for (let i = 0; i <= nodes.length; i++) {
@@ -334,11 +349,11 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
       for (let k = runStart; k < i; k++) {
         if (leadingGlideSet.has(k)) continue
         const rn = nodes[k]
-        if (isVowelNode(rn) && !isMute(rn)) { anchorColor = rn.c; break }
+        if (isVowelNode(rn) && !isMute(rn)) { anchorColor = anchorColorOf(rn); break }
       }
       if (!anchorColor) {
         const rn = nodes[runStart]
-        anchorColor = rn.c && rn.c !== '' ? rn.c : COLOR_CONSONANT
+        anchorColor = rn.c && rn.c !== '' ? anchorColorOf(rn) : COLOR_CONSONANT
       }
       for (let j = runStart; j < i; j++) {
         // Leading glide nodes keep their OWN colour as their underline
