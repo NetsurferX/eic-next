@@ -1117,14 +1117,6 @@ button, textarea, input { font-family: var(--font-sans); }
   transition: background .15s;
 }
 .lesson-back-btn:hover { background: var(--color-surface-2); }
-.lesson-restart-btn {
-  font-family: inherit;
-  cursor: pointer;
-}
-.lesson-restart-btn:disabled {
-  opacity: .5;
-  cursor: wait;
-}
 
 /* ── Cupă de umplere generică — folosită pentru cupa de nivel din header,
    cupa proprie a fiecărei coloane (progres 0-5 stele) și cupa mare din
@@ -1323,25 +1315,12 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-stepper-pill {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 10px; font-weight: 700;
-  font-family: inherit;
   padding: 3px 10px;
   border-radius: 999px;
   border: 1.5px solid var(--color-border);
-  background: none;
   color: var(--color-text-secondary);
   opacity: .55;
-  cursor: not-allowed;
-  transition: opacity .25s, background .25s, color .25s, border-color .25s, transform .15s;
-}
-/* Done or current levels are navigable — clicking jumps back to that
-   level so an already-passed learner can freely pick any of its columns. */
-.lesson-stepper-pill.is-done,
-.lesson-stepper-pill.is-current {
-  cursor: pointer;
-}
-.lesson-stepper-pill.is-done:hover,
-.lesson-stepper-pill.is-current:hover {
-  transform: translateY(-1px);
+  transition: opacity .25s, background .25s, color .25s, border-color .25s;
 }
 .lesson-stepper-pill.is-done {
   opacity: .85;
@@ -1519,6 +1498,14 @@ button, textarea, input { font-family: var(--font-sans); }
 
 .lesson-words { display: flex; flex-direction: column; gap: 7px; }
 .lesson-word {
+  /* .lesson-word e acum un <button> (ca fiecare cuvânt să poată fi apăsat
+     individual pentru a-l auzi doar pe el) — resetăm stilurile implicite
+     de buton ca să arate identic cu vechiul <div>. */
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  outline: none;
+  display: block;
   position: relative;
   width: 100%;
   font-size: 13.5px;
@@ -1532,8 +1519,17 @@ button, textarea, input { font-family: var(--font-sans); }
   color: var(--color-text-primary);
   transform: scale(1);
   transform-origin: center;
+  cursor: default;
   transition: box-shadow .2s, background .2s, transform .3s cubic-bezier(.34,1.4,.64,1);
 }
+.lesson-word.is-clickable { cursor: pointer; }
+.lesson-word.is-clickable:hover {
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--lesson-color) 18%, transparent),
+              0 0 0 1px color-mix(in srgb, var(--lesson-color) 12%, transparent);
+}
+.lesson-word.is-clickable:active { transform: scale(.97); }
+.lesson-word:disabled { cursor: wait; }
+.lesson-col.is-locked .lesson-word:disabled { cursor: not-allowed; }
 .lesson-word-mark {
   color: var(--lesson-color);
   font-weight: 800;
@@ -1541,16 +1537,6 @@ button, textarea, input { font-family: var(--font-sans); }
   text-decoration-color: var(--lesson-color);
   text-underline-offset: 2.7px;
   text-decoration-thickness: 2px;
-}
-/* AME-5.3 §3.3 — the /ɔɪ/ column's mark ("oy"/"oi") splits into the nucleus
-   (still the column's pink) and the y/i glide, which is always red with the
-   hook diacritic (ỷ/ỉ), matching the semivowel convention used elsewhere in
-   EiC rather than being flattened into one solid colour. */
-.lesson-word-mark-nucleus { color: var(--lesson-color); }
-.lesson-word-mark-glide { color: #FF0000; }
-.lesson-col.is-locked .lesson-word-mark-nucleus,
-.lesson-col.is-locked .lesson-word-mark-glide {
-  color: var(--color-text-muted);
 }
 .lesson-col.is-locked .lesson-word {
   color: var(--color-text-muted);

@@ -12,21 +12,13 @@ const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animat
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
 
-// AME-5.3 §3.3 (Semivocala Y/I — T6): the offglide of /ɔɪ/ ("oy"/"oi") is
-// its own semivowel and must render red with the hook diacritic (ỷ/ỉ),
-// same convention as any other y/i-semivowel elsewhere in the app — not
-// swallowed into the diphthong's single pink colour. Only the last
-// (oɪ) column's marks are two-letter nucleus+glide pairs, so the split
-// only ever applies there.
-const GLIDE_HOOK: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', i: 'ỉ', I: 'Ỉ' }
-
 // Renders a word letter by letter so that (a) the letters carrying the
 // target sound keep their colour and (b) whichever letter (or, for the
 // underlined target-sound group, the whole group at once) is being spoken
 // right now can pop up and glow. The underlined group is rendered as a
 // SINGLE span (not letter-by-letter) so that scaling it up doesn't make its
 // own letters overlap each other — it inflates as one coherent block.
-function MarkedWord({ text, mark, activeIndex, glideMark }: { text: string; mark: string; activeIndex: number | null; glideMark?: boolean }) {
+function MarkedWord({ text, mark, activeIndex }: { text: string; mark: string; activeIndex: number | null }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
 
   if (idx === -1) {
@@ -45,23 +37,13 @@ function MarkedWord({ text, mark, activeIndex, glideMark }: { text: string; mark
   const after    = text.slice(markEnd)
   const activeInMark = activeIndex !== null && activeIndex >= idx && activeIndex < markEnd
 
-  // Split "oy"/"oi" into nucleus (o, pink — the column colour) + glide
-  // (y/i, red with hook diacritic), instead of one flat-coloured span.
-  const glideChar = markText.slice(-1)
-  const canSplitGlide = !!glideMark && markText.length === 2 && GLIDE_HOOK[glideChar]
-
   return (
     <>
       {[...before].map((ch, i) => (
         <span key={`b${i}`} className={`lw-letter ${activeIndex === i ? 'is-sounding' : ''}`}>{ch}</span>
       ))}
       <span className={`lw-letter lesson-word-mark ${activeInMark ? 'is-sounding' : ''}`}>
-        {canSplitGlide ? (
-          <>
-            <span className="lesson-word-mark-nucleus">{markText.slice(0, -1)}</span>
-            <span className="lesson-word-mark-glide">{GLIDE_HOOK[glideChar]}</span>
-          </>
-        ) : markText}
+        {markText}
       </span>
       {[...after].map((ch, i) => {
         const globalIndex = markEnd + i
@@ -82,6 +64,10 @@ export default function LearnPage() {
   const [allDone, setAllDone]               = useState(false)
 
   const [playingWord, setPlayingWord]       = useState<string | null>(null)
+  // Coloana căreia îi aparține playingWord — necesar ca să nu se aprindă
+  // vizual un cuvânt dintr-o altă coloană care are întâmplător același text
+  // (ex. "the" poate apărea în mai multe lecții).
+  const [playingColId, setPlayingColId]     = useState<string | null>(null)
   const [playingLetterIndex, setPlayingLetterIndex] = useState<number | null>(null)
   const [isPlayingRep, setIsPlayingRep]     = useState(false)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
@@ -180,8 +166,9 @@ export default function LearnPage() {
   // column ever carries this state.
   const nextUpIndex = colUnlocked[levelIndex].findIndex((u, i) => !u && (i === 0 || colUnlocked[levelIndex][i - 1]))
 
-  const playWord = useCallback(async (word: string) => {
+  const playWord = useCallback(async (word: string, colId: string) => {
     setPlayingWord(word)
+    setPlayingColId(colId)
     setPlayingLetterIndex(0)
 
     let fallbackInterval: ReturnType<typeof setInterval> | null = null
@@ -233,6 +220,7 @@ export default function LearnPage() {
     letterAnimCleanup.current?.()
     letterAnimCleanup.current = null
     setPlayingWord(null)
+    setPlayingColId(null)
     setPlayingLetterIndex(null)
   }, [])
 
@@ -240,7 +228,7 @@ export default function LearnPage() {
   const playColumnOnce = useCallback(async (l: Lesson) => {
     for (let wi = 0; wi < l.words.length; wi++) {
       if (autoCancel.current) break
-      await playWord(l.words[wi].text)
+      await playWord(l.words[wi].text, l.id)
       if (autoCancel.current) break
       if (wi < l.words.length - 1) {
         await new Promise(res => setTimeout(res, AUTO_DELAY_MS))
@@ -348,42 +336,15 @@ export default function LearnPage() {
     setPlayingLetterIndex(null)
   }, [])
 
-  // ── "Începe jocul de la început" — wipe all progress and go back to
-  //    lvl1/column 0, same shape as a brand-new visitor. Guarded behind a
-  //    confirm() since it's destructive and there's no undo. ──
-  const restartGame = useCallback(() => {
-    if (isPlayingRep) return
-    if (!window.confirm('Sigur vrei să începi jocul de la început? Tot progresul salvat (stele, coloane deblocate) va fi șters.')) return
-    stopPlayback()
-    setLevelIndex(0)
-    setUnlockedLevels(LEVELS.map((_, i) => i === 0))
-    setColUnlocked(LEVELS.map((_, i) => [i === 0, false, false, false]))
-    setStarsEarned(LEVELS.map(() => [0, 0, 0, 0]))
-    setActive(0)
-    setAllDone(false)
-    setCelebrating(false)
-    setReadyToContinue(false)
-    setFreePracticeCount(0)
-    setLevelCelebrating(false)
-    setShowLevelOverlay(false)
-    setJustRevealedIndex(null)
-    try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
-  }, [isPlayingRep, stopPlayback])
-
-  // ── Stepper pill click — lets someone who has already finished (or is
-  //    currently on) a level jump back to it and freely pick any of its
-  //    already-unlocked columns, instead of only ever seeing the active
-  //    level. Locked (future) levels stay inert. ──
-  const goToLevel = useCallback((i: number) => {
-    if (isPlayingRep) return
-    const done = i < levelIndex || (i === levelIndex && allDone)
-    const isCurrent = i === levelIndex && !allDone
-    if (!done && !isCurrent) return // locked — nothing to do
-    if (i === levelIndex) return
-    stopPlayback()
-    setLevelIndex(i)
-    setActive(0)
-  }, [isPlayingRep, levelIndex, allDone, stopPlayback])
+  // ── Apasă pe UN cuvânt anume din listă → se aude doar el, o singură
+  //    dată, fără să pornească repetiția întregii coloane și fără să
+  //    afecteze stelele/progresul. Blocat cât timp o repetiție de coloană
+  //    e deja în desfășurare, ca să nu se suprapună două voci. ──
+  const playSingleWord = useCallback((word: string, colId: string, isUnlocked: boolean) => {
+    if (isPlayingRep || playingWord !== null || !isUnlocked) return
+    autoCancel.current = false
+    void playWord(word, colId)
+  }, [isPlayingRep, playingWord, playWord])
 
   let buttonLabel: string
   if (isPlayingRep) buttonLabel = 'Repetă în glas'
@@ -397,9 +358,6 @@ export default function LearnPage() {
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
           {/* ADAPT: schimbă "/culise" cu ruta reală a hero-ului, dacă diferă */}
-          <button type="button" className="lesson-back-btn lesson-restart-btn" onClick={restartGame} disabled={isPlayingRep}>
-            ↺ Reia de la început
-          </button>
         </div>
         <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
@@ -411,24 +369,16 @@ export default function LearnPage() {
             const isCurrent = i === levelIndex && !allDone
             const locked = i > levelIndex
             const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
-            // Someone who has already passed a level (or is on the current
-            // one) can jump back to it and freely choose any of its columns —
-            // only genuinely future/locked levels stay inert.
-            const isNavigable = done || isCurrent
             return (
-              <button
-                type="button"
+              <div
                 key={lv.id}
                 className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${isCurrent ? 'is-current' : ''} ${locked ? 'is-locked' : ''}`}
                 style={pillStyle}
-                title={locked ? lv.name : `${lv.name} — alege o coloană`}
-                onClick={() => goToLevel(i)}
-                disabled={!isNavigable}
-                aria-current={isCurrent ? 'step' : undefined}
+                title={lv.name}
               >
                 <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
                 <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
-              </button>
+              </div>
             )
           })}
         </div>
@@ -499,14 +449,20 @@ export default function LearnPage() {
 
               <div className="lesson-words">
                 {l.words.map((w) => {
-                  const isPlaying = isActive && isPlayingRep && playingWord === w.text
+                  const isPlaying = playingWord === w.text && playingColId === l.id
+                  const canClick  = isUnlocked && !isPlayingRep && playingWord === null
                   return (
-                    <div
+                    <button
                       key={w.text}
-                      className={`lesson-word ${isPlaying ? 'is-playing' : ''}`}
+                      type="button"
+                      className={`lesson-word ${isPlaying ? 'is-playing' : ''} ${canClick ? 'is-clickable' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); playSingleWord(w.text, l.id, isUnlocked) }}
+                      disabled={!canClick}
+                      aria-label={`Ascultă cuvântul ${w.text}`}
+                      title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      <MarkedWord text={w.text} mark={w.mark} activeIndex={isPlaying ? playingLetterIndex : null} glideMark={l.id === 'oi'} />
-                    </div>
+                      <MarkedWord text={w.text} mark={w.mark} activeIndex={isPlaying ? playingLetterIndex : null} />
+                    </button>
                   )
                 })}
               </div>
