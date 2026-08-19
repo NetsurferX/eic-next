@@ -12,13 +12,21 @@ const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animat
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
 
+// AME-5.3 §3.3 (Semivocala Y/I — T6): the offglide of /ɔɪ/ ("oy"/"oi") is
+// its own semivowel and must render red with the hook diacritic (ỷ/ỉ),
+// same convention as any other y/i-semivowel elsewhere in the app — not
+// swallowed into the diphthong's single pink colour. Only the last
+// (oɪ) column's marks are two-letter nucleus+glide pairs, so the split
+// only ever applies there.
+const GLIDE_HOOK: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', i: 'ỉ', I: 'Ỉ' }
+
 // Renders a word letter by letter so that (a) the letters carrying the
 // target sound keep their colour and (b) whichever letter (or, for the
 // underlined target-sound group, the whole group at once) is being spoken
 // right now can pop up and glow. The underlined group is rendered as a
 // SINGLE span (not letter-by-letter) so that scaling it up doesn't make its
 // own letters overlap each other — it inflates as one coherent block.
-function MarkedWord({ text, mark, activeIndex }: { text: string; mark: string; activeIndex: number | null }) {
+function MarkedWord({ text, mark, activeIndex, glideMark }: { text: string; mark: string; activeIndex: number | null; glideMark?: boolean }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
 
   if (idx === -1) {
@@ -37,13 +45,23 @@ function MarkedWord({ text, mark, activeIndex }: { text: string; mark: string; a
   const after    = text.slice(markEnd)
   const activeInMark = activeIndex !== null && activeIndex >= idx && activeIndex < markEnd
 
+  // Split "oy"/"oi" into nucleus (o, pink — the column colour) + glide
+  // (y/i, red with hook diacritic), instead of one flat-coloured span.
+  const glideChar = markText.slice(-1)
+  const canSplitGlide = !!glideMark && markText.length === 2 && GLIDE_HOOK[glideChar]
+
   return (
     <>
       {[...before].map((ch, i) => (
         <span key={`b${i}`} className={`lw-letter ${activeIndex === i ? 'is-sounding' : ''}`}>{ch}</span>
       ))}
       <span className={`lw-letter lesson-word-mark ${activeInMark ? 'is-sounding' : ''}`}>
-        {markText}
+        {canSplitGlide ? (
+          <>
+            <span className="lesson-word-mark-nucleus">{markText.slice(0, -1)}</span>
+            <span className="lesson-word-mark-glide">{GLIDE_HOOK[glideChar]}</span>
+          </>
+        ) : markText}
       </span>
       {[...after].map((ch, i) => {
         const globalIndex = markEnd + i
@@ -330,6 +348,43 @@ export default function LearnPage() {
     setPlayingLetterIndex(null)
   }, [])
 
+  // ── "Începe jocul de la început" — wipe all progress and go back to
+  //    lvl1/column 0, same shape as a brand-new visitor. Guarded behind a
+  //    confirm() since it's destructive and there's no undo. ──
+  const restartGame = useCallback(() => {
+    if (isPlayingRep) return
+    if (!window.confirm('Sigur vrei să începi jocul de la început? Tot progresul salvat (stele, coloane deblocate) va fi șters.')) return
+    stopPlayback()
+    setLevelIndex(0)
+    setUnlockedLevels(LEVELS.map((_, i) => i === 0))
+    setColUnlocked(LEVELS.map((_, i) => [i === 0, false, false, false]))
+    setStarsEarned(LEVELS.map(() => [0, 0, 0, 0]))
+    setActive(0)
+    setAllDone(false)
+    setCelebrating(false)
+    setReadyToContinue(false)
+    setFreePracticeCount(0)
+    setLevelCelebrating(false)
+    setShowLevelOverlay(false)
+    setJustRevealedIndex(null)
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
+  }, [isPlayingRep, stopPlayback])
+
+  // ── Stepper pill click — lets someone who has already finished (or is
+  //    currently on) a level jump back to it and freely pick any of its
+  //    already-unlocked columns, instead of only ever seeing the active
+  //    level. Locked (future) levels stay inert. ──
+  const goToLevel = useCallback((i: number) => {
+    if (isPlayingRep) return
+    const done = i < levelIndex || (i === levelIndex && allDone)
+    const isCurrent = i === levelIndex && !allDone
+    if (!done && !isCurrent) return // locked — nothing to do
+    if (i === levelIndex) return
+    stopPlayback()
+    setLevelIndex(i)
+    setActive(0)
+  }, [isPlayingRep, levelIndex, allDone, stopPlayback])
+
   let buttonLabel: string
   if (isPlayingRep) buttonLabel = 'Repetă în glas'
   else if (readyToContinue) buttonLabel = 'Continuă →'
@@ -342,6 +397,9 @@ export default function LearnPage() {
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
           {/* ADAPT: schimbă "/culise" cu ruta reală a hero-ului, dacă diferă */}
+          <button type="button" className="lesson-back-btn lesson-restart-btn" onClick={restartGame} disabled={isPlayingRep}>
+            ↺ Reia de la început
+          </button>
         </div>
         <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
@@ -353,16 +411,24 @@ export default function LearnPage() {
             const isCurrent = i === levelIndex && !allDone
             const locked = i > levelIndex
             const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
+            // Someone who has already passed a level (or is on the current
+            // one) can jump back to it and freely choose any of its columns —
+            // only genuinely future/locked levels stay inert.
+            const isNavigable = done || isCurrent
             return (
-              <div
+              <button
+                type="button"
                 key={lv.id}
                 className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${isCurrent ? 'is-current' : ''} ${locked ? 'is-locked' : ''}`}
                 style={pillStyle}
-                title={lv.name}
+                title={locked ? lv.name : `${lv.name} — alege o coloană`}
+                onClick={() => goToLevel(i)}
+                disabled={!isNavigable}
+                aria-current={isCurrent ? 'step' : undefined}
               >
                 <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
                 <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
-              </div>
+              </button>
             )
           })}
         </div>
@@ -439,7 +505,7 @@ export default function LearnPage() {
                       key={w.text}
                       className={`lesson-word ${isPlaying ? 'is-playing' : ''}`}
                     >
-                      <MarkedWord text={w.text} mark={w.mark} activeIndex={isPlaying ? playingLetterIndex : null} />
+                      <MarkedWord text={w.text} mark={w.mark} activeIndex={isPlaying ? playingLetterIndex : null} glideMark={l.id === 'oi'} />
                     </div>
                   )
                 })}

@@ -1117,6 +1117,14 @@ button, textarea, input { font-family: var(--font-sans); }
   transition: background .15s;
 }
 .lesson-back-btn:hover { background: var(--color-surface-2); }
+.lesson-restart-btn {
+  font-family: inherit;
+  cursor: pointer;
+}
+.lesson-restart-btn:disabled {
+  opacity: .5;
+  cursor: wait;
+}
 
 /* ── Cupă de umplere generică — folosită pentru cupa de nivel din header,
    cupa proprie a fiecărei coloane (progres 0-5 stele) și cupa mare din
@@ -1315,12 +1323,25 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-stepper-pill {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 10px; font-weight: 700;
+  font-family: inherit;
   padding: 3px 10px;
   border-radius: 999px;
   border: 1.5px solid var(--color-border);
+  background: none;
   color: var(--color-text-secondary);
   opacity: .55;
-  transition: opacity .25s, background .25s, color .25s, border-color .25s;
+  cursor: not-allowed;
+  transition: opacity .25s, background .25s, color .25s, border-color .25s, transform .15s;
+}
+/* Done or current levels are navigable — clicking jumps back to that
+   level so an already-passed learner can freely pick any of its columns. */
+.lesson-stepper-pill.is-done,
+.lesson-stepper-pill.is-current {
+  cursor: pointer;
+}
+.lesson-stepper-pill.is-done:hover,
+.lesson-stepper-pill.is-current:hover {
+  transform: translateY(-1px);
 }
 .lesson-stepper-pill.is-done {
   opacity: .85;
@@ -1520,6 +1541,16 @@ button, textarea, input { font-family: var(--font-sans); }
   text-decoration-color: var(--lesson-color);
   text-underline-offset: 2.7px;
   text-decoration-thickness: 2px;
+}
+/* AME-5.3 §3.3 — the /ɔɪ/ column's mark ("oy"/"oi") splits into the nucleus
+   (still the column's pink) and the y/i glide, which is always red with the
+   hook diacritic (ỷ/ỉ), matching the semivowel convention used elsewhere in
+   EiC rather than being flattened into one solid colour. */
+.lesson-word-mark-nucleus { color: var(--lesson-color); }
+.lesson-word-mark-glide { color: #FF0000; }
+.lesson-col.is-locked .lesson-word-mark-nucleus,
+.lesson-col.is-locked .lesson-word-mark-glide {
+  color: var(--color-text-muted);
 }
 .lesson-col.is-locked .lesson-word {
   color: var(--color-text-muted);
