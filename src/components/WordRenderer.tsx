@@ -49,8 +49,21 @@ interface Props {
 // variable font) — if the site's font ever changes, re-derive these two
 // numbers the same way (fonttools ttx on the new font's OS/2/hhea tables)
 // rather than eyeballing new ones.
-const TRICOLOR_BG_SIZE_Y     = '45.118%'
-const TRICOLOR_BG_POSITION_Y = '63.680%'
+//
+// OVERSHOOT MARGIN: the raw x-height/baseline window above is a FLAT
+// metric line, but round letters (o, a — exactly the letters that carry
+// /əʊ/) are drawn by font designers to overshoot slightly past it on both
+// sides — a curved letter that stopped exactly at x-height would look
+// visually shorter than a flat-topped one, so type designers nudge round
+// shapes a bit past the line to compensate. Because `background-repeat` is
+// `no-repeat`, any ink outside the exact window gets NO background at all
+// (fully transparent, not just miscoloured) — so the un-padded window was
+// clipping that overshoot clean off, top and bottom, looking like the
+// letter was "cut". Padding the window by 2% of the box on each side
+// (a round, conservative allowance — typical overshoot is ~1-3% for most
+// text fonts) absorbs that without visibly unbalancing the three bands.
+const TRICOLOR_BG_SIZE_Y     = '49.118%'
+const TRICOLOR_BG_POSITION_Y = '64.763%'
 
 export default function WordRenderer({ nodes, wordStr }: Props) {
   const renderNodes  = applyRegexOverrides(wordStr, nodes, DEFAULT_CONFIG.regexRules)
