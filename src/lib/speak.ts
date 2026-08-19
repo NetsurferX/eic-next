@@ -5,13 +5,16 @@ function pickBestVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices()
   if (!voices.length) return null
 
+  // Preferăm voci americane (rotice) — motorul lexical (db.ts, Rule-1) alege
+  // deja varianta 'us' cu prioritate, deci vocea trebuie să fie consistentă
+  // cu asta, altfel r-ul postvocalic (ex: tabelul /a/: car, father) nu se aude.
   const preferred = [
+    'Google US English',
+    'Microsoft Aria Online (Natural) - English (United States)',
+    'Microsoft Guy Online (Natural) - English (United States)',
+    'Samantha',
     'Google UK English Female',
     'Google UK English Male',
-    'Microsoft Libby Online (Natural) - English (United Kingdom)',
-    'Microsoft Sonia Online (Natural) - English (United Kingdom)',
-    'Samantha',
-    'Google US English',
   ]
 
   for (const name of preferred) {
@@ -19,8 +22,8 @@ function pickBestVoice(): SpeechSynthesisVoice | null {
     if (match) { cachedVoice = match; return match }
   }
 
-  const enGB = voices.find(v => v.lang === 'en-GB')
-  if (enGB) { cachedVoice = enGB; return enGB }
+  const enUS = voices.find(v => v.lang === 'en-US')
+  if (enUS) { cachedVoice = enUS; return enUS }
   const enAny = voices.find(v => v.lang.startsWith('en'))
   cachedVoice = enAny ?? voices[0]
   return cachedVoice
@@ -59,7 +62,7 @@ export function speakWord(word: string, options: SpeakOptions = {}): { promise: 
   liveUtterance = utterance // see comment above — prevents the GC-drop bug
   utterance.rate = 0.85
   utterance.pitch = 1.0
-  utterance.lang = 'en-GB'
+  utterance.lang = 'en-US'
 
   const voice = pickBestVoice()
   if (voice) utterance.voice = voice
