@@ -1127,6 +1127,10 @@ button, textarea, input { font-family: var(--font-sans); }
   margin: 0 auto .4rem;
   transition: filter .4s ease;
 }
+/* wrapper doar pentru a putea citi poziția reală a cupei prin
+   getBoundingClientRect (vezi handleMainButton) — nu schimbă vizual nimic,
+   cupa se centrează la fel prin margin:auto ca înainte */
+.lesson-cup-wrap { display: block; width: 100%; }
 .fill-cup-svg { width: 100%; height: 100%; display: block; animation: cup-breathe 4s ease-in-out infinite; }
 @keyframes cup-breathe {
   0%, 100% { transform: scale(1); }
@@ -1314,13 +1318,16 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-stepper { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: .9rem; }
 .lesson-stepper-pill {
   display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-sans);
   font-size: 10px; font-weight: 700;
   padding: 3px 10px;
   border-radius: 999px;
   border: 1.5px solid var(--color-border);
+  background: none;
   color: var(--color-text-secondary);
   opacity: .55;
-  transition: opacity .25s, background .25s, color .25s, border-color .25s;
+  cursor: default;
+  transition: opacity .25s, background .25s, color .25s, border-color .25s, transform .15s;
 }
 .lesson-stepper-pill.is-done {
   opacity: .85;
@@ -1332,6 +1339,14 @@ button, textarea, input { font-family: var(--font-sans); }
   background: var(--pill-color, var(--color-text-primary));
   box-shadow: 0 2px 8px color-mix(in srgb, var(--pill-color, transparent) 45%, transparent);
 }
+/* ── nivel deblocat, dar altul decât cel afișat acum — poate fi revăzut ── */
+.lesson-stepper-pill.is-visitable { cursor: pointer; }
+.lesson-stepper-pill.is-visitable:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--pill-color, #FFB300) 55%, var(--color-border));
+}
+.lesson-stepper-pill:disabled { cursor: not-allowed; }
 .lesson-stepper-dot { font-size: 9.5px; }
 
 /* ── Lesson grid (4 columns) ── */
@@ -1620,6 +1635,48 @@ button, textarea, input { font-family: var(--font-sans); }
   100% { transform: scale(1); }
 }
 
+/* ── wrapper doar pentru poziționare — găzduiește badge-ul de stea care
+   "crește" pe buton chiar în clipa în care e câștigată (vezi .star-flight
+   mai jos pentru zborul propriu-zis spre cupă) ── */
+.lesson-col-btn-wrap { position: relative; }
+.lesson-col-btn-star {
+  position: absolute;
+  top: -8px; right: -6px;
+  font-size: 20px;
+  color: #FFB300;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  pointer-events: none;
+  animation: lesson-col-btn-star-grow 350ms cubic-bezier(.3, 1.6, .4, 1) forwards;
+}
+@keyframes lesson-col-btn-star-grow {
+  0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+  60%  { transform: scale(1.35) rotate(6deg); opacity: 1; }
+  100% { transform: scale(1.1) rotate(0deg); opacity: 1; }
+}
+
+/* ── cupă flotantă — element `position: fixed`, calculată o singură dată
+   (getBoundingClientRect pe buton + pe wrapper-ul cupei), animă direct din
+   punctul de start spre punctul de sosire și dispare acolo, ca și "topită"
+   în cupă; cupa însăși se umple separat, prin propria tranziție CSS
+   (fill-cup-liquid), declanșată quasi-simultan de creșterea starsEarned ── */
+.star-flight {
+  position: fixed;
+  left: 0; top: 0;
+  font-size: 24px;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 55;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+  animation: star-flight-move 1100ms cubic-bezier(.32, .74, .18, 1) forwards;
+}
+@keyframes star-flight-move {
+  0%   { transform: translate(var(--from-x), var(--from-y)) translate(-50%, -50%) scale(.2); opacity: 0; }
+  14%  { transform: translate(var(--from-x), var(--from-y)) translate(-50%, -50%) scale(1.3); opacity: 1; }
+  30%  { transform: translate(var(--from-x), var(--from-y)) translate(-50%, -50%) scale(1);   opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translate(var(--to-x), var(--to-y)) translate(-50%, -50%) scale(.3); opacity: 0; }
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    Overlay-ul de finalizare de nivel — fixed pe tot ecranul, deci nu
    afectează niciodată înălțimea/scroll-ul paginii de dedesubt. Cupă mare cu
@@ -1663,14 +1720,10 @@ button, textarea, input { font-family: var(--font-sans); }
   z-index: -1;
 }
 @keyframes rays-spin { to { transform: rotate(360deg); } }
+/* poziționarea containerului mascotei din overlay — animația propriu-zisă
+   e dată de clasele .mascot din secțiunea „Mascota EiC" de mai jos */
 .level-overlay-mascot {
-  position: absolute; top: -6px; right: -14px;
-  font-size: 30px;
-  animation: mascot-bounce 1.1s ease-in-out infinite;
-}
-@keyframes mascot-bounce {
-  0%, 100% { transform: translateY(0) rotate(-6deg); }
-  50%      { transform: translateY(-9px) rotate(8deg); }
+  position: absolute; top: -14px; right: -22px;
 }
 .level-overlay-title {
   font-family: var(--font-serif);
@@ -1793,6 +1846,80 @@ button, textarea, input { font-family: var(--font-sans); }
   opacity: 1;
 }
 
+/* ── butonul „Reia de la început" — stil discret, aliniat cu restul
+   butoanelor mici din lesson-top-links (aceeași familie ca .lesson-back-btn,
+   dar fără să tragă atenția excesiv — resetarea e o acțiune rară/apăsată
+   rar, nu vrem să concureze vizual cu „Pagina principală") ── */
+.lesson-reset-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600; font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+  opacity: .7;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.lesson-reset-btn:hover { opacity: 1; background: var(--color-surface-2); }
+
+/* ── modalul de confirmare a resetării — aceeași rețetă ca level-overlay
+   (fixed pe tot ecranul, fundal întunecat + blur), dar mult mai simplu:
+   doar text + două butoane, fără cupă/confetti/mascotă ── */
+.reset-overlay {
+  position: fixed; inset: 0; z-index: 65;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 10, 14, .6);
+  backdrop-filter: blur(5px);
+  animation: level-overlay-in 250ms ease;
+  padding: 1.5rem;
+}
+.reset-overlay-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 1.6rem 1.5rem;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .35);
+  animation: level-overlay-card-in 400ms cubic-bezier(.2, 1.4, .4, 1);
+}
+.reset-overlay-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  margin-bottom: .5rem;
+}
+.reset-overlay-sub {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  opacity: .8;
+  line-height: 1.5;
+  margin-bottom: 1.2rem;
+}
+.reset-overlay-actions { display: flex; gap: 8px; justify-content: center; }
+.reset-overlay-cancel,
+.reset-overlay-confirm {
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 700;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform .15s, opacity .15s;
+}
+.reset-overlay-cancel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+.reset-overlay-cancel:hover { background: var(--color-surface-2); }
+.reset-overlay-confirm {
+  background: #CC0000;
+  border: none;
+  color: #fff;
+}
+.reset-overlay-confirm:hover { opacity: .88; transform: translateY(-1px); }
+
 /* ── /welcome — wrapper-ul rutei hero. .eic-hero însuși are deja
    max-width/margin auto/padding proprii; asta e doar respirația de
    pagină, ca la celelalte rute (.lesson-page, .rules-page etc.). ── */
@@ -1884,4 +2011,189 @@ button, textarea, input { font-family: var(--font-sans); }
 @media (prefers-reduced-motion: reduce) {
   .lesson-col.is-active, .lesson-col.is-active::before { animation: none; }
   .lesson-col, .lesson-col::before { transition: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Mascota EiC — o bufniță prietenoasă care participă la joc: indică
+   butonul de apăsat, aplaudă la fiecare stea și sare de bucurie când se
+   termină o coloană sau un nivel. Randată complet în SVG, animată doar cu
+   `transform`/`opacity` prin clase de stare (`.state-idle` / `.state-pointing`
+   / `.state-clapping` / `.state-cheering`), fără nicio dependență de
+   poziția altor elemente din pagină — poate fi plasată oriunde (dock fix
+   pe /learn, sau ancorată în interiorul overlay-ului de nivel).
+   ══════════════════════════════════════════════════════════════════════ */
+.mascot {
+  position: relative;
+  width: var(--mascot-size, 96px);
+  height: var(--mascot-size, 96px);
+}
+.mascot-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.mascot-shadow { fill: rgba(0, 0, 0, .13); }
+
+.mascot-body-wrap {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: mascot-idle-bob 2.6s ease-in-out infinite;
+}
+@keyframes mascot-idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+.mascot-body   { fill: #FFE9B3; stroke: #1a1917; stroke-width: 2.5; }
+.mascot-belly  { fill: #FFF6E0; }
+.mascot-tuft   { fill: #FFE9B3; stroke: #1a1917; stroke-width: 2; stroke-linejoin: round; }
+.mascot-wing   { fill: #FFB300; stroke: #1a1917; stroke-width: 2; stroke-linejoin: round; }
+.mascot-beak   { fill: #FF7A00; stroke: #1a1917; stroke-width: 2; stroke-linejoin: round; }
+.mascot-cheek  { fill: #FF9EC4; opacity: .55; }
+.mascot-foot   { fill: #FF7A00; stroke: #1a1917; stroke-width: 1.5; }
+.mascot-smile  { fill: none; stroke: #1a1917; stroke-width: 2; stroke-linecap: round; }
+.mascot-eye-white { fill: #ffffff; stroke: #1a1917; stroke-width: 2; }
+.mascot-eye-pupil { fill: #1a1917; }
+
+/* pleoapă — invizibilă în mod normal (scaleY 0), clipește periodic */
+.mascot-eyelid {
+  fill: #FFE9B3;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(0);
+  animation: mascot-blink 4.2s ease-in-out infinite;
+}
+@keyframes mascot-blink {
+  0%, 92%, 100% { transform: scaleY(0); }
+  95%           { transform: scaleY(1); }
+}
+
+/* aripile stau nemișcate în repaus — fiecare stare de mai jos le animă explicit */
+.mascot-wing-left,
+.mascot-wing-right { transform-box: fill-box; }
+
+/* ── stare: "pointing" — aripa dreaptă se ridică repetat, invitând la apăsat ── */
+.mascot.state-pointing .mascot-wing-right {
+  transform-origin: 15% 15%;
+  animation: mascot-point-wing 900ms ease-in-out infinite;
+}
+@keyframes mascot-point-wing {
+  0%, 100% { transform: rotate(-8deg); }
+  50%      { transform: rotate(-58deg); }
+}
+
+/* ── stare: "clapping" — aripile bat din palme una spre cealaltă ── */
+.mascot.state-clapping .mascot-wing-left {
+  transform-origin: 85% 20%;
+  animation: mascot-clap-left 420ms ease-in-out infinite;
+}
+.mascot.state-clapping .mascot-wing-right {
+  transform-origin: 15% 20%;
+  animation: mascot-clap-right 420ms ease-in-out infinite;
+}
+.mascot.state-clapping .mascot-body-wrap { animation: mascot-clap-bounce 420ms ease-in-out infinite; }
+@keyframes mascot-clap-left {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  50%      { transform: rotate(30deg) translateX(6px); }
+}
+@keyframes mascot-clap-right {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  50%      { transform: rotate(-30deg) translateX(-6px); }
+}
+@keyframes mascot-clap-bounce {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+
+/* ── stare: "cheering" — sare de bucurie, aripile sus, scântei în jur ── */
+.mascot.state-cheering .mascot-body-wrap { animation: mascot-cheer-jump 700ms ease-in-out infinite; }
+.mascot.state-cheering .mascot-wing-left {
+  transform-origin: 85% 20%;
+  animation: mascot-cheer-wing-left 700ms ease-in-out infinite;
+}
+.mascot.state-cheering .mascot-wing-right {
+  transform-origin: 15% 20%;
+  animation: mascot-cheer-wing-right 700ms ease-in-out infinite;
+}
+@keyframes mascot-cheer-jump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30%      { transform: translateY(-11px) scale(1.02); }
+  55%      { transform: translateY(0) scale(1); }
+}
+@keyframes mascot-cheer-wing-left {
+  0%, 100% { transform: rotate(38deg); }
+  50%      { transform: rotate(58deg); }
+}
+@keyframes mascot-cheer-wing-right {
+  0%, 100% { transform: rotate(-38deg); }
+  50%      { transform: rotate(-58deg); }
+}
+
+.mascot-sparkles { opacity: 0; transition: opacity .25s ease; }
+.mascot.state-cheering .mascot-sparkles { opacity: 1; }
+.mascot-sparkle {
+  font-size: 12px;
+  fill: #FFB300;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-sparkle-twinkle 1.1s ease-in-out infinite;
+}
+.mascot-sparkle.s2 { animation-delay: .3s; }
+.mascot-sparkle.s3 { animation-delay: .6s; }
+@keyframes mascot-sparkle-twinkle {
+  0%, 100% { opacity: .25; transform: scale(.7); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+
+/* ── bula de dialog — reapare (și se re-animă) la fiecare mesaj nou ── */
+.mascot-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 4px;
+  max-width: 168px;
+  background: #ffffff;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 7px 11px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  animation: mascot-bubble-in 220ms cubic-bezier(.2, 1.4, .4, 1);
+  z-index: 1;
+}
+.mascot-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%; right: 18px;
+  border: 6px solid transparent;
+  border-top-color: #ffffff;
+}
+@keyframes mascot-bubble-in {
+  0%   { opacity: 0; transform: translateY(6px) scale(.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── dock-ul flotant de pe /learn — mascota stă fixă în colțul din
+   dreapta-jos al ecranului, deasupra conținutului, dar nu blochează
+   click-urile (pointer-events: none) ── */
+.mascot-dock {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 45;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .16));
+}
+
+@media (max-width: 720px) {
+  .mascot-dock { right: 8px; bottom: 8px; }
+  .mascot-dock .mascot { --mascot-size: 62px !important; }
+  .mascot-dock .mascot-bubble { font-size: 11px; max-width: 124px; padding: 6px 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-body-wrap,
+  .mascot-wing-left, .mascot-wing-right,
+  .mascot-eyelid, .mascot-sparkle { animation: none !important; }
 }

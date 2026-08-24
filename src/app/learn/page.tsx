@@ -4,6 +4,7 @@ import { speakWord, warmUpVoices, estimateSpeechDurationMs } from '@/lib/speak'
 import { playStarChime, playLevelFanfare } from '@/lib/sound'
 import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress, type Lesson } from '@/lib/levels'
 import { Cup, Confetti } from '@/components/game/Cup'
+import { Mascot, type MascotState } from '@/components/game/Mascot'
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
 import Link from 'next/link'
 
@@ -11,6 +12,7 @@ const AUTO_DELAY_MS = 1650   // gap between words — tripled from the original 
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
+const STAR_FLIGHT_MS = 1100     // how long the star takes to fly from the button into the cup
 
 // Renders a word letter by letter so that (a) the letters carrying the
 // target sound keep their colour and (b) whichever letter (or, for the
@@ -79,6 +81,22 @@ export default function LearnPage() {
   const [levelCelebrating, setLevelCelebrating]   = useState(false)
   const [showLevelOverlay, setShowLevelOverlay]   = useState(false)
   const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
+
+  // ── Steaua zburătoare — apare pe butonul „Repetă/Continuă" chiar când o
+  //   repetiție se termină cu succes, crește scurt, apoi zboară vizual spre
+  //   cupa coloanei active și dispare acolo (cupa oricum se umple singură,
+  //   printr-o tranziție CSS proprie, de îndată ce starsEarned crește —
+  //   asta e doar „mesagerul" vizual dintre buton și cupă). Poziția de
+  //   start/sosire vine din getBoundingClientRect pe butonul activ, respectiv
+  //   pe wrapper-ul cupei coloanei — calculate o singură dată, în momentul
+  //   în care se câștigă steaua, nu urmărite continuu. ──
+  const [flyingStar, setFlyingStar] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; color: string } | null>(null)
+  const flyingStarIdRef = useRef(0)
+  const activeBtnRef = useRef<HTMLButtonElement | null>(null)
+  const cupRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  // ── Resetarea completă a jocului (buton + modal de confirmare) ──
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   const [hydrated, setHydrated] = useState(false)
   const autoCancel  = useRef(false)
@@ -160,6 +178,16 @@ export default function LearnPage() {
 
   const isLastLevel = levelIndex === LEVELS.length - 1
   const nextLevel   = !isLastLevel ? LEVELS[levelIndex + 1] : null
+
+  // ── Un nivel e „terminat" dacă toate cele 4 coloane ale lui au 5 stele —
+  //   calculat direct din starsEarned, NU din compararea cu levelIndex
+  //   curent, tocmai ca să rămână corect și atunci când utilizatorul se
+  //   întoarce să revadă un nivel mai vechi (vezi visitLevel mai jos):
+  //   levelIndex arată ce se VEDE acum pe ecran, nu neapărat cât de departe
+  //   a ajuns utilizatorul. ──
+  const isLevelDone = useCallback((i: number) => (
+    LEVELS[i].lessons.every((_, ci) => starsEarned[i][ci] >= REPS_PER_LESSON)
+  ), [starsEarned])
 
   // The single locked column right after the active one — the one that's
   // "about to be offered". Progression is strictly linear so at most one
@@ -291,6 +319,31 @@ export default function LearnPage() {
     setTimeout(() => setPoppingStarIndex(null), POP_DURATION_MS)
     playStarChime()
 
+    // ── Steaua zburătoare: pornește din poziția reală a butonului tocmai
+    //   apăsat și țintește cupa reală a coloanei active, citite chiar acum
+    //   prin getBoundingClientRect — un singur calcul, nu o urmărire
+    //   continuă, exact ca restul animațiilor din joc. Dacă din orice motiv
+    //   unul dintre elemente nu e încă montat, sărim peste efectul vizual
+    //   fără să blocăm restul logicii (stelele/cupa se actualizează oricum). ──
+    const btnEl = activeBtnRef.current
+    const cupEl = cupRefs.current[lesson.id]
+    if (btnEl && cupEl) {
+      const bRect = btnEl.getBoundingClientRect()
+      const cRect = cupEl.getBoundingClientRect()
+      const id = ++flyingStarIdRef.current
+      setFlyingStar({
+        id,
+        fromX: bRect.left + bRect.width / 2,
+        fromY: bRect.top + bRect.height / 2,
+        toX: cRect.left + cRect.width / 2,
+        toY: cRect.top + cRect.height / 2,
+        color: lesson.color,
+      })
+      setTimeout(() => {
+        setFlyingStar(f => (f && f.id === id ? null : f))
+      }, STAR_FLIGHT_MS)
+    }
+
     const updatedLevelStars = levelStars.map((v, idx) => (idx === active ? newCount : v))
     setStarsEarned(prev => prev.map((row, li) => (li === levelIndex ? updatedLevelStars : row)))
 
@@ -328,6 +381,51 @@ export default function LearnPage() {
     setActive(i)
   }, [isPlayingRep, colUnlocked, levelIndex, active])
 
+  // ── Permite să revii la un nivel deja deblocat (curent sau terminat),
+  //   ca să revezi coloanele lui — fără să atingi progresul (colUnlocked,
+  //   starsEarned rămân neschimbate; doar „ce se vede" se mută). ──
+  const visitLevel = useCallback((i: number) => {
+    if (isPlayingRep || !unlockedLevels[i] || i === levelIndex) return
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    setLevelIndex(i)
+    const firstUnlockedCol = colUnlocked[i].findIndex(Boolean)
+    setActive(firstUnlockedCol === -1 ? 0 : firstUnlockedCol)
+  }, [isPlayingRep, unlockedLevels, levelIndex, colUnlocked])
+
+  // ── Reia tot jocul de la zero: șterge progresul salvat și readuce toate
+  //   flag-urile la valorile inițiale (aceleași cu cele din useState de mai
+  //   sus). Cerută printr-un buton + un modal de confirmare, ca să nu se
+  //   piardă progresul dintr-o apăsare greșită. ──
+  const resetGame = useCallback(() => {
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    letterAnimCleanup.current?.()
+    letterAnimCleanup.current = null
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
+
+    setLevelIndex(0)
+    setUnlockedLevels(LEVELS.map((_, i) => i === 0))
+    setColUnlocked(LEVELS.map((_, i) => [i === 0, false, false, false]))
+    setStarsEarned(LEVELS.map(() => [0, 0, 0, 0]))
+    setActive(0)
+    setAllDone(false)
+
+    setPlayingWord(null)
+    setPlayingColId(null)
+    setPlayingLetterIndex(null)
+    setIsPlayingRep(false)
+    setPoppingStarIndex(null)
+    setCelebrating(false)
+    setReadyToContinue(false)
+    setFreePracticeCount(0)
+    setLevelCelebrating(false)
+    setShowLevelOverlay(false)
+    setJustRevealedIndex(null)
+    setFlyingStar(null)
+    setShowResetConfirm(false)
+  }, [])
+
   const stopPlayback = useCallback(() => {
     autoCancel.current = true
     currentAudio.current?.pause()
@@ -352,12 +450,52 @@ export default function LearnPage() {
   else if (hasTrophy) buttonLabel = `Repetă (${(freePracticeCount % REPS_PER_LESSON) + 1}/${REPS_PER_LESSON})`
   else buttonLabel = `Repetă (${earned + 1}/${REPS_PER_LESSON})`
 
+  // ── Mascota — stare derivată direct din flag-urile existente (aceeași
+  //   filozofie ca `buttonLabel` de mai sus), nu dintr-un state/timer
+  //   separat: fiecare flag își are deja propriul ciclu de viață
+  //   (poppingStarIndex se șterge singur după POP_DURATION_MS,
+  //   readyToContinue/showLevelOverlay sunt controlate de handleMainButton),
+  //   deci mascota "urmărește" jocul fără riscul unor stări care se bat
+  //   între ele. Ordinea de mai jos e ordinea de prioritate. ──
+  let mascotState: MascotState
+  let mascotMessage: string
+  if (showLevelOverlay) {
+    mascotState = 'cheering'
+    mascotMessage = nextLevel ? `Bravo! Hai spre ${nextLevel.name.replace(/^Nivelul \d+ · /, '')}!` : 'Ai terminat tot jocul! 🎉'
+  } else if (flyingStar) {
+    // Prioritate maximă cât timp steaua tocmai zboară spre cupă — așa
+    // aplauzele sunt GARANTAT vizibile la fiecare succes, chiar dacă în
+    // aceeași bătaie de "handleMainButton" s-a activat și readyToContinue
+    // (ultima stea a coloanei): întâi aplaudă, abia apoi, pe randarea
+    // următoare (după ce zborul se termină), trece spre "cheering".
+    mascotState = 'clapping'
+    mascotMessage = 'Bravo! ⭐'
+  } else if (readyToContinue) {
+    mascotState = 'cheering'
+    mascotMessage = 'Coloană gata! Hai mai departe →'
+  } else if (poppingStarIndex !== null) {
+    mascotState = 'clapping'
+    mascotMessage = 'Bravo! ⭐'
+  } else if (isPlayingRep || playingWord !== null) {
+    mascotState = 'idle'
+    mascotMessage = 'Ascultă cu atenție 👂'
+  } else if (hasTrophy) {
+    mascotState = 'pointing'
+    mascotMessage = 'Mai exersează o dată! 🔁'
+  } else {
+    mascotState = 'pointing'
+    mascotMessage = 'Apasă butonul! 👇'
+  }
+
   return (
     <main className="lesson-page">
       <div className="lesson-top-row">
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
           {/* ADAPT: schimbă "/culise" cu ruta reală a hero-ului, dacă diferă */}
+          <button type="button" className="lesson-reset-btn" onClick={() => setShowResetConfirm(true)}>
+            ↺ Reia de la început
+          </button>
         </div>
         <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
@@ -365,20 +503,24 @@ export default function LearnPage() {
       <header className="lesson-header">
         <div className="lesson-stepper" aria-label="Niveluri">
           {LEVELS.map((lv, i) => {
-            const done = i < levelIndex || (i === levelIndex && allDone)
-            const isCurrent = i === levelIndex && !allDone
-            const locked = i > levelIndex
+            const done    = isLevelDone(i)
+            const locked  = !unlockedLevels[i]
+            const viewing = i === levelIndex
+            const canVisit = !locked && !viewing
             const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
             return (
-              <div
+              <button
+                type="button"
                 key={lv.id}
-                className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${isCurrent ? 'is-current' : ''} ${locked ? 'is-locked' : ''}`}
+                className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${viewing ? 'is-current' : ''} ${locked ? 'is-locked' : ''} ${canVisit ? 'is-visitable' : ''}`}
                 style={pillStyle}
-                title={lv.name}
+                title={canVisit ? `Revezi ${lv.name}` : lv.name}
+                onClick={canVisit ? () => visitLevel(i) : undefined}
+                disabled={!canVisit}
               >
                 <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
                 <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
-              </div>
+              </button>
             )
           })}
         </div>
@@ -417,16 +559,18 @@ export default function LearnPage() {
               </div>
 
               {isUnlocked && (
-                <Cup
-                  progressPct={(stars / REPS_PER_LESSON) * 100}
-                  size={42}
-                  color={l.color}
-                  celebrating={isActive && celebrating}
-                  allFull={trophyEarned}
-                  idSuffix={l.id}
-                  showBubbles
-                  activePulse={isActive && !trophyEarned}
-                />
+                <div ref={(el) => { cupRefs.current[l.id] = el }} className="lesson-cup-wrap">
+                  <Cup
+                    progressPct={(stars / REPS_PER_LESSON) * 100}
+                    size={42}
+                    color={l.color}
+                    celebrating={isActive && celebrating}
+                    allFull={trophyEarned}
+                    idSuffix={l.id}
+                    showBubbles
+                    activePulse={isActive && !trophyEarned}
+                  />
+                </div>
               )}
               {!isUnlocked && isNextUp && (
                 <p className="lesson-next-hint">se deschide imediat</p>
@@ -468,14 +612,20 @@ export default function LearnPage() {
               </div>
 
               {isActive && isUnlocked && (
-                <button
-                  className={`lesson-col-btn ${readyToContinue ? 'is-continue' : ''}`}
-                  onClick={(e) => { e.stopPropagation(); handleMainButton() }}
-                  disabled={isPlayingRep}
-                  style={{ background: l.color }}
-                >
-                  {buttonLabel}
-                </button>
+                <div className="lesson-col-btn-wrap">
+                  <button
+                    ref={activeBtnRef}
+                    className={`lesson-col-btn ${readyToContinue ? 'is-continue' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); handleMainButton() }}
+                    disabled={isPlayingRep}
+                    style={{ background: l.color }}
+                  >
+                    {buttonLabel}
+                  </button>
+                  {/* steaua "crește" chiar pe buton, în clipa în care e câștigată —
+                      înainte să pornească, ca element fix, spre cupă (vezi mai jos) */}
+                  {flyingStar && <span className="lesson-col-btn-star" aria-hidden="true">★</span>}
+                </div>
               )}
             </div>
           )
@@ -498,7 +648,7 @@ export default function LearnPage() {
                 big
                 showBubbles
               />
-              <span className="level-overlay-mascot" aria-hidden="true">🥳</span>
+              <Mascot state="cheering" size={64} className="level-overlay-mascot" />
             </div>
             <p className="level-overlay-title">🏆 {level.name}</p>
             <p className="level-overlay-sub">
@@ -513,6 +663,50 @@ export default function LearnPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {showResetConfirm && (
+        <div className="reset-overlay" role="dialog" aria-modal="true" aria-label="Confirmare resetare">
+          <div className="reset-overlay-card">
+            <p className="reset-overlay-title">Reiei jocul de la început?</p>
+            <p className="reset-overlay-sub">Tot progresul — stelele și nivelurile deblocate — va fi șters definitiv.</p>
+            <div className="reset-overlay-actions">
+              <button type="button" className="reset-overlay-cancel" onClick={() => setShowResetConfirm(false)}>
+                Anulează
+              </button>
+              <button type="button" className="reset-overlay-confirm" onClick={resetGame}>
+                Da, reia de la început
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* steaua zburătoare — element `position: fixed`, poziționat prin
+          coordonate viewport calculate o singură dată (vezi handleMainButton);
+          nu urmărește nimic continuu, doar animă de la punctul de start la
+          cel de sosire și dispare ── */}
+      {flyingStar && (
+        <span
+          key={flyingStar.id}
+          className="star-flight"
+          aria-hidden="true"
+          style={{
+            '--from-x': `${flyingStar.fromX}px`,
+            '--from-y': `${flyingStar.fromY}px`,
+            '--to-x': `${flyingStar.toX}px`,
+            '--to-y': `${flyingStar.toY}px`,
+            color: flyingStar.color,
+          } as CSSProperties}
+        >
+          ★
+        </span>
+      )}
+
+      {/* dock-ul flotant e ascuns cât timp overlay-ul de nivel e deschis —
+          acela are deja propria mascotă, în cupwrap */}
+      {!showLevelOverlay && (
+        <Mascot state={mascotState} message={mascotMessage} size={104} className="mascot-dock" />
       )}
     </main>
   )

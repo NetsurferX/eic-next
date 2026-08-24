@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties } from 'react'
+import { forwardRef, type CSSProperties } from 'react'
 
 // ── Confetti — o mică explozie de particule, pur CSS, fără librării externe.
 //    `big` întinde traiectoria și mărește particulele, pentru celebrarea de nivel. ──
@@ -25,9 +25,9 @@ export function Confetti({ count = 14, big = false }: { count?: number; big?: bo
 //    cupa fiecărei coloane, cupa mare din overlay-ul de nivel și teaser-ul
 //    de pe pagina principală — doar cu culoare, mărime și opțiuni
 //    (bule/glow/inel/confetti mare) diferite. ──
-export function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, allFull = false, idSuffix, confettiCount = 14, big = false, showBubbles = false, className = '', ring = false, activePulse = false }: {
-  progressPct: number; size?: number; color?: string; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number; big?: boolean; showBubbles?: boolean; className?: string; ring?: boolean; activePulse?: boolean
-}) {
+export const Cup = forwardRef<HTMLDivElement, {
+  progressPct: number; size?: number; color?: string; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number; big?: boolean; showBubbles?: boolean; className?: string; ring?: boolean; activePulse?: boolean; bump?: boolean
+}>(function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, allFull = false, idSuffix, confettiCount = 14, big = false, showBubbles = false, className = '', ring = false, activePulse = false, bump = false }, ref) {
   const innerTop = 15, innerBottom = 85
   const fillHeight = ((innerBottom - innerTop) * Math.max(0, Math.min(100, progressPct))) / 100
   const fillY = innerBottom - fillHeight
@@ -35,7 +35,8 @@ export function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = f
   const clipId = `cupClip-${idSuffix}`
   return (
     <div
-      className={`fill-cup ${allFull ? 'is-full' : ''} ${celebrating ? 'is-celebrating' : ''} ${activePulse ? 'is-active-pulse' : ''} ${className}`}
+      ref={ref}
+      className={`fill-cup ${allFull ? 'is-full' : ''} ${celebrating ? 'is-celebrating' : ''} ${activePulse ? 'is-active-pulse' : ''} ${bump ? 'is-bump' : ''} ${className}`}
       style={{ width: size, height: size, '--cup-color': color } as CSSProperties}
     >
       <svg viewBox="0 0 100 100" className="fill-cup-svg" aria-hidden="true">
@@ -85,4 +86,4 @@ export function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = f
       )}
     </div>
   )
-}
+})
