@@ -2,9 +2,12 @@
 // (see lib/rules/colors.ts — SOUND_COLORS is the single source of truth)
 // Shared between the /learn page and the landing-page level teaser, so both
 // always agree on level names, colours and progress math.
+export type Accent = 'en-GB' | 'en-US'
+
 export interface LessonWord {
   text: string
   mark: string   // substring of `text` that carries the target sound — only this part gets coloured
+  accent?: Accent   // override, dacă diferă de accentul coloanei (ex. cuvinte cu æn/æm)
 }
 
 export interface Lesson {
@@ -12,6 +15,7 @@ export interface Lesson {
   letter: string     // sound shown at the top of the column — no slashes
   color: string
   tabLabel: string   // Romanian colour-name shown on the tabs
+  accent?: Accent    // implicit 'en-US' dacă lipsește
   words: LessonWord[]
 }
 
@@ -39,8 +43,6 @@ export const LEVELS: Level[] = [
           { text: 'star',   mark: 'a' },
           { text: 'farm',   mark: 'a' },
           { text: 'hard',   mark: 'a' },
-          { text: 'park',   mark: 'a' },
-          { text: 'calm',   mark: 'a' },
         ],
       },
       {
@@ -49,15 +51,15 @@ export const LEVELS: Level[] = [
           { text: 'bed',    mark: 'e' },
           { text: 'head',   mark: 'ea' },
           { text: 'said',   mark: 'ai' },
-          { text: 'bread',  mark: 'ea' },
           { text: 'friend', mark: 'ie' },
           { text: 'left',   mark: 'e' },
-          { text: 'best',   mark: 'e' },
           { text: 'red',    mark: 'e' },
         ],
       },
       {
         id: 'o', letter: 'o', color: '#FF3399', tabLabel: 'Roz',
+        // Coloana /o/ — accent britanic (regula 6 din EiC — /learn — Modificări de implementat)
+        accent: 'en-GB',
         words: [
           { text: 'hot',   mark: 'o' },
           { text: 'top',   mark: 'o' },
@@ -65,8 +67,6 @@ export const LEVELS: Level[] = [
           { text: 'clock', mark: 'o' },
           { text: 'dog',   mark: 'o' },
           { text: 'box',   mark: 'o' },
-          { text: 'lot',   mark: 'o' },
-          { text: 'not',   mark: 'o' },
         ],
       },
       {
@@ -78,8 +78,6 @@ export const LEVELS: Level[] = [
           { text: 'fish', mark: 'i' },
           { text: 'hit',  mark: 'i' },
           { text: 'list', mark: 'i' },
-          { text: 'ship', mark: 'i' },
-          { text: 'wind', mark: 'i' },
         ],
       },
     ],
@@ -90,14 +88,16 @@ export const LEVELS: Level[] = [
     lessons: [
       {
         id: 'ae', letter: 'æ', color: '#00b0f0', tabLabel: 'Bleu',
+        // Coloana æ — accent britanic (regula 6). Cuvintele cu æn/æm (man, hand)
+        // sunt oricum acoperite de accentul coloanei; word.accent rămâne
+        // disponibil pentru un eventual cuvânt cu æn/æm dintr-o ALTĂ coloană.
+        accent: 'en-GB',
         words: [
           { text: 'cat',  mark: 'a' },
           { text: 'hat',  mark: 'a' },
           { text: 'bag',  mark: 'a' },
           { text: 'man',  mark: 'a' },
           { text: 'sad',  mark: 'a' },
-          { text: 'flag', mark: 'a' },
-          { text: 'black', mark: 'a' },
           { text: 'hand', mark: 'a' },
         ],
       },
@@ -110,8 +110,6 @@ export const LEVELS: Level[] = [
           { text: 'soon', mark: 'oo' },
           { text: 'book', mark: 'oo' },
           { text: 'good', mark: 'oo' },
-          { text: 'look', mark: 'oo' },
-          { text: 'foot', mark: 'oo' },
         ],
       },
       {
@@ -119,12 +117,10 @@ export const LEVELS: Level[] = [
         words: [
           { text: 'go',   mark: 'o' },
           { text: 'boat', mark: 'oa' },
-          { text: 'coat', mark: 'oa' },
           { text: 'road', mark: 'oa' },
           { text: 'home', mark: 'o' },
           { text: 'snow', mark: 'ow' },
           { text: 'show', mark: 'ow' },
-          { text: 'slow', mark: 'ow' },
         ],
       },
       {
@@ -132,12 +128,10 @@ export const LEVELS: Level[] = [
         words: [
           { text: 'day',  mark: 'ay' },
           { text: 'name', mark: 'a' },
-          { text: 'cake', mark: 'a' },
           { text: 'rain', mark: 'ai' },
           { text: 'play', mark: 'ay' },
           { text: 'gate', mark: 'a' },
           { text: 'wait', mark: 'ai' },
-          { text: 'say',  mark: 'ay' },
         ],
       },
     ],
@@ -153,10 +147,8 @@ export const LEVELS: Level[] = [
           { text: 'music',    mark: 'u' },
           { text: 'use',      mark: 'u' },
           { text: 'computer', mark: 'u' },
-          { text: 'unit',     mark: 'u' },
           { text: 'human',    mark: 'u' },
           { text: 'few',      mark: 'ew' },
-          { text: 'pupil',    mark: 'u' },
         ],
       },
       {
@@ -166,9 +158,7 @@ export const LEVELS: Level[] = [
           { text: 'my',    mark: 'y' },
           { text: 'time',  mark: 'i' },
           { text: 'like',  mark: 'i' },
-          { text: 'fly',   mark: 'y' },
           { text: 'high',  mark: 'igh' },
-          { text: 'light', mark: 'igh' },
           { text: 'five',  mark: 'i' },
         ],
       },
@@ -181,8 +171,6 @@ export const LEVELS: Level[] = [
           { text: 'now',   mark: 'ow' },
           { text: 'mouth', mark: 'ou' },
           { text: 'down',  mark: 'ow' },
-          { text: 'cloud', mark: 'ou' },
-          { text: 'brown', mark: 'ow' },
         ],
       },
       {
@@ -194,8 +182,6 @@ export const LEVELS: Level[] = [
           { text: 'voice', mark: 'oi' },
           { text: 'enjoy', mark: 'oy' },
           { text: 'point', mark: 'oi' },
-          { text: 'noise', mark: 'oi' },
-          { text: 'joy',   mark: 'oy' },
         ],
       },
     ],

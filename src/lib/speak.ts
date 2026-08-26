@@ -1,32 +1,43 @@
-let cachedVoice: SpeechSynthesisVoice | null = null
+export type Accent = 'en-GB' | 'en-US'
 
-function pickBestVoice(): SpeechSynthesisVoice | null {
-  if (cachedVoice) return cachedVoice
+// Un cache per-accent — nu unul singur global — pentru că acum pagina cere
+// explicit voci diferite pentru coloane/cuvinte diferite (regula 6 din
+// EiC — /learn — Modificări de implementat: æ și /o/ sunt britanice,
+// restul americane).
+const cachedVoices: Partial<Record<Accent, SpeechSynthesisVoice>> = {}
+
+const PREFERRED_US = [
+  'Google US English',
+  'Microsoft Aria Online (Natural) - English (United States)',
+  'Microsoft Guy Online (Natural) - English (United States)',
+  'Samantha',
+]
+
+const PREFERRED_GB = [
+  'Google UK English Female',
+  'Google UK English Male',
+  'Microsoft Libby Online (Natural) - English (United Kingdom)',
+  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
+  'Daniel',
+]
+
+function pickVoiceForAccent(accent: Accent): SpeechSynthesisVoice | null {
+  if (cachedVoices[accent]) return cachedVoices[accent]!
   const voices = window.speechSynthesis.getVoices()
   if (!voices.length) return null
 
-  // Preferăm voci americane (rotice) — motorul lexical (db.ts, Rule-1) alege
-  // deja varianta 'us' cu prioritate, deci vocea trebuie să fie consistentă
-  // cu asta, altfel r-ul postvocalic (ex: tabelul /a/: car, father) nu se aude.
-  const preferred = [
-    'Google US English',
-    'Microsoft Aria Online (Natural) - English (United States)',
-    'Microsoft Guy Online (Natural) - English (United States)',
-    'Samantha',
-    'Google UK English Female',
-    'Google UK English Male',
-  ]
-
+  const preferred = accent === 'en-GB' ? PREFERRED_GB : PREFERRED_US
   for (const name of preferred) {
     const match = voices.find(v => v.name === name)
-    if (match) { cachedVoice = match; return match }
+    if (match) { cachedVoices[accent] = match; return match }
   }
 
-  const enUS = voices.find(v => v.lang === 'en-US')
-  if (enUS) { cachedVoice = enUS; return enUS }
+  const exact = voices.find(v => v.lang === accent)
+  if (exact) { cachedVoices[accent] = exact; return exact }
   const enAny = voices.find(v => v.lang.startsWith('en'))
-  cachedVoice = enAny ?? voices[0]
-  return cachedVoice
+  const fallback = enAny ?? voices[0]
+  if (fallback) cachedVoices[accent] = fallback
+  return fallback ?? null
 }
 
 // Chrome garbage-collects a SpeechSynthesisUtterance mid-speech if nothing
@@ -48,6 +59,7 @@ let liveUtterance: SpeechSynthesisUtterance | null = null
 // nu vine niciun eveniment.
 export interface SpeakOptions {
   onBoundary?: (charIndex: number, charLength: number) => void
+  accent?: Accent   // implicit 'en-US' dacă lipsește
 }
 
 export function speakWord(word: string, options: SpeakOptions = {}): { promise: Promise<void>; stop: () => void } {
@@ -58,13 +70,14 @@ export function speakWord(word: string, options: SpeakOptions = {}): { promise: 
   const synth = window.speechSynthesis
   synth.cancel() // stop any word still being spoken
 
+  const accent = options.accent ?? 'en-US'
   const utterance = new SpeechSynthesisUtterance(word)
   liveUtterance = utterance // see comment above — prevents the GC-drop bug
   utterance.rate = 0.85
   utterance.pitch = 1.0
-  utterance.lang = 'en-US'
+  utterance.lang = accent
 
-  const voice = pickBestVoice()
+  const voice = pickVoiceForAccent(accent)
   if (voice) utterance.voice = voice
 
   let resolveFn: () => void = () => {}
@@ -118,5 +131,8 @@ export function estimateSpeechDurationMs(word: string, rate = 0.85): number {
 export function warmUpVoices() {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
   window.speechSynthesis.getVoices()
-  window.speechSynthesis.onvoiceschanged = () => { cachedVoice = null }
+  window.speechSynthesis.onvoiceschanged = () => {
+    delete cachedVoices['en-US']
+    delete cachedVoices['en-GB']
+  }
 }

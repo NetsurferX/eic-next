@@ -1523,11 +1523,11 @@ button, textarea, input { font-family: var(--font-sans); }
   display: block;
   position: relative;
   width: 100%;
-  font-size: 13.5px;
+  font-size: 27px; /* de la 13.5px — cuvinte mai mari, mai lizibile pentru copii */
   font-weight: 600;
   font-family: var(--font-sans);
   text-align: center;
-  padding: 7px 6px;
+  padding: 14px 10px; /* de la 7px 6px */
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--lesson-color) 35%, var(--color-border));
   background: color-mix(in srgb, var(--lesson-color) 10%, var(--color-bg));
@@ -1545,9 +1545,17 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-word.is-clickable:active { transform: scale(.97); }
 .lesson-word:disabled { cursor: wait; }
 .lesson-col.is-locked .lesson-word:disabled { cursor: not-allowed; }
+
+/* ── Colorare + subliniere per literă, în grupul-țintă (mark). w/y au
+   statut de vocală, ca și a/e/i/o/u — deci setul colorat = vocale + w + y;
+   aceleași litere sunt și subliniate, cu excepția cuvintelor monosilabice,
+   unde sublinierea dispare complet (culoarea rămâne). Cele două efecte sunt
+   clase separate ca să poată fi combinate independent per literă. ── */
 .lesson-word-mark {
   color: var(--lesson-color);
   font-weight: 800;
+}
+.lesson-word-mark-underline {
   text-decoration: underline;
   text-decoration-color: var(--lesson-color);
   text-underline-offset: 2.7px;
@@ -1558,54 +1566,27 @@ button, textarea, input { font-family: var(--font-sans); }
   border-color: var(--color-border-soft);
   background: transparent;
 }
+/* Literele colorate din coloanele blocate rămân vizibile, dar pastelate/
+   blurate — nu complet gri — ca să se ghicească ce urmează fără să se
+   citească limpede. */
 .lesson-col.is-locked .lesson-word-mark {
-  color: var(--color-text-muted);
-  text-decoration-color: var(--color-text-muted);
+  color: color-mix(in srgb, var(--lesson-color) 45%, var(--color-text-muted) 55%);
+  text-decoration-color: color-mix(in srgb, var(--lesson-color) 45%, var(--color-text-muted) 55%);
+  filter: blur(.3px);
+  opacity: .75;
 }
 .lesson-word.is-playing {
   position: relative;
   z-index: 1;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
   background: color-mix(in srgb, var(--lesson-color) 22%, var(--color-bg));
-  transform: scale(1.45);
+  /* Tot butonul crește ca UN singur bloc — litera colorată nu se mai umflă
+     separat (asta rupea proporția); ea rămâne diferențiată doar prin
+     culoare + glow (filter), vezi regula de mai jos. */
+  transform: scale(1.6);
 }
-
-/* ── Litera care se pronunță chiar acum — se umflă și strălucește,
-   folosind culoarea coloanei/lecției curente. Rulează în interiorul
-   cuvântului deja mărit de .is-playing de mai sus, ca un al doilea val de
-   accent, sincronizat aproximativ cu vocea (vezi estimateSpeechDurationMs
-   din lib/speak.ts — Web Speech API nu dă timing real per literă). ── */
-.lw-letter {
-  display: inline-block;
-  transform: scale(1);
-  transition: transform .12s ease-out, filter .12s ease-out;
-}
-
-/* Litere individuale (în afara grupului subliniat) — un singur puf scurt,
-   câte una pe rând, cât vocea trece prin ele. */
-.lw-letter.is-sounding {
-  animation: lw-letter-pop 340ms ease-out;
-  position: relative;
-  z-index: 2;
-}
-@keyframes lw-letter-pop {
-  0%   { transform: scale(1);    filter: drop-shadow(0 0 0 transparent); }
-  25%  { transform: scale(1.5);  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 16px currentColor); }
-  65%  { transform: scale(1.5);  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 16px currentColor); }
-  100% { transform: scale(1);    filter: drop-shadow(0 0 0 transparent); }
-}
-
-/* Grupul subliniat (sunetul-țintă, ex. "ea" din teacher) — se umflă TOT
-   împreună și rămâne umflat + strălucitor cât timp e activ, nu doar o
-   clipă, apoi coboară lin când pronunția trece mai departe. Prin
-   specificitate (2 clase) și `animation: none` suprascrie regula de mai
-   sus pentru literele care sunt și marcate, și active. */
-.lesson-word-mark.is-sounding {
-  animation: none;
-  transform: scale(1.5);
-  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 16px currentColor);
-  position: relative;
-  z-index: 2;
+.lesson-word.is-playing .lesson-word-mark {
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px currentColor);
 }
 
 /* ── Butonul principal — trăiește acum ÎN coloana activă (sub cuvinte),
@@ -1628,12 +1609,26 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-col-btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
 .lesson-col-btn:disabled { opacity: .6; cursor: wait; }
-.lesson-col-btn.is-continue { animation: col-btn-ready 900ms ease; }
-@keyframes col-btn-ready {
-  0%   { transform: scale(.92); }
-  50%  { transform: scale(1.05); }
-  100% { transform: scale(1); }
+
+/* ── Buton „Știu deja acest sunet" — sare peste repetiții, discret, sub
+   butonul principal, ca să nu concureze vizual cu el. ── */
+.lesson-col-studied-btn {
+  display: block;
+  width: 100%;
+  margin-top: .4rem;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: opacity .15s, background .15s;
 }
+.lesson-col-studied-btn:hover:not(:disabled) { background: var(--color-surface-2); }
+.lesson-col-studied-btn:disabled { opacity: .5; cursor: wait; }
 
 /* ── wrapper doar pentru poziționare — găzduiește badge-ul de stea care
    "crește" pe buton chiar în clipa în care e câștigată (vezi .star-flight
@@ -1825,9 +1820,24 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .shadow-caption { font-size: 12.5px; color: var(--color-text-muted); opacity: .75; }
 
+/* ── Versiune de telefon — o singură coloană pe rând, cuvinte și titlu mai
+   mari, vulpea-asistent și overlay-ul de nivel redimensionate. ── */
 @media (max-width: 720px) {
-  .lesson-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lesson-page { padding: 1.5rem 1rem 2.5rem; }
+  .lesson-grid { grid-template-columns: 1fr; gap: 10px; }
   .lesson-stepper-label { display: none; }
+  .lesson-title { font-size: 1.35rem; }
+  .lesson-word { font-size: 22px; padding: 12px 8px; }
+  .fox-helper { right: 12px; bottom: 12px; }
+  .fox-avatar { width: 48px; height: 48px; font-size: 24px; }
+  .fox-bubble { max-width: 170px; }
+  .level-overlay-card { max-width: 320px; }
+}
+
+@media (max-width: 420px) {
+  .lesson-top-row { grid-template-columns: 1fr; row-gap: 8px; }
+  .lesson-back-btn { justify-self: center; }
+  .lesson-title { grid-column: 1; text-align: center; }
 }
 
 /* ── Stivă de 2 butoane în lesson-top-row: „Pagina principală” + link spre
@@ -1974,15 +1984,25 @@ button, textarea, input { font-family: var(--font-sans); }
               0 0 0 1px color-mix(in srgb, var(--lesson-color) 18%, transparent);
 }
 .lesson-col.is-unlocked:hover::before { opacity: .95; transform: scale(1); }
+/* ── Coloana activă — contur dublu (border + outline) și 5-10% mai mare,
+   ca să se distingă limpede care coloană se studiază acum. `transform: scale`
+   de aici intră în conflict cu `translateY(-3px)` de pe :hover (mai jos) —
+   regula .is-active.is-unlocked:hover combină manual cele două, ca hover-ul
+   să funcționeze și pe coloana activă. ── */
 .lesson-col.is-active {
   border-color: var(--lesson-color);
-  border-width: 2px;
+  border-width: 3px;
+  outline: 2px solid var(--lesson-color);
+  outline-offset: 3px;
+  transform: scale(1.07);
+  z-index: 2;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color) 18%, transparent),
               0 5px 14px color-mix(in srgb, var(--lesson-color) 16%, transparent),
               0 12px 34px color-mix(in srgb, var(--lesson-color) 14%, transparent),
               0 0 42px color-mix(in srgb, var(--lesson-color) 10%, transparent);
   animation: lesson-card-glow 3.2s ease-in-out infinite;
 }
+.lesson-col.is-active.is-unlocked:hover { transform: scale(1.07) translateY(-3px); }
 .lesson-col.is-active::before {
   opacity: .9;
   animation: lesson-aura-breathe 3.2s ease-in-out infinite;
@@ -2197,3 +2217,113 @@ button, textarea, input { font-family: var(--font-sans); }
   .mascot-wing-left, .mascot-wing-right,
   .mascot-eyelid, .mascot-sparkle { animation: none !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Vulpea-asistent (FoxHelper) — dock permanent în colțul din dreapta-jos,
+   deasupra overlay-ului de nivel (z-index 70 > 60). Bulă de mesaje +
+   meniu rapid de acțiuni la click pe avatar; fidget-uri aleatorii cât timp
+   n-are nimic de spus.
+   ══════════════════════════════════════════════════════════════════════ */
+.fox-helper {
+  position: fixed; right: 20px; bottom: 20px;
+  z-index: 70; /* deasupra .level-overlay, care e 60 */
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+}
+.fox-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  font-size: 28px; cursor: pointer;
+  box-shadow: var(--shadow-md);
+  animation: fox-idle-bounce 2.6s ease-in-out infinite;
+  transition: transform .15s;
+}
+.fox-avatar:hover { transform: scale(1.08); }
+@keyframes fox-idle-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-5px) rotate(-4deg); }
+}
+.fox-avatar-celebrate { animation: fox-idle-bounce 2.6s ease-in-out infinite, fox-celebrate-pulse 700ms ease; }
+@keyframes fox-celebrate-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25) rotate(8deg); }
+  100% { transform: scale(1); }
+}
+.fox-fidget-wag { animation: fox-wag 900ms ease; }
+@keyframes fox-wag {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-10deg); }
+  50%      { transform: rotate(8deg); }
+  75%      { transform: rotate(-6deg); }
+}
+.fox-fidget-tilt { animation: fox-tilt 900ms ease; }
+@keyframes fox-tilt {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%      { transform: rotate(15deg) translateY(-4px); }
+}
+.fox-fidget-wink { animation: fox-wink-pulse 900ms ease; }
+@keyframes fox-wink-pulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.3); }
+}
+.fox-bubble {
+  position: relative; max-width: 220px;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-md);
+  animation: fox-bubble-in 250ms ease;
+}
+.fox-bubble::after {
+  content: ''; position: absolute; bottom: -8px; right: 22px;
+  width: 14px; height: 14px; background: var(--color-bg);
+  border-right: 1.5px solid var(--color-border);
+  border-bottom: 1.5px solid var(--color-border);
+  transform: rotate(45deg);
+}
+.fox-bubble-celebrate { border-color: #FFB300; }
+.fox-bubble-hint { border-color: #4472C4; }
+.fox-bubble-text { font-size: 12.5px; color: var(--color-text-primary); line-height: 1.4; }
+@keyframes fox-bubble-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.fox-menu {
+  display: flex; flex-direction: column; gap: 6px;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  box-shadow: var(--shadow-md);
+  animation: fox-bubble-in 200ms ease;
+}
+.fox-menu-item {
+  font-size: 12.5px; font-weight: 600; text-align: left;
+  padding: 8px 12px; border-radius: var(--radius-md);
+  border: none; background: var(--color-surface);
+  color: var(--color-text-primary); cursor: pointer;
+  transition: background .12s;
+}
+.fox-menu-item:hover { background: var(--color-surface-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fox-avatar, .fox-fidget-wag, .fox-fidget-tilt, .fox-fidget-wink { animation: none !important; }
+}
+
+/* ── Slider de viteză între cuvinte ── */
+.lesson-speed-control { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: .6rem; }
+.lesson-speed-label { font-size: 11px; font-weight: 600; color: var(--color-text-muted); }
+.lesson-speed-slider { width: 120px; accent-color: var(--color-text-primary); }
+
+/* ── Lista „Cuvinte de exersat" — cuvintele apăsate individual de 3+ ori
+   ajung aici, ca un mini-tablou de recapitulare la finalul paginii. ── */
+.review-panel { margin-top: 1.5rem; border-top: 1px solid var(--color-border-soft); padding-top: 1rem; text-align: center; }
+.review-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-muted); margin-bottom: .5rem; }
+.review-words { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.review-word-btn {
+  font-size: 12.5px; font-weight: 600; padding: 5px 12px;
+  border-radius: 999px; border: 1px solid var(--color-border);
+  background: var(--color-surface); cursor: pointer;
+}
+.review-word-btn:hover { background: var(--color-surface-2); }
