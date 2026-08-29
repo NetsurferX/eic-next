@@ -1095,6 +1095,57 @@ button, textarea, input { font-family: var(--font-sans); }
   padding: 2.25rem 2rem 3rem;
 }
 
+/* ── Layout desktop: cupă/coloane în stânga, panoul cu titlu + progres +
+   viteză mutat în dreapta — eliberează înălțimea ocupată altfel de un
+   header orizontal, ca toate cele 4 coloane să încapă pe ecran fără
+   scroll vertical. Sub 1024px se revine la stivuire verticală, cu
+   panoul înapoi deasupra coloanelor (ordinea originală). ── */
+.lesson-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.lesson-layout .lesson-sidebar { order: -1; }
+.lesson-layout .lesson-grid { order: 0; }
+
+@media (min-width: 1024px) {
+  .lesson-page { max-width: 1180px; }
+  .lesson-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 28px;
+  }
+  .lesson-layout .lesson-sidebar { order: 0; }
+  .lesson-layout .lesson-grid { order: 0; }
+  .lesson-grid { flex: 1 1 auto; min-width: 0; }
+  .lesson-sidebar {
+    flex: 0 0 250px;
+    width: 250px;
+    position: sticky;
+    top: 20px;
+    text-align: left;
+  }
+  .lesson-sidebar .lesson-stepper,
+  .lesson-sidebar .lesson-progress-inline,
+  .lesson-sidebar .lesson-speed-control {
+    justify-content: flex-start;
+  }
+  /* ── butoanele de nivel din sidebar: unul sub altul, cu un rând gol
+     între ele (nu doar un gap mic ca la stepper-ul orizontal) ── */
+  .lesson-sidebar .lesson-stepper {
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 1.6rem;
+  }
+  .lesson-reset-btn-sidebar {
+    align-self: flex-start;
+    margin-top: .2rem;
+  }
+  .lesson-sidebar .review-panel { text-align: left; }
+  .lesson-sidebar .review-words { justify-content: flex-start; }
+}
+
 /* ── Titlul și butonul de întoarcere pe același rând — economisește un
    rând întreg de înălțime. Grid 1fr/auto/1fr ține titlul centrat pe pagină
    indiferent de lățimea butonului din stânga. ── */
@@ -1319,11 +1370,11 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-stepper-pill {
   display: inline-flex; align-items: center; gap: 5px;
   font-family: var(--font-sans);
-  font-size: 10px; font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1.5px solid var(--color-border);
-  background: none;
+  font-size: 12px; font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text-secondary);
   opacity: .55;
   cursor: default;
@@ -1862,9 +1913,8 @@ button, textarea, input { font-family: var(--font-sans); }
    rar, nu vrem să concureze vizual cu „Pagina principală") ── */
 .lesson-reset-btn {
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11.5px; font-weight: 600; font-family: var(--font-sans);
+  font-size: 12px; font-weight: 600; font-family: var(--font-sans);
   color: var(--color-text-secondary);
-  opacity: .7;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1872,7 +1922,7 @@ button, textarea, input { font-family: var(--font-sans); }
   cursor: pointer;
   transition: background .15s, opacity .15s;
 }
-.lesson-reset-btn:hover { opacity: 1; background: var(--color-surface-2); }
+.lesson-reset-btn:hover { background: var(--color-surface-2); }
 
 /* ── modalul de confirmare a resetării — aceeași rețetă ca level-overlay
    (fixed pe tot ecranul, fundal întunecat + blur), dar mult mai simplu:
@@ -2515,8 +2565,9 @@ button, textarea, input { font-family: var(--font-sans); }
 .review-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-text-muted); margin-bottom: .5rem; }
 .review-words { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .review-word-btn {
-  font-size: 12.5px; font-weight: 600; padding: 5px 12px;
-  border-radius: 999px; border: 1px solid var(--color-border);
-  background: var(--color-surface); cursor: pointer;
+  font-size: 12px; font-weight: 600; padding: 5px 12px;
+  border-radius: var(--radius-md); border: 1px solid var(--color-border);
+  background: var(--color-surface); color: var(--color-text-secondary);
+  cursor: pointer;
 }
 .review-word-btn:hover { background: var(--color-surface-2); }

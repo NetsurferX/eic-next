@@ -520,64 +520,10 @@ export default function LearnPage() {
       <div className="lesson-top-row">
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
-          <button type="button" className="lesson-reset-btn" onClick={() => setShowResetConfirm(true)}>
-            ↺ Reia de la început
-          </button>
         </div>
-        <h1 className="lesson-title">EiC · English in Colours</h1>
       </div>
 
-      <header className="lesson-header">
-        <div className="lesson-stepper" aria-label="Niveluri">
-          {LEVELS.map((lv, i) => {
-            const done    = isLevelDone(i)
-            const locked  = !unlockedLevels[i]
-            const viewing = i === levelIndex
-            const canVisit = !locked && !viewing
-            const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
-            return (
-              <button
-                type="button"
-                key={lv.id}
-                className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${viewing ? 'is-current' : ''} ${locked ? 'is-locked' : ''} ${canVisit ? 'is-visitable' : ''}`}
-                style={pillStyle}
-                title={canVisit ? `Revezi ${lv.name}` : lv.name}
-                onClick={canVisit ? () => visitLevel(i) : undefined}
-                disabled={!canVisit}
-              >
-                <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
-                <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="lesson-progress-inline">
-          <Cup progressPct={progressPct} size={48} color="#FFB300" allFull={levelMastered} idSuffix="master" className="lesson-progress-cup" showBubbles ring />
-          <p className="lesson-progress-caption">
-            {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
-          </p>
-        </div>
-
-        <p className="lesson-subhead">
-          {allDone ? 'Repetă cuvintele cu voce tare' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
-        </p>
-
-        <div className="lesson-speed-control">
-          <label htmlFor="speed-slider" className="lesson-speed-label">Viteză</label>
-          <input
-            id="speed-slider"
-            type="range"
-            min={800}
-            max={3000}
-            step={50}
-            value={autoDelayMs}
-            onChange={(e) => setAutoDelayMs(Number(e.target.value))}
-            className="lesson-speed-slider"
-          />
-        </div>
-      </header>
-
+      <div className="lesson-layout">
       <div className="lesson-grid">
         {level.lessons.map((l, i) => {
           const isUnlocked   = colUnlocked[levelIndex][i]
@@ -684,22 +630,81 @@ export default function LearnPage() {
         })}
       </div>
 
-      {reviewWords.length > 0 && (
-        <div className="review-panel">
-          <p className="review-title">Cuvinte de exersat</p>
-          <div className="review-words">
-            {reviewWords.map(({ word, colId, accent }) => (
+      <aside className="lesson-header lesson-sidebar">
+        <h1 className="lesson-title">EiC · English in Colours</h1>
+
+        <div className="lesson-stepper" aria-label="Niveluri">
+          {LEVELS.map((lv, i) => {
+            const done    = isLevelDone(i)
+            const locked  = !unlockedLevels[i]
+            const viewing = i === levelIndex
+            const canVisit = !locked && !viewing
+            const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
+            return (
               <button
-                key={`${colId}-${word}`}
-                className="review-word-btn"
-                onClick={() => void playWord(word, colId, accent)}
+                type="button"
+                key={lv.id}
+                className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${viewing ? 'is-current' : ''} ${locked ? 'is-locked' : ''} ${canVisit ? 'is-visitable' : ''}`}
+                style={pillStyle}
+                title={canVisit ? `Revezi ${lv.name}` : lv.name}
+                onClick={canVisit ? () => visitLevel(i) : undefined}
+                disabled={!canVisit}
               >
-                {word}
+                <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
+                <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
               </button>
-            ))}
-          </div>
+            )
+          })}
         </div>
-      )}
+
+        <button type="button" className="lesson-reset-btn lesson-reset-btn-sidebar" onClick={() => setShowResetConfirm(true)}>
+          ↺ Reia de la început
+        </button>
+
+        <div className="lesson-progress-inline">
+          <Cup progressPct={progressPct} size={48} color="#FFB300" allFull={levelMastered} idSuffix="master" className="lesson-progress-cup" showBubbles ring />
+          <p className="lesson-progress-caption">
+            {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
+          </p>
+        </div>
+
+        <p className="lesson-subhead">
+          {allDone ? 'Repetă cuvintele cu voce tare' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
+        </p>
+
+        <div className="lesson-speed-control">
+          <label htmlFor="speed-slider" className="lesson-speed-label">Viteză</label>
+          <input
+            id="speed-slider"
+            type="range"
+            min={800}
+            max={3000}
+            step={50}
+            value={autoDelayMs}
+            onChange={(e) => setAutoDelayMs(Number(e.target.value))}
+            className="lesson-speed-slider"
+          />
+        </div>
+
+        {reviewWords.length > 0 && (
+          <div className="review-panel">
+            <p className="review-title">Cuvinte de exersat</p>
+            <div className="review-words">
+              {reviewWords.map(({ word, colId, accent }) => (
+                <button
+                  key={`${colId}-${word}`}
+                  className="review-word-btn"
+                  onClick={() => void playWord(word, colId, accent)}
+                >
+                  {word}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+      </div>
+
 
       {showLevelOverlay && (
         <div className="level-overlay" role="dialog" aria-modal="true" aria-label="Nivel finalizat">
