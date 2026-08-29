@@ -81,6 +81,16 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
         // override is swapping in a different single character.
         const splitPerLetter = d.gradient && d.perLetterGradient && !d.glyph && d.t.length > 1
 
+        // /ɔɪ/ off-glide: the diacritic letter ('ỷ'/'ỉ') is its own colour
+        // (#CC0000 red) distinct from the rest of the node (#FF3399 magenta
+        // on 'o'). Split into two inner spans, same pattern as the gradient
+        // per-letter split above — the outer span still carries the shared
+        // underline decoration.
+        const glyphText = d.glyph ?? d.t
+        const splitOffglide = !!d.offglideColor && glyphText.length > 1
+        const mainText     = splitOffglide ? glyphText.slice(0, -1) : glyphText
+        const offglideText = splitOffglide ? glyphText.slice(-1) : ''
+
         const style: CSSProperties = d.gradient
           ? {
               background:           d.gradientCss ?? `linear-gradient(to right, ${DIPHTHONG_START}, ${DIPHTHONG_END})`,
@@ -103,13 +113,13 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
             }
           : { color: d.color }
 
-        const outerStyle: CSSProperties = splitPerLetter
+        const outerStyle: CSSProperties = (splitPerLetter || splitOffglide)
           ? (d.underline
               ? { textDecoration: 'underline', textDecorationColor: d.underlineColor, textUnderlineOffset: '6px', textDecorationThickness: '2.5px' }
               : {})
           : style
 
-        if (!splitPerLetter && d.underline) {
+        if (!splitPerLetter && !splitOffglide && d.underline) {
           outerStyle.textDecoration          = 'underline'
           outerStyle.textDecorationColor     = d.underlineColor
           outerStyle.textUnderlineOffset     = '6px'
@@ -128,6 +138,13 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
           <span key={i} style={outerStyle} className={classes} title={d.sound || undefined}>
             {splitPerLetter
               ? [...d.t].map((ch, ci) => <span key={ci} style={style}>{ch}</span>)
+              : splitOffglide
+              ? (
+                  <>
+                    <span style={{ color: d.color }}>{mainText}</span>
+                    <span style={{ color: d.offglideColor }}>{offglideText}</span>
+                  </>
+                )
               : (d.glyph ?? d.t)}
             {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>

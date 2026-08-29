@@ -133,6 +133,36 @@ function glideGlyph(n: RenderNode): string | undefined {
   return GRAPHEME_GLYPH[n.t] ?? undefined
 }
 
+// ── /ɔɪ/ off-glide diacritic (Vulpea șireată legend: "boỷ=ỉ") ─────────────────
+// Unlike j/ỷ above, the /ɔɪ/ diphthong ("boy", "point") is aligned as ONE
+// two-letter node ('oy' or 'oi') carrying the whole 'oy̓' display sound, not
+// split into a separate glide node — see align.ts's consumeVowel(), which
+// treats 'oy̓' as a normal vowel run (trailing w/y digraph rule) rather than
+// GLIDE_DISPLAYS. So it never reaches glideGlyph() above (n.s is 'oy̓', not
+// 'ỷ'). The reference print book confirms the SAME sound still gets a
+// diacritic on its second letter: 'y' spelling → ỷ ("boy" → "boỷ"), 'i'
+// spelling → ỉ ("point"/"coin" → "poỉnt"/"coỉn") — only the last letter
+// changes, the leading 'o' stays plain. Per Dorel's request, the diacritic
+// letter is ALSO its own colour — red #CC0000 (same red as the i/ɪ family
+// and as the j/ỷ semivowel in GRAPHEME_GLYPH above), distinct from the
+// #FF3399 magenta the 'o' keeps. WordRenderer.tsx splits the node into two
+// coloured spans whenever `offglideColor` is set.
+const OFFGLIDE_SOUNDS = new Set(['oy̓'])
+const OFFGLIDE_DIACRITIC: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', i: 'ỉ', I: 'Ỉ' }
+const OFFGLIDE_COLOR = '#CC0000'
+
+function diphthongOffglideGlyph(n: RenderNode): string | undefined {
+  if (!OFFGLIDE_SOUNDS.has(n.s) || !n.t || n.t.length < 2) return undefined
+  const last = n.t[n.t.length - 1]
+  const dia = OFFGLIDE_DIACRITIC[last]
+  return dia ? n.t.slice(0, -1) + dia : undefined
+}
+
+function diphthongOffglideColor(n: RenderNode): string | undefined {
+  return diphthongOffglideGlyph(n) !== undefined ? OFFGLIDE_COLOR : undefined
+}
+
+
 // ── Syllabic / diphthong glide classification ─────────────────────────────────
 // Nodes with SYLLABIC_MARKER as their sound are either:
 //   trueSyllabic  — a syllabic consonant (preceded by schwa colour)
@@ -317,6 +347,7 @@ export interface DisplayNode {
   syllabicVR: boolean  // B_tehnic §6.1 forced V-R schwa+consonant (white fill/border)
   superscript: string  // B_tehnic §2.f letterless-phoneme glyph, rendered raised
   glyph?:      string  // B_tehnic Tabelul 5 diacritic form of this grapheme (e.g. 'y' → 'ỷ'), shown instead of `t` when present
+  offglideColor?: string // colour override for JUST the last character of `glyph` (B_tehnic /ɔɪ/ off-glide, e.g. the 'ỷ' in "boỷ") — WordRenderer splits into two spans when set
   underlineColor: string  // color for the underline decoration
   sound:      string   // tooltip (IPA sound)
 }
@@ -425,7 +456,8 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
       syllabic:       isTrueSyl,
       syllabicVR:     isSylVR,
       superscript:    n.superscriptOverride ?? '',
-      glyph:          n.glyphOverride ?? glideGlyph(n),
+      glyph:          n.glyphOverride ?? glideGlyph(n) ?? diphthongOffglideGlyph(n),
+      offglideColor:  n.glyphOverride ? undefined : diphthongOffglideColor(n),
       underlineColor: (isLeadGlide || isGlyphOverride) ? ownColor : runAnchor,
       sound:          n.s && n.s !== SYLLABIC_MARKER ? n.s : '',
     }

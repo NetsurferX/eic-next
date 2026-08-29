@@ -33,12 +33,24 @@ function countSyllables(word: string): number {
   return Math.max(count, 1)
 }
 
+// /ɔɪ/ off-glide diacritic (Vulpea șireată legend: "boỷ=ỉ") — the print
+// reference marks the SECOND letter of the "oy"/"oi" spelling with a
+// diacritic instead of a plain letter: 'y' → 'ỷ' ("boy" → "boỷ"), 'i' → 'ỉ'
+// ("point"/"coin" → "poỉnt"/"coỉn"). Scoped to lesson id 'oi' only — this is
+// the one column the reference book shows this for; other diphthong columns
+// (ai/au/ei/ju) aren't confirmed against the book yet, so left untouched.
+// Per Dorel's request, the diacritic letter is ALSO its own colour — red
+// #CC0000, distinct from the column's magenta (var(--lesson-color)) that
+// the rest of "oy"/"oi" keeps. Matches engine/display.ts's OFFGLIDE_COLOR.
+const OFFGLIDE_DIACRITIC: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', i: 'ỉ', I: 'Ỉ' }
+const OFFGLIDE_COLOR = '#CC0000'
+
 // Randează un cuvânt colorând + subliniind DOAR grupul-țintă (mark). w și y
 // au statut de vocală (ca a/e/i/o/u) — deci literele colorate ȘI subliniate
 // din interiorul mark-ului sunt vocale+w+y; consoanele adevărate rămân
 // negre/gri, niciodată colorate. La cuvinte monosilabice sublinierea
 // dispare complet, culoarea rămâne.
-function MarkedWord({ text, mark }: { text: string; mark: string }) {
+function MarkedWord({ text, mark, lessonId }: { text: string; mark: string; lessonId?: string }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
   const isMonosyllabic = countSyllables(text) === 1
 
@@ -50,6 +62,13 @@ function MarkedWord({ text, mark }: { text: string; mark: string }) {
   const after    = text.slice(markEnd)
   const isVowelLike = (ch: string) => /[aeiouwy]/i.test(ch) // vocale + w + y — colorare ȘI underline
 
+  // Doar coloana 'oi' (/ɔɪ/): ultima literă a mark-ului ('y' sau 'i') se
+  // afișează cu diacritic ȘI cu propria culoare roșie, restul mark-ului
+  // (ex. 'o') rămâne pe culoarea coloanei (magenta).
+  const diacriticIdx = lessonId === 'oi' && markText.length > 0
+    ? markText.length - 1
+    : -1
+
   return (
     <>
       {before}
@@ -59,7 +78,10 @@ function MarkedWord({ text, mark }: { text: string; mark: string }) {
           vowelLike ? 'lesson-word-mark' : '',
           vowelLike && !isMonosyllabic ? 'lesson-word-mark-underline' : '',
         ].filter(Boolean).join(' ')
-        return <span key={i} className={classes || undefined}>{ch}</span>
+        const isDiacritic = i === diacriticIdx
+        const display = isDiacritic ? (OFFGLIDE_DIACRITIC[ch] ?? ch) : ch
+        const style = isDiacritic ? { color: OFFGLIDE_COLOR } : undefined
+        return <span key={i} className={classes || undefined} style={style}>{display}</span>
       })}
       {after}
     </>
@@ -624,7 +646,7 @@ export default function LearnPage() {
                       aria-label={`Ascultă cuvântul ${w.text}`}
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      <MarkedWord text={w.text} mark={w.mark} />
+                      <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} />
                     </button>
                   )
                 })}
