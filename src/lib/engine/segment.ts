@@ -37,7 +37,17 @@ const TRANSFORMS: [string, string][] = [
   ['ɑː','ɑ'],['ɔː','ɔ'],   
   ['æː','æ'],['eː','e'],
   // Consonant digraphs
-  ['tʃ','ch'],['dʒ','j'],
+  // NOTE: /dʒ/ used to map to display 'j' — an exact collision with the
+  // /j/ semivowel (also displayed 'j', see the identity mapping below).
+  // Since colors.ts's VOWEL_CHARS/isVowelSound() and align.ts's
+  // GLIDE_DISPLAYS both key off the raw display STRING 'j', that collision
+  // silently made every /dʒ/ word (judge, gem, barge...) go through the
+  // 1-letter glide-consumption path and get coloured red like semivowel y,
+  // instead of being treated as an ordinary black consonant (spec Tabel
+  // 3.2: g→ğ is negru + diacritic, not roșu). 'dj' is a new, non-colliding
+  // display token — mirrors how /tʃ/ already got its own 'ch' token instead
+  // of reusing plain 't'.
+  ['tʃ','ch'],['dʒ','dj'],
   ['ŋɡ','ng'],['ŋg','ng'],['ŋ','ng'],  // both script-g (U+0261) and plain g
   ['θ','th'],['ð','dh'],
   ['ʃ','sh'],['ɹ','r'],

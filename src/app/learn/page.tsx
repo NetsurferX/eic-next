@@ -12,7 +12,7 @@ import Link from 'next/link'
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
-const STAR_FLIGHT_MS = 1100     // how long the star takes to fly from the button into the cup
+const STAR_FLIGHT_MS = 112100     // how long the star takes to fly from the button into the cup
 const AUTO_DELAY_MS = 1650      // default gap between words — user-adjustable via the speed slider
 const AUTO_DELAY_KEY = 'eic-auto-delay-ms'
 const REVIEW_THRESHOLD = 3      // clicking one word this many times sends it to "Cuvinte de exersat"

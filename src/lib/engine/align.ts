@@ -43,9 +43,12 @@ function isVowelDisplay(d: string): boolean {
 const CONSONANT_SPELLINGS = new Map<string, string[]>([
   // Affricates & fricatives
   ['sh',  ['tsch', 'sch', 'ssh', 'sh',
-           'ti', 'ci', 'si']],     // "nation"→ti, "social"→ci, "pension"→si
+           'ti', 'ci', 'si',
+           'ch']],                 // "nation"→ti, "social"→ci, "pension"→si,
+                                    // "chef"/"machine"→ch (French loanwords)
   ['ch',  ['tch', 'ch']],          // "catch", "church"
-  ['j',   ['dge', 'dg', 'j']],    // "judge", "fridge"
+  // display token for /dʒ/ is 'dj', not 'j' — see segment.ts TRANSFORMS note.
+  ['dj',  ['dge', 'dg', 'j']],    // "judge", "fridge"
   ['zh',  ['si', 'zi', 'z']],     // "vision", "azure"
   ['ng',  ['ngg', 'ng']],          // "finger", "ring"
   ['th',  ['th']],
@@ -91,6 +94,44 @@ const SILENT_WITHIN_SPELLING: Record<string, Record<string, [number, number]>> =
   r: { wr: [0, 1], rh: [1, 2] },   // write — w mut; rhythm — h mut
   h: { wh: [0, 1] },               // who, whole, whose — w mut
   w: { wh: [1, 2] },               // what, when, why — h mut
+}
+
+// ── Consonant diacritics (B_tehnic v2.0 §3.2, Tabelul T1) ─────────────────────
+// The engine used to only ever COLOR a consonant grapheme, never change its
+// SHAPE — so e.g. the 'c' in "cent" rendered as a plain black 'c', visually
+// identical to the 'c' in "cat" even though they carry different phonemes.
+// The spec's diacritic letters make that difference visible directly on the
+// grapheme. Two shapes of rule:
+//   1. WHOLE-NODE substitution — the consumed letter(s) are swapped for a
+//      diacritic form as-is (e.g. 'c'→'ƈ', 'g'→'ğ', 'ch'→'ċh'/'c̄h').
+//   2. SPLIT substitution — only PART of the consumed spelling carries the
+//      sound; the rest is mute. Currently just "ti"→/ʃ/ (nation): the 't'
+//      becomes 'ṫ', the 'i' is dropped to grey, same pattern as the
+//      existing SILENT_WITHIN_SPELLING mechanism above but paired with a
+//      diacritic on the surviving letter instead of a plain black one.
+//
+// Keyed by `${display}|${consumed.toLowerCase()}` so a spelling only gets
+// re-shaped when it's actually carrying THAT sound (a plain 's' spelling
+// /s/ stays a plain 's' — only 'c' spelling /s/ becomes 'ƈ').
+const DIACRITIC_GLYPHS: Record<string, string> = {
+  's|c':   'ƈ',    // cent, city        (c → /s/)
+  'k|ch':  'ċh',   // chemistry, school (ch → /k/)
+  'sh|ch': 'c̄h',   // chef, machine     (ch → /ʃ/)
+  'dj|g':  'ğ',    // gem, barge        (g → /dʒ/)
+  'z|s':   'ṡ',    // does, is          (s → /z/)
+  'sh|s':  'ŝ',    // sugar             (s → /ʃ/)
+  'ch|t':  'ẗ',    // culture           (t → /tʃ/)
+  'gz|x':  'ẋ',    // exam              (x → /gz/)
+  'dh|th': 'ṫh',   // this, them        (th → /ð/, vocit)
+  // 'th|th' (think, three — th → /θ/, surd) intentionally absent: spec
+  // Tabelul T1 leaves the voiceless digraph plain, no diacritic.
+}
+
+// display → spelling(lowercase) → which slice carries the sound (gets the
+// diacritic) vs. which slice is mute (grey). Slices are [start,end) into
+// the CONSUMED text, mirroring SILENT_WITHIN_SPELLING's shape above.
+const DIACRITIC_SPLIT_SPELLINGS: Record<string, Record<string, { real: [number, number]; mute: [number, number]; glyph: string }>> = {
+  sh: { ti: { real: [0, 1], mute: [1, 2], glyph: 'ṫ' } }, // nation, station
 }
 
 function tryConsSpellings(display: string, word: string, pos: number): string {
@@ -279,6 +320,30 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
     const isCons     = !color
     const isStressed = accented && isVowel
 
+    // B_tehnic v2.0 §3.2 (Tabelul T1) — SPLIT diacritic: only part of the
+    // consumed spelling carries the sound (e.g. "ti"→/ʃ/ in "nation": 't'
+    // sounds as 'ṫ', 'i' is mute). Checked before the plain silentSlice
+    // block below since both can apply to the same digraph key-space but
+    // this one additionally needs a glyph, not just a mute/real split.
+    const diacriticSplit = !isVowel ? DIACRITIC_SPLIT_SPELLINGS[display]?.[consumed.toLowerCase()] : undefined
+    if (diacriticSplit) {
+      const { real, mute, glyph } = diacriticSplit
+      const realText = consumed.slice(real[0], real[1])
+      const muteText = consumed.slice(mute[0], mute[1])
+      const realNode: RenderNode = { t: realText, s: display, c: color ?? COLOR_CONSONANT, u: false, x: true, glyphOverride: glyph }
+      const silentNode: RenderNode = { t: muteText, s: '', c: COLOR_SILENT, u: false, x: false }
+      if (real[0] < mute[0]) nodes.push(realNode, silentNode)
+      else nodes.push(silentNode, realNode)
+      continue
+    }
+
+    // B_tehnic v2.0 §3.2 (Tabelul T1) — WHOLE-NODE diacritic: the consumed
+    // spelling as a unit gets swapped for its diacritic form (ƈ, ğ, ṡ, ŝ,
+    // ẗ, ẋ, ċh, c̄h, ṫh...). Only consonant nodes; only when the exact
+    // (sound, spelling) pair is in the table — a plain, canonically-spelled
+    // consonant (e.g. 's' spelling /s/, 'g' spelling /g/) is untouched.
+    const diacriticGlyph = !isVowel ? DIACRITIC_GLYPHS[`${display}|${consumed.toLowerCase()}`] : undefined
+
     // B_tehnic — principiul literei mute (a): digraf consonantic cu o
     // literă complet mută (kn, gn, wr, rh, wh) → două noduri, nu unul:
     // litera mută (gri) + litera care sună (normal).
@@ -319,6 +384,7 @@ export function align(word: string, segs: Seg[]): RenderNode[] {
       c: color ?? (isCons ? COLOR_CONSONANT : COLOR_SILENT),
       u: isStressed,
       x: isCons,
+      ...(diacriticGlyph ? { glyphOverride: diacriticGlyph } : {}),
     })
 
     // B_tehnic — principiul literei mute (a): 'gh' mut desprins din grupul

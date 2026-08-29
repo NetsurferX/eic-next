@@ -139,10 +139,20 @@ function stmtUs() {
 // Fix: only the FIRST slash-delimited pronunciation is ever used — dictionary
 // convention lists the primary/most common one first. Strip the ZWJ artifact
 // at the same step (existing behaviour, unchanged).
+//
+// BUG FIX (found while testing Tabelul T1 diacritics): some comma-separated
+// rows (e.g. "does" → "ˈdəz, dɪz", "is" → "ˈɪz, ɪz", "this", "them") have NO
+// slashes at all — just a bare comma list. The old regex only matched
+// slash-delimited variants, so these words' WHOLE string (comma, space,
+// second pronunciation and all) fell through untouched into segment(),
+// same corruption class as the "lawyer" bug described above, just via a
+// different lexicon formatting quirk. Splitting on the comma FIRST, before
+// trying to also strip slashes, handles both formats uniformly.
 function firstIpaVariant(raw: string): string {
   const noZwj = raw.replace(/\u200d/g, '')
-  const m = noZwj.match(/\/([^/]+)\//)
-  return m ? m[1] : noZwj
+  const firstPart = noZwj.split(',')[0].trim()
+  const m = firstPart.match(/\/([^/]+)\//)
+  return m ? m[1] : firstPart.replace(/^\/|\/$/g, '')
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
