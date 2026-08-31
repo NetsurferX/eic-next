@@ -169,16 +169,17 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* B_tehnic §6.1 — setul lexical V-R (bear/near/cure/poor/fire/hour):
    consoana silabică forțată e "alb cu chenar negru", opusul lui .eic-syllabic
-   de mai sus. Pe fundal alb interiorul e practic invizibil — doar conturul
-   rămâne vizibil, marcând forma fără să coloreze litera. */
+   de mai sus. Rectificare: NU e o cutie cu border/fill — e chiar litera care
+   are marginea (conturul) neagră și umplutura albă, ca un contur de fontă.
+   Se obține cu -webkit-text-stroke (fill alb + stroke negru pe glif), fără
+   border, fără background-color, fără box-shadow. !important suprascrie
+   inline style-ul color:d.color aplicat de WordRenderer pe același span. */
 .eic-syllabic-vr {
-  color: #000000;
-  box-shadow: 
-    0 0 0 0.5px #000000,   /* fill alb, extins 3px în jurul literei */
-    0 0 0 1.1px #000000;   /* chenar negru, 1px grosime, la 4px */
-  border-radius: 2px;
+  color: #FFFFFF !important;
+  -webkit-text-stroke: 1px #000000;
+  text-stroke: 1px #000000;
   line-height: 1;
-  /* fără padding, fără margin, fără border, fără background-color */
+  margin: 0 0.5px;
 }
 
 /* B_tehnic §2.f — fonem fără grafem propriu, notat ca exponent */
