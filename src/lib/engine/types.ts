@@ -19,6 +19,18 @@ export interface RenderNode {
   // of being silently dropped. Set via ruleConfig.ts regex rules.
   superscriptOverride?: string
   glyphOverride?: string   // set by ruleConfig.ts's applyRegexOverrides() — Tabelul 5 manual exceptions
+  // Set whenever a regex override rule's `action.color` fires (see
+  // rules/overrides/apply.ts). Distinct from a merely-non-empty `c`: this
+  // means the colour was DELIBERATELY forced by a lexical-set exception
+  // rule (hour/near/cure/...), so display.ts must paint it flat/solid and
+  // skip the general unstressed-vowel gradient treatment (simpleHex /
+  // tricolor / diphthong-transparent) that would otherwise silently
+  // discard the override colour for monosyllabic words whose vowel sound
+  // happens to be one of the "gradient" sounds (ɪ, ʌ, ɒ, ɔ, ʊ) — found
+  // while wiring up near/lure/tour, which never get the stress-underline
+  // that normally makes those sounds render solid (§4.2 excludes
+  // monosyllabic words from underlining).
+  colorOverride?: boolean
 }
 
 /** One IPA phoneme after transform + stress detection, before grapheme mapping. */

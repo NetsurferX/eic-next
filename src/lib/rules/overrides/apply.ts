@@ -19,6 +19,7 @@ export function applyRegexOverrides<
     syllabicOverride?: boolean
     superscriptOverride?: string
     glyphOverride?: string
+    colorOverride?: boolean
   }
 >(word: string, nodes: T[], rules: RegexRule[]): T[] {
   if (!rules?.length) return nodes
@@ -63,7 +64,7 @@ export function applyRegexOverrides<
       const [nStart, nEnd] = ranges[i]
       if (nEnd <= gStart || nStart >= gEnd) continue // no overlap
 
-      if (rule.action.color)       out[i].c = rule.action.color
+      if (rule.action.color)       { out[i].c = rule.action.color; out[i].colorOverride = true }
       if (rule.action.silent)      out[i].c = SILENT_HEX
       if (rule.action.underline)   out[i].underlineOverride = rule.action.underline
       if (rule.action.syllabicR)   out[i].syllabicOverride = true

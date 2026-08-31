@@ -29,11 +29,13 @@ export const MISC_RULES: RegexRule[] = [
     notes: '§2.f — /keˈti:v/ → kethi^v^bh: the /v/ has no letter of its own, spec shows it raised. Demonstrates the mechanism; not a general rule.',
     testWords: ['kethib'],
   },
-  {
-    id: 'vr-goer', label: 'Goer (əʊər → əw + ə + r)', enabled: false,
-    pattern: '^goer$', flags: 'i', group: 0,
-    action: { color: '#FCD116' }, priority: 200,
-    notes: 'Left disabled — spec wants gradient tricolor + negru, not a flat colour; needs §10.4 gradient support before this is accurate. Placeholder colour only.',
-    testWords: ['goer'],
-  },
+  // 'vr-goer' (əʊər → əw + ə + r) — REMOVED 2026-08-30. This used to be a
+  // disabled placeholder waiting on §10.4 tricolor-gradient support, which
+  // has since landed in engine/display.ts (TRICOLOR_GRADIENT_SOUNDS). No
+  // override is needed at all any more: the general engine now renders
+  // "goer" correctly on its own — 'g' black, 'o' gets the full tricolor
+  // gradient automatically (any word with the 'əw' sound does), 'e' and
+  // 'r' both plain black consonants (schwa + r, NOT fused/white-bordered —
+  // "goer" isn't in a V-R lexical set the way hour/fire are; it's just
+  // ordinary "go" + agentive "-er"). Verified via src/scripts/vr-test.ts.
 ]

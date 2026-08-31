@@ -86,11 +86,27 @@ function isMute(n: RenderNode): boolean {
   if (isGlideNode(n)) return false
   if (n.glyphOverride) return false
   if (n.c === COLOR_SILENT) return true
-  // A node is mute when the engine gave it a vowel color (meaning it carries
-  // a vowel phoneme) but its letters are all graphic consonants — classic
-  // "silent consonant" case, e.g. 'k' in 'knight'.
+  // A node is mute when it's a genuine CONSONANT phoneme (n.x, set by
+  // align.ts — the ground truth) whose letters are all graphic consonants,
+  // but it somehow ended up with a non-black, non-silent colour anyway —
+  // that only happens when a regex override (applyRegexOverrides) painted
+  // a vowel's hex onto a consonant node it shouldn't have touched (see
+  // rules/overrides/vr-lexical-sets.ts's 2026-08-30 rewrite notes). This is
+  // a safety net for THAT case, not a general "silent letter" detector —
+  // real silent letters are already split into their own COLOR_SILENT node
+  // by SILENT_WITHIN_SPELLING / muteTail in align.ts.
+  //
+  // BUG FIX (found alongside the fire/tyre/ire work): this used to fire on
+  // n.x === false (genuine VOWEL) nodes too, based on letter-shape alone
+  // (isGraphicConsonant). 'y' and 'w' are graphic-consonant LETTERS but can
+  // also be the sole letter carrying a real diphthong ("tyre", "type",
+  // "my", "try", "style", "sky"...) — align.ts already knows this and sets
+  // x=false for them (it found a colour via getColor(display), so isCons
+  // was false). Trusting align.ts's own x flag instead of re-deriving
+  // consonant-ness from letter shape stops every such word from being
+  // wrongly greyed out.
   const hasVowelColor = n.c !== COLOR_CONSONANT && n.c !== '' && n.c !== undefined
-  if (hasVowelColor && isGraphicConsonant(n.t)) return true
+  if (n.x && hasVowelColor && isGraphicConsonant(n.t)) return true
   return false
 }
 
@@ -402,9 +418,10 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     const isUnder     = underlineSet.has(i)
     const isLeadGlide = leadingGlideSet.has(i)
     const isSylVR     = !!n.syllabicOverride   // B_tehnic §6.1 — alb cu chenar negru
+    const isColorOverride = !!n.colorOverride && !isSylVR  // syllabicR still wins (white fill) over a plain colour override
     const mute        = isMute(n) || (isGlide && !isDiph)
-    const simpleHex   = !isDiph && !isTrueSyl && !isSylVR && !mute ? simpleGradientHex(n.s) : null
-    const tricolorCss = !isDiph && !isTrueSyl && !isSylVR && !mute ? tricolorGradientHex(n.s) : null
+    const simpleHex   = !isDiph && !isTrueSyl && !isSylVR && !isColorOverride && !mute ? simpleGradientHex(n.s) : null
+    const tricolorCss = !isDiph && !isTrueSyl && !isSylVR && !isColorOverride && !mute ? tricolorGradientHex(n.s) : null
 
     const runAnchor   = underlineColorMap.get(i) ?? COLOR_CONSONANT
     const ownColor    = n.c && n.c !== '' ? n.c : COLOR_CONSONANT
@@ -418,6 +435,7 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     else if (isTrueSyl)   color = COLOR_CONSONANT         // syllabic consonant
     else if (isLeadGlide) color = ownColor                // §5.1/§5.2: leading y/w keeps its own colour, never the run's
     else if (isGlyphOverride) color = ownColor
+    else if (isColorOverride) color = ownColor            // lexical-set exception — always flat/solid, never gradient
     else if (isDiph)      color = isUnder && !mute        // diphthong with underline → solid
                             ? runAnchor
                             : 'transparent'               // gradient handled via gradient flag
@@ -442,13 +460,13 @@ export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
     else if (mute)      color = COLOR_SILENT
     else                color = ownColor
 
-    if (isUnder && !isTrueSyl && !isSylVR && !mute && !isLeadGlide && !isGlyphOverride && !tricolorCss) color = runAnchor
+    if (isUnder && !isTrueSyl && !isSylVR && !isColorOverride && !mute && !isLeadGlide && !isGlyphOverride && !tricolorCss) color = runAnchor
 
     return {
       t:              n.t ?? '',
       color,
       underline:      isUnder && !isTrueSyl && !isSylVR && !mute,
-      gradient:       !isGlyphOverride && ((isDiph && !(isUnder && !mute)) || !!gradientCss),
+      gradient:       !isGlyphOverride && !isColorOverride && ((isDiph && !(isUnder && !mute)) || !!gradientCss),
 
       gradientCss,
       perLetterGradient: !!tricolorCss,

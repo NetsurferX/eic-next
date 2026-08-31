@@ -243,11 +243,32 @@ function consumeVowel(
 
 // ── Main alignment ────────────────────────────────────────────────────────────
 
-export function align(word: string, segs: Seg[]): RenderNode[] {
-  if (segs.length === 0)
-    return [{ t: word, s: '', c: COLOR_SILENT, u: false, x: false }]
+// B_tehnic — principiul literei mute (a), caz special: 'h' inițial complet
+// mut înaintea unui fonem vocalic (hour, honest, honor, honour, heir —
+// spre deosebire de "hat"/"who", unde /h/ chiar sună și cade sub tabelul
+// CONSONANT_SPELLINGS obișnuit). Fără acest guard, alinierea generică eșua
+// total pe "hour": niciun fonem vocalic nu găsea vreo literă vocalică la
+// poziția 0 ('h' nu e literă vocalică), deci /aw/ ȘI /ə/ deveneau ambele
+// noduri latente (t=''), iar consoana /r/ ajungea să înghită orbește
+// litera 'h' rămasă (fallback generic "orice literă consonantică"), lăsând
+// "our" întreg neconsumat ca o singură coadă gri — pierzând complet
+// distincția pe litere necesară pentru colorarea grupului lexical V-R.
+function stripSilentInitialH(word: string, segs: Seg[]): { word: string; segs: Seg[]; silentH: boolean } {
+  const hasLeadingH = word.length > 0 && (word[0] === 'h' || word[0] === 'H')
+  const firstSegIsVowel = segs.length > 0 && segs[0].isVowel
+  if (hasLeadingH && firstSegIsVowel) return { word: word.slice(1), segs, silentH: true }
+  return { word, segs, silentH: false }
+}
+
+export function align(rawWord: string, rawSegs: Seg[]): RenderNode[] {
+  if (rawSegs.length === 0)
+    return [{ t: rawWord, s: '', c: COLOR_SILENT, u: false, x: false }]
+
+  const { word, segs, silentH } = stripSilentInitialH(rawWord, rawSegs)
 
   const nodes: RenderNode[] = []
+  if (silentH) nodes.push({ t: rawWord[0], s: '', c: COLOR_SILENT, u: false, x: false })
+
   let pos = 0
   const wLen = word.length
 

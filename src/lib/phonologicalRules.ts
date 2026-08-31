@@ -35,7 +35,14 @@
 //     propoziției (next_word); processIpa() primește un singur cuvânt.
 
 const RULE7_VOWELS = 'aeiouəɪʌɒɔæ'
-const RULE7_PATTERN = new RegExp(`ɪ(?=[${RULE7_VOWELS}])`, 'g')
+// Same diphthong-off-glide guard as RULE8_PATTERN above (2026-08-30 fix):
+// without it, "fire" (faɪər) hit THIS rule too — the /ɪ/ in the aɪ
+// diphthong is followed by 'ə', so unguarded it got rewritten to 'i',
+// turning "faɪər" into "faiər" and losing the aɪ diphthong grouping
+// (segment.ts's TRANSFORMS only fuses the literal 'aɪ' pair, not 'a'+'i').
+// Rule 7 is for genuine hiatus ("real" ɪ.ə → i.ə), never for a diphthong's
+// second element — which is always immediately preceded by 'a' or 'ɔ'.
+const RULE7_PATTERN = new RegExp(`(?<![aɔ])ɪ(?=[${RULE7_VOWELS}])`, 'g')
 
 /** 7. /ɪ/+/V/ ⇒ /i/+/V/ */
 export function applyRule7_iPlusVowel(ipa: string): string {
@@ -43,7 +50,22 @@ export function applyRule7_iPlusVowel(ipa: string): string {
 }
 
 const IEAR_SPELLING_GROUP = ['ear', 'eer', 'eir', 'ier', 'ere']
-const RULE8_PATTERN = /[ɪi]ər?$/
+// NEGATIVE LOOKBEHIND (2026-08-30 fix, found while implementing the fire/
+// tyre/ire §6.2 V-R lexical set): the raw pattern matched the SECOND
+// element of an /aɪ/ diphthong too, since IPA writes that diphthong as two
+// separate characters 'a'+'ɪ' — indistinguishable from a genuine /ɪ/
+// syllable nucleus by shape alone. "fire" (spelling ends in "re", so passes
+// RULE8_SPELLING_GUARD) has lexicon IPA "faɪər": the trailing "ɪər" wrongly
+// matched this rule and got rewritten to "ir" (target='ir', since "fire"
+// isn't in IEAR_SPELLING_GROUP), collapsing "faɪər" → "fair" — destroying
+// the /aɪ/ diphthong entirely (blue #4472C4) and replacing it with a plain
+// /a/+/i/ split (wrong colours, wrong phoneme count). Rule 8 is only meant
+// for the NEAR set (a true /ɪ/ or /i/ nucleus, e.g. "near" nɪər, "beer"
+// bɪr) — never for a diphthong's off-glide. The fix: don't match when the
+// character immediately before is 'a' or 'ɔ' (the diphthongs that end in
+// an ɪ-like off-glide: aɪ, ɔɪ) — a genuine near-set nucleus is always
+// preceded by a consonant or the start of the word, never by that vowel.
+const RULE8_PATTERN = /(?<![aɔ])[ɪi]ər?$/
 
 /**
  * 8. Eval(w/iər/∼/ir/) ∈ G={-ear,-eer,-eir,-ier,-ere} ⇒ /iər/, altfel ⇒ /ir/

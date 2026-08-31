@@ -174,7 +174,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .eic-syllabic-vr {
   color: #000000;
   box-shadow: 
-    0 0 0 0.5px #FFFFFF,   /* fill alb, extins 3px în jurul literei */
+    0 0 0 0.5px #000000,   /* fill alb, extins 3px în jurul literei */
     0 0 0 1.1px #000000;   /* chenar negru, 1px grosime, la 4px */
   border-radius: 2px;
   line-height: 1;
@@ -1609,7 +1609,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-word-mark-underline {
   text-decoration: underline;
   text-decoration-color: var(--lesson-color);
-  text-underline-offset: 2.7px;
+  text-underline-offset: 4.7px;
   text-decoration-thickness: 2px;
 }
 .lesson-col.is-locked .lesson-word {

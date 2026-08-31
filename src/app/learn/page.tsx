@@ -142,12 +142,24 @@ export default function LearnPage() {
   // ── Cuvinte de exersat — un cuvânt apăsat individual de REVIEW_THRESHOLD
   //   ori ajunge automat aici, ca semn că pare dificil pentru cel care învață ──
   const [wordClickCounts, setWordClickCounts] = useState<Record<string, number>>({})
-  const [reviewWords, setReviewWords] = useState<{ word: string; colId: string; accent: Accent }[]>(() => {
+  // HYDRATION FIX (2026-08-30): asta era inițializat printr-un lazy
+  // initializer care citea localStorage direct în useState(() => ...),
+  // spre deosebire de restul stărilor din fișier (vezi autoDelayMs mai sus)
+  // care toate încarcă din localStorage într-un useEffect după montare.
+  // Efectul practic: pe server reviewWords era mereu [] (localStorage nu
+  // există), dar la PRIMUL render pe client lazy-initializer-ul chiar citea
+  // valoarea salvată dintr-o vizită anterioară — dacă exista vreun cuvânt
+  // de exersat, acel prim render de client producea markup diferit de cel
+  // trimis de server (blocul <div className="review-panel"> apărea doar pe
+  // client), exact mismatch-ul din eroarea de hidratare. Aliniat acum la
+  // același tipar cu celelalte: default gol, încărcare reală în useEffect.
+  const [reviewWords, setReviewWords] = useState<{ word: string; colId: string; accent: Accent }[]>([])
+  useEffect(() => {
     try {
       const raw = localStorage.getItem('eic-review-words')
-      return raw ? JSON.parse(raw) : []
-    } catch { return [] }
-  })
+      if (raw) setReviewWords(JSON.parse(raw))
+    } catch { /* ignore */ }
+  }, [])
   useEffect(() => {
     try { localStorage.setItem('eic-review-words', JSON.stringify(reviewWords)) } catch { /* ignore */ }
   }, [reviewWords])
