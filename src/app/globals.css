@@ -1410,12 +1410,12 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-col {
   border-radius: var(--radius-lg);
   border: 1.5px solid var(--color-border);
-  background: var(--color-surface);
+  background: #ffffff;
   padding: 1.1rem 0.9rem 1.25rem;
   transition: border-color .2s, background .2s, opacity .2s;
 }
 .lesson-col.is-unlocked {
-  background: color-mix(in srgb, var(--lesson-color) 8%, var(--color-bg));
+  background: #ffffff;
   border-color: color-mix(in srgb, var(--lesson-color) 30%, var(--color-border));
 }
 .lesson-col.is-active {
