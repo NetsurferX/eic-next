@@ -8,6 +8,7 @@ import { Mascot } from '@/components/game/Mascot'
 import { FoxHelper, type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties } from 'react'
 import Link from 'next/link'
+import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
 
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
@@ -50,7 +51,7 @@ const OFFGLIDE_COLOR = '#CC0000'
 // din interiorul mark-ului sunt vocale+w+y; consoanele adevărate rămân
 // negre/gri, niciodată colorate. La cuvinte monosilabice sublinierea
 // dispare complet, culoarea rămâne.
-function MarkedWord({ text, mark, lessonId }: { text: string; mark: string; lessonId?: string }) {
+function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: string; mark: string; lessonId?: string; isLocked?: boolean; isPlaying?: boolean }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
   const isMonosyllabic = countSyllables(text) === 1
 
@@ -69,11 +70,50 @@ function MarkedWord({ text, mark, lessonId }: { text: string; mark: string; less
     ? markText.length - 1
     : -1
 
+  // Coloana 'ou' (/əʊ/): engine/display.ts randează acest sunet mereu cu
+  // tricolorul românesc (albastru/galben/roșu, gradient vertical pe
+  // fereastra de cerneală a fontului), niciodată galben plat — vezi
+  // TRICOLOR_GRADIENT_SOUNDS din display.ts și lib/tricolorStyle.ts.
+  // Fiecare literă a mark-ului își ia propriul ciclu tricolor complet
+  // (verificat pe "Vulpea șireată" — "oa"/"ow" nu întind un singur
+  // gradient pe ambele litere). Coloanele blocate rămân pe stilul vechi
+  // (culoare plată, estompată de CSS) ca să nu se "trădeze" prin gradient.
+  const isTricolorLesson = lessonId === 'ou' && !isLocked
+
   return (
     <>
       {before}
       {[...markText].map((ch, i) => {
         const vowelLike = isVowelLike(ch)
+
+        if (isTricolorLesson && vowelLike) {
+          const underline = !isMonosyllabic
+          return (
+            <span
+              key={i}
+              style={{
+                ...tricolorLetterStyle(),
+                // `currentColor` (used by .lesson-word.is-playing's glow
+                // rule) is 'transparent' here since the gradient fill sets
+                // color:transparent — so the playing-glow needs its own
+                // explicit white drop-shadow instead of relying on the
+                // shared CSS class.
+                ...(isPlaying ? { filter: 'drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #FCD116)' } : {}),
+                ...(underline
+                  ? {
+                      textDecoration: 'underline',
+                      textDecorationColor: TRICOLOR_UNDERLINE_COLOR,
+                      textUnderlineOffset: '4.7px',
+                      textDecorationThickness: '2px',
+                    }
+                  : {}),
+              }}
+            >
+              {ch}
+            </span>
+          )
+        }
+
         const classes = [
           vowelLike ? 'lesson-word-mark' : '',
           vowelLike && !isMonosyllabic ? 'lesson-word-mark-underline' : '',
@@ -544,6 +584,7 @@ export default function LearnPage() {
           const trophyEarned = stars >= REPS_PER_LESSON
           const isNextUp     = i === nextUpIndex
           const isRevealing  = justRevealedIndex === i
+          const isTricolor   = l.id === 'ou'
           const style = { '--lesson-color': l.color } as CSSProperties
           return (
             <div
@@ -554,7 +595,16 @@ export default function LearnPage() {
             >
               <div className="lesson-col-head">
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
-                <div className="lesson-letter">{l.letter}</div>
+                <div
+                  className="lesson-letter"
+                  // Litera din capul coloanei ia și ea tricolorul real (nu
+                  // doar roșul de identitate din --lesson-color) — dar doar
+                  // când coloana e deblocată, la fel ca la cuvinte: blocată
+                  // rămâne pe stilul muted vechi din CSS.
+                  style={isTricolor && isUnlocked ? tricolorLetterStyle() : undefined}
+                >
+                  {l.letter}
+                </div>
               </div>
 
               {isUnlocked && (
@@ -563,6 +613,7 @@ export default function LearnPage() {
                     progressPct={(stars / REPS_PER_LESSON) * 100}
                     size={42}
                     color={l.color}
+                    bandColors={isTricolor ? TRICOLOR_BANDS : undefined}
                     celebrating={isActive && celebrating}
                     allFull={trophyEarned}
                     idSuffix={l.id}
@@ -604,7 +655,7 @@ export default function LearnPage() {
                       aria-label={`Ascultă cuvântul ${w.text}`}
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} />
+                      <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />
                     </button>
                   )
                 })}
@@ -617,7 +668,7 @@ export default function LearnPage() {
                     className="lesson-col-btn"
                     onClick={(e) => { e.stopPropagation(); handleMainButton() }}
                     disabled={isPlayingRep}
-                    style={{ background: l.color }}
+                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
                   >
                     {buttonLabel}
                   </button>

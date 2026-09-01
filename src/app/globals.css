@@ -176,8 +176,8 @@ button, textarea, input { font-family: var(--font-sans); }
    inline style-ul color:d.color aplicat de WordRenderer pe același span. */
 .eic-syllabic-vr {
   color: #FFFFFF !important;
-  -webkit-text-stroke: 1px #000000;
-  text-stroke: 1px #000000;
+  -webkit-text-stroke: 0.5px #000000;
+  text-stroke: 0.5px #000000;
   line-height: 1;
   margin: 0 0.5px;
 }

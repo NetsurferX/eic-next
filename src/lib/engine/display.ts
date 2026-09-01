@@ -46,7 +46,12 @@ function simpleGradientCss(hex: string): string {
 // The per-letter repeat is handled by WordRenderer.tsx (perLetterGradient
 // flag on DisplayNode), NOT here — this file only supplies the CSS pattern.
 const TRICOLOR_GRADIENT_SOUNDS = new Set(['əw'])
-const TRICOLOR_CSS = 'linear-gradient(to bottom, #002B7F 0%, #002B7F 33%, #FCD116 33%, #FCD116 66%, #CE1126 66%, #CE1126 100%)'
+// Exported so non-engine surfaces (the /learn page's hand-curated "ou"
+// column) can paint the exact same gradient instead of re-deriving it —
+// see src/lib/tricolorStyle.ts, the shared single source of truth for
+// BOTH this CSS string and the calibration constants that make it land
+// correctly on the ink (originally local to WordRenderer.tsx).
+export const TRICOLOR_CSS = 'linear-gradient(to bottom, #002B7F 0%, #002B7F 33%, #FCD116 33%, #FCD116 66%, #CE1126 66%, #CE1126 100%)'
 function tricolorGradientHex(sound: string): string | null {
   return TRICOLOR_GRADIENT_SOUNDS.has(sound) ? TRICOLOR_CSS : null
 }
@@ -58,7 +63,7 @@ function tricolorGradientHex(sound: string): string | null {
 // request, the underline should read as the RED band of the tricolor, not
 // the yellow one — using #CE1126 here (same red as TRICOLOR_CSS's bottom
 // stop) keeps it visually tied to the gradient it's underlining.
-const TRICOLOR_UNDERLINE_COLOR = '#CE1126'
+export const TRICOLOR_UNDERLINE_COLOR = '#CE1126'
 
 // Letters that are graphically consonants — used to detect the
 // "silent consonant in vowel position" case (e.g. the 'k' in 'knight'

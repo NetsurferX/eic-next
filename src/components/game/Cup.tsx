@@ -26,8 +26,8 @@ export function Confetti({ count = 14, big = false }: { count?: number; big?: bo
 //    de pe pagina principală — doar cu culoare, mărime și opțiuni
 //    (bule/glow/inel/confetti mare) diferite. ──
 export const Cup = forwardRef<HTMLDivElement, {
-  progressPct: number; size?: number; color?: string; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number; big?: boolean; showBubbles?: boolean; className?: string; ring?: boolean; activePulse?: boolean; bump?: boolean
-}>(function Cup({ progressPct, size = 64, color = '#FFB300', celebrating = false, allFull = false, idSuffix, confettiCount = 14, big = false, showBubbles = false, className = '', ring = false, activePulse = false, bump = false }, ref) {
+  progressPct: number; size?: number; color?: string; bandColors?: [string, string, string]; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number; big?: boolean; showBubbles?: boolean; className?: string; ring?: boolean; activePulse?: boolean; bump?: boolean
+}>(function Cup({ progressPct, size = 64, color = '#FFB300', bandColors, celebrating = false, allFull = false, idSuffix, confettiCount = 14, big = false, showBubbles = false, className = '', ring = false, activePulse = false, bump = false }, ref) {
   const innerTop = 15, innerBottom = 85
   const fillHeight = ((innerBottom - innerTop) * Math.max(0, Math.min(100, progressPct))) / 100
   const fillY = innerBottom - fillHeight
@@ -45,8 +45,25 @@ export const Cup = forwardRef<HTMLDivElement, {
             <path d="M20,15 L80,15 L72,70 Q72,85 50,85 Q28,85 28,70 Z" />
           </clipPath>
           <linearGradient id={gradId} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0%" stopColor={color} />
-            <stop offset="100%" stopColor={`color-mix(in srgb, ${color} 55%, white)`} />
+            {bandColors ? (
+              <>
+                {/* Bandă tricoloră (ex. /əʊ/ — albastru/galben/roșu) în loc de
+                    lichidul monocrom + nuanță deschisă spre buză. Ordinea de
+                    sus în jos în array (bandColors[0] → [2]) devine jos→sus
+                    în cupă, fiindcă lichidul urcă (y1="1" jos, y2="0" sus). */}
+                <stop offset="0%"  stopColor={bandColors[2]} />
+                <stop offset="33%" stopColor={bandColors[2]} />
+                <stop offset="33%" stopColor={bandColors[1]} />
+                <stop offset="66%" stopColor={bandColors[1]} />
+                <stop offset="66%" stopColor={bandColors[0]} />
+                <stop offset="100%" stopColor={bandColors[0]} />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor={color} />
+                <stop offset="100%" stopColor={`color-mix(in srgb, ${color} 55%, white)`} />
+              </>
+            )}
           </linearGradient>
           <linearGradient id={`${gradId}-sheen`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="white" stopOpacity="0.55" />

@@ -113,7 +113,22 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'ou', letter: 'oʊ', color: '#FCD116', tabLabel: 'Galben',
+        // Header simbol: ə + U+200D (SYLLABIC_MARKER, engine/display.ts) + ʊ —
+        // aceeași convenție ca segment.ts pentru diftongul əʊ/oʊ. `color`
+        // NU mai e galben plat (#FCD116 era doar banda din mijloc a
+        // tricolorului, un placeholder rămas de dinainte să existe
+        // gradientul) — engine/display.ts randează acest sunet mereu cu
+        // tricolorul românesc (albastru/galben/roșu), niciodată o culoare
+        // unică. `color` rămâne totuși un hex SIMPLU (nu un gradient),
+        // fiindcă e folosit peste tot în globals.css prin color-mix(), care
+        // nu acceptă un gradient ca argument — deci am ales #CE1126 (roșu),
+        // aceeași culoare pe care display.ts o folosește deja ca
+        // TRICOLOR_UNDERLINE_COLOR, adică "ancora" convențională a acestui
+        // sunet. Fundalul cromatic REAL, cu toate trei benzile, apare pe
+        // cuvinte (MarkedWord), pe litera din capul coloanei, pe butonul
+        // "Repetă" și pe cupă — vezi lib/tricolorStyle.ts (TRICOLOR_BANDS /
+        // TRICOLOR_CSS_HORIZONTAL) și /learn/page.tsx (lessonId === 'ou').
+        id: 'ou', letter: 'ə\u200Dʊ', color: '#CE1126', tabLabel: 'Tricolor',
         words: [
           { text: 'go',   mark: 'o' },
           { text: 'boat', mark: 'oa' },
