@@ -31,7 +31,7 @@ export interface SoundColor {
 
 export const SOUND_COLORS: SoundColor[] = [
   {
-    sounds: ['æ'], hex: '#00b0f0', label: 'æ', example: 'cat, hat', category: 'vowel',
+    sounds: ['æ'], hex: '#00A2E0', label: 'æ', example: 'cat, hat', category: 'vowel',
     neighbors: ['#EE5B00'],
   },
   {
@@ -44,7 +44,7 @@ export const SOUND_COLORS: SoundColor[] = [
   },
   {
     sounds: ['e', 'ɛ'], hex: '#EE5B00', label: 'e / ɛ', example: 'bed, say', category: 'vowel',
-    neighbors: ['#00b0f0', '#CC0000'],
+    neighbors: ['#00A2E0', '#CC0000'],
   },
   {
     sounds: ['ɪ', 'i', 'iː'], hex: '#CC0000', label: 'i / ɪ', example: 'see, sit', category: 'vowel',

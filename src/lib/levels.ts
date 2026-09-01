@@ -87,7 +87,7 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 2 · Alte vocale',
     lessons: [
       {
-        id: 'ae', letter: 'æ', color: '#00b0f0', tabLabel: 'Bleu',
+        id: 'ae', letter: 'æ', color: '#00A2E0', tabLabel: 'Bleu',
         // Coloana æ — accent britanic (regula 6). Cuvintele cu æn/æm (man, hand)
         // sunt oricum acoperite de accentul coloanei; word.accent rămâne
         // disponibil pentru un eventual cuvânt cu æn/æm dintr-o ALTĂ coloană.
