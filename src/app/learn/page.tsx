@@ -592,7 +592,6 @@ export default function LearnPage() {
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectColumn(i)}
-              onMouseEnter={() => selectColumn(i)}
             >
               <div className="lesson-col-head">
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
@@ -602,7 +601,12 @@ export default function LearnPage() {
                   // doar roșul de identitate din --lesson-color) — dar doar
                   // când coloana e deblocată, la fel ca la cuvinte: blocată
                   // rămâne pe stilul muted vechi din CSS.
-                  style={isTricolor && isUnlocked ? tricolorLetterStyle() : undefined}
+                  // Widened overshoot margin (8% vs the word-list default
+                  // 2%): the header shows italic IPA symbols (ə, ʊ) at a
+                  // bigger font size, not the plain lowercase Latin word
+                  // letters the tight margin was tuned against — the tight
+                  // margin was clipping their ink slightly top and bottom.
+                  style={isTricolor && isUnlocked ? tricolorLetterStyle(8) : undefined}
                 >
                   {l.letter}
                 </div>

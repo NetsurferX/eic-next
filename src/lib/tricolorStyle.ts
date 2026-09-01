@@ -31,6 +31,26 @@ export { TRICOLOR_CSS, TRICOLOR_UNDERLINE_COLOR }
 export const TRICOLOR_BG_SIZE_Y     = '49.118%'
 export const TRICOLOR_BG_POSITION_Y = '64.763%'
 
+// Base ink-window metrics (Inter, see derivation above), BEFORE the
+// overshoot-margin padding is added — kept as raw numbers (not the two
+// exported constants above) so different call sites can choose their own
+// margin. TRICOLOR_BG_SIZE_Y/POSITION_Y above use a 2%-per-side margin,
+// tuned against the plain lowercase Latin letters (o, a, w) that carry
+// /əʊ/ in the word list, at body text size.
+const INK_TOP_PCT    = 34.947
+const INK_HEIGHT_PCT = 45.118
+
+// size/position for a given overshoot margin (percent of the box, each
+// side) — see TRICOLOR_BG_SIZE_Y's comment for the derivation this
+// generalises: size = inkHeight + 2×pad; position = (inkTop − pad) /
+// (1 − size/100) × 100.
+function inkWindow(padPct: number): { sizeY: string; positionY: string } {
+  const sizeY = INK_HEIGHT_PCT + 2 * padPct
+  const windowTop = INK_TOP_PCT - padPct
+  const positionY = (windowTop / (1 - sizeY / 100)) * 1
+  return { sizeY: `${sizeY.toFixed(3)}%`, positionY: `${positionY.toFixed(3)}%` }
+}
+
 // The three flat band colours, in the SAME order as TRICOLOR_CSS's stops
 // (top→bottom: blue, yellow, red). Anything that can't take a CSS gradient
 // value directly (e.g. Cup.tsx's SVG <linearGradient> stops, built from a
@@ -52,15 +72,22 @@ export const TRICOLOR_CSS_HORIZONTAL =
 // (e.g. "oa" in "boat" — both o and a get their own full 3-band cycle),
 // so callers should apply this per-character, not once across a whole
 // multi-letter spelling.
-export function tricolorLetterStyle(): CSSProperties {
+//
+// `marginPct` widens the overshoot margin from the default 2% (tuned for
+// plain lowercase Latin word letters). Use a larger value for glyphs the
+// 2% margin wasn't tuned against — e.g. the column header's italic IPA
+// symbols ə/ʊ at a bigger font size, which sit in a slightly different
+// vertical window and were getting clipped top/bottom at the tight margin.
+export function tricolorLetterStyle(marginPct: number = 2): CSSProperties {
+  const { sizeY, positionY } = inkWindow(marginPct)
   return {
     background:           TRICOLOR_CSS,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor:  'transparent',
     backgroundClip:       'text',
     color:                'transparent',
-    backgroundSize:       `100% ${TRICOLOR_BG_SIZE_Y}`,
-    backgroundPosition:   `0% ${TRICOLOR_BG_POSITION_Y}`,
+    backgroundSize:       `100% ${sizeY}`,
+    backgroundPosition:   `0% ${positionY}`,
     backgroundRepeat:     'no-repeat',
   }
 }
