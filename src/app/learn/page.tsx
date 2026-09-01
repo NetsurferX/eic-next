@@ -592,6 +592,7 @@ export default function LearnPage() {
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectColumn(i)}
+              onMouseEnter={() => selectColumn(i)}
             >
               <div className="lesson-col-head">
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
