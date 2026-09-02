@@ -8,6 +8,7 @@ import path from 'path'
 import { processIpa, extractProps, COLOR_CONSONANT } from './engine'
 import type { RenderNode } from './engine'
 import { EiCSuffixVoicingPipeline } from './engine/suffixVoicing'
+import { getColor } from './rules/colors'
 
 const suffixPipeline = new EiCSuffixVoicingPipeline()
 
@@ -193,34 +194,55 @@ export function getRawVariants(word: string): { uk: VariantResult | null; us: Va
 
 // ── -s suffix fallback ────────────────────────────────────────────────────────
 // Cuvântul cerut nu e în lexicon (ex: "cats" nu are rând propriu), dar dacă
-// e "bază + s" și baza există în lexicon, sintetizăm nodul de sufix în loc
-// să întoarcem null. Nu acoperă -es/-ies (plural cu epenteză) — doar -s simplu.
+// e "bază + s" (sau "bază + es", pt. sibilante — vezi Regula 12 §2.2) și baza
+// există în lexicon, sintetizăm nodul/nodurile de sufix în loc să întoarcem
+// null.
+//
+// Se încearcă ÎNTÂI baza "-es" (dacă e aplicabilă), pentru că e mai
+// specifică: "watches" trebuie citit ca bază "watch" + sufix "es", nu ca
+// bază "watche" (care n-ar exista în lexicon oricum, dar dacă ar exista din
+// greșeală, "-s" simplu ar da un rezultat fonetic greșit).
 function tryPluralFallback(word: string): WordResult | null {
-  if (!word.endsWith('s') || word.length < 2) return null
-  const base = word.slice(0, -1)
+  const candidates: { base: string; spelling: 'es' | 's' }[] = []
+  if (word.endsWith('es') && word.length > 2) candidates.push({ base: word.slice(0, -2), spelling: 'es' })
+  if (word.endsWith('s') && word.length > 1) candidates.push({ base: word.slice(0, -1), spelling: 's' })
 
-  const ukRow = stmtUk().get(base) as { ipa: string } | undefined
-  const usRow = stmtUs().get(base) as { ipa: string } | undefined
-  if (!ukRow && !usRow) return null
+  for (const { base } of candidates) {
+    const ukRow = stmtUk().get(base) as { ipa: string } | undefined
+    const usRow = stmtUs().get(base) as { ipa: string } | undefined
+    if (!ukRow && !usRow) continue
 
-  function build(ipa: string): RenderNode[] {
-    const baseNodes = processIpa(base, firstIpaVariant(ipa))
-    const soundNodes = baseNodes.filter(n => n.s !== '')
-    const lastPhoneme = soundNodes.length
-      ? soundNodes[soundNodes.length - 1].s
-      : base[base.length - 1]
+    function build(ipa: string): RenderNode[] {
+      const baseNodes = processIpa(base, firstIpaVariant(ipa))
+      const soundNodes = baseNodes.filter(n => n.s !== '')
+      const lastPhoneme = soundNodes.length
+        ? soundNodes[soundNodes.length - 1].s
+        : base[base.length - 1]
 
-    const { phonetic } = suffixPipeline.process_suffix_s(base, lastPhoneme)
-    const suffixNode: RenderNode = { t: 's', s: phonetic, c: COLOR_CONSONANT, u: false, x: true }
-    return [...baseNodes, suffixNode]
+      const { phonetic, eicSpelling } = suffixPipeline.process_suffix_s(base, lastPhoneme)
+      const extra = eicSpelling.slice(base.length) // literele chiar adăugate față de bază: "s", "es"
+
+      if (phonetic === '/ɪz/' && extra.length === 2) {
+        // Sibilantă cu epenteză vizibilă ortografic ("watch"+"es"): 'e' e
+        // vocala epentetică reală /ɪ/ (nu literă mută — vezi §3.1 T2, culoarea
+        // fonemului /ɪ/), 's' rămâne consoană neagră standard (T1).
+        const eNode: RenderNode = { t: extra[0], s: 'ɪ', c: getColor('ɪ') ?? COLOR_CONSONANT, u: false, x: false }
+        const sNode: RenderNode = { t: extra[1], s: 'z', c: COLOR_CONSONANT, u: false, x: true }
+        return [...baseNodes, eNode, sNode]
+      }
+
+      // Restul cazurilor (/s/, /z/, sau /ɪz/ cu bază terminată deja în 'e'
+      // mut — vezi heuristica din suffixVoicing.ts) — un singur nod sufix.
+      const suffixNode: RenderNode = { t: extra || 's', s: phonetic, c: COLOR_CONSONANT, u: false, x: true }
+      return [...baseNodes, suffixNode]
+    }
+
+    const ukNodes = ukRow ? build(ukRow.ipa) : null
+    const usNodes = usRow ? build(usRow.ipa) : null
+    const nodes = ukNodes ?? usNodes
+    if (nodes) return { nodes, variant: 'derived' }
   }
-
-  const ukNodes = ukRow ? build(ukRow.ipa) : null
-  const usNodes = usRow ? build(usRow.ipa) : null
-  const nodes = ukNodes ?? usNodes
-  if (!nodes) return null
-
-  return { nodes, variant: 'derived' }
+  return null
 }
 
 // ── Core lookup — cache-first ─────────────────────────────────────────────────

@@ -1409,10 +1409,12 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-col {
   border-radius: var(--radius-lg);
-  border: 1.5px solid var(--color-border);
+  border: 3px solid var(--color-border);
+  outline: 2px solid transparent;
+  outline-offset: 3px;
   background: #ffffff;
   padding: 1.1rem 0.9rem 1.25rem;
-  transition: border-color .2s, background .2s, opacity .2s;
+  transition: border-color .35s ease, outline-color .35s ease, background .2s, opacity .2s;
 }
 .lesson-col.is-unlocked {
   background: #ffffff;
@@ -1420,7 +1422,6 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-col.is-active {
   border-color: var(--lesson-color);
-  border-width: 2px;
 }
 .lesson-col.is-locked { opacity: .45; }
 .lesson-col.is-unlocked { cursor: pointer; }
@@ -1992,7 +1993,7 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
   isolation: isolate;
   overflow: visible;
-  transition: border-color .3s ease, background .3s ease, box-shadow .35s ease, transform .3s cubic-bezier(.22,1,.36,1);
+  transition: border-color .35s ease, outline-color .35s ease, background .3s ease, box-shadow .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
 }
 .lesson-col::before {
   content: '';
@@ -2042,9 +2043,7 @@ button, textarea, input { font-family: var(--font-sans); }
    să funcționeze și pe coloana activă. ── */
 .lesson-col.is-active {
   border-color: var(--lesson-color);
-  border-width: 3px;
-  outline: 2px solid var(--lesson-color);
-  outline-offset: 3px;
+  outline-color: var(--lesson-color);
   transform: scale(1.07);
   z-index: 2;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color) 18%, transparent),

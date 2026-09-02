@@ -9,26 +9,37 @@
 // 'th' pentru /θ/, 'sh' pentru /ʃ/ etc. Astfel se poate apela direct cu
 // Seg.display sau cu ultimul RenderNode.s produs de pipeline.
 
-export type SuffixEnvironment = 'consoană surdă' | 'vocală / consoană sonoră'
+export type SuffixEnvironment =
+  | 'consoană surdă'
+  | 'vocală / consoană sonoră'
+  | 'sibilantă (epenteză /ɪz/)'
 
 export interface SuffixSResult {
   base: string
   lastPhoneme: string
-  phonetic: '/s/' | '/z/'
+  phonetic: '/s/' | '/z/' | '/ɪz/'
   eicSpelling: string
   environment: SuffixEnvironment
 }
 
 // Consoanele surde din engleză după care -s se pronunță /s/.
-// NOTĂ: nu includem aici sibilantele sh/ch/j (vezi avertismentul din
-// comentariul "LIMITARE CUNOSCUTĂ" mai jos) — dar 'h' și 's' au fost
-// adăugate explicit conform specificației (2026-08-12): "If after 'ke',
-// 'pe', 'te', 'p', 't', 'k', 'f', 'h', 's' → s". 'ke'/'pe'/'te' nu sunt
-// adăugate ca intrări separate — sunt tratate ca echivalente fonetic cu
-// k/p/t (ortografie cu e mut, ex. bike/hope/gate), iar acest pipeline
-// lucrează pe FONEM, nu pe literă. Dacă intenția era alta (o distincție
-// ortografică reală, nu doar fonetică), spune și revizuim.
-export const VOICELESS_CONSONANTS = new Set(['p', 't', 'k', 'f', 'th', 'h', 's'])
+// FIX (2026-09-01, B_tehnic §2.2 Regula 12, doc "0109"): lista corectă din
+// specificația v2.0 e {p, t, k, f, th} — EXACT atât, fără 'h' și fără 's'.
+// 'h' a fost păstrat anterior "pentru fidelitate literală" dar era deja
+// semnalat ca fonem final practic inexistent în engleză — mort, dar
+// inofensiv. 's' NU e inofensiv: e o SIBILANTĂ, nu doar o consoană surdă,
+// și trebuia de la bun început în ramura /ɪz/ (mai jos), nu în ramura /s/.
+// Cu 's' aici, "kiss" primea "kisss" (3 s-uri, greșit) — vezi comentariul
+// LIMITARE CUNOSCUTĂ păstrat mai jos pt. istoric. Acum "kiss" cade corect
+// în SIBILANT_FINALS și primește /ɪz/.
+export const VOICELESS_CONSONANTS = new Set(['p', 't', 'k', 'f', 'th'])
+
+// Sibilantele din engleză (Regula 12, a doua clauză): "s, z, ʃ, ʒ, tʃ, dʒ".
+// Formele de mai jos sunt formele de AFIȘARE post-TRANSFORMS din
+// engine/segment.ts (vezi tabelul de-acolo): /s/→'s', /z/→'z', /ʃ/→'sh',
+// /ʒ/→'ʒ' (fără transformare proprie — cade pe fallback-ul cu un caracter),
+// /tʃ/→'ch', /dʒ/→'dj'.
+export const SIBILANT_FINALS = new Set(['s', 'z', 'sh', 'ʒ', 'ch', 'dj'])
 
 // Excepții lexicale — cuvinte unde fonemul final e surd (th), dar sufixul
 // -s se voice-uiește oricum la plural (mouth→mouths /maʊðz/, clothe→
@@ -54,6 +65,24 @@ export class EiCSuffixVoicingPipeline {
       }
     }
 
+    if (SIBILANT_FINALS.has(clean_phoneme)) {
+      // Ortografia reală a pluralului sibilant nu e mereu o simplă alipire
+      // de "es" (watch→watches, kiss→kisses, buzz→buzzes: DA; dar house→
+      // houses, judge→judges: baza se termină deja în 'e' mut, deci se
+      // adaugă doar 's', nu 'es'). Acest pipeline nu are acces la ortografia
+      // completă a bazei aici (doar la ultimul FONEM) — heuristica de mai
+      // jos (bază care se termină în 'e' → +s, altfel → +es) acoperă
+      // majoritatea cazurilor reale fără date suplimentare.
+      const eicSpelling = clean_word.endsWith('e') ? `${base_word}s` : `${base_word}es`
+      return {
+        base: base_word,
+        lastPhoneme: last_phoneme,
+        phonetic: '/ɪz/',
+        eicSpelling,
+        environment: 'sibilantă (epenteză /ɪz/)',
+      }
+    }
+
     if (VOICELESS_CONSONANTS.has(clean_phoneme)) {
       return {
         base: base_word,
@@ -75,35 +104,24 @@ export class EiCSuffixVoicingPipeline {
 }
 
 /*
-LIMITARE CUNOSCUTĂ (nu am corectat-o fără să întreb, doar semnalez):
+ISTORIC (rezolvat 2026-09-01, B_tehnic v2.0 §2.2 Regula 12, doc "0109"):
 
-Regula reală -s din engleză are 3 alofoane, nu 2:
-  /s/   după consoane surde non-sibilante   (p, t, k, f, th)
-  /ɪz/  după sibilante                       (s, z, sh, zh, ch, j/dʒ)
-  /z/   după tot restul (vocale + consoane sonore non-sibilante)
+Această clasă avea până acum doar 2 alofoane (/s/, /z/); Regula 12 din
+specificație cere 3. Ramura /ɪz/ (sibilante: s, z, ʃ, ʒ, tʃ, dʒ) e acum
+implementată mai sus, cu 's' scos din VOICELESS_CONSONANTS și mutat corect
+în SIBILANT_FINALS. "kiss" → SIBILANT_FINALS → /ɪz/ → "kisses" (corect,
+înainte dădea "kisss"). "watch" → /ɪz/ → "watches". "bush"/"garage"(/ʒ/
+final)/"judge" (dj) — la fel.
 
-Clasa Python originală pune sibilantele surde (s, sh, ch) implicit în ramura
-/z/ (pentru că nu sunt în voiceless_consonants), ceea ce dă rezultate greșite:
-  "kiss" -> ar trebui "kisses" /ɪz/, nu "kissṡ" /z/
-  "bush" -> ar trebui "bushes" /ɪz/, nu "bushṡ" /z/
-  "watch" -> ar trebui "watches" /ɪz/, nu "watchṡ" /z/
+Rămâne o limitare minoră, semnalată explicit în process_suffix_s: alegerea
+"+s" vs. "+es" e o heuristică pe baza literei finale a bazei (bază pe 'e'
+mut → +s, altfel → +es), nu o consultare a ortografiei complete atestate —
+acoperă cazurile comune (watch/kiss/buzz → +es; house/judge → +s), dar nu
+e garantată 100% pe excepții neregulate. Spune dacă apare un caz concret
+greșit și îl tratăm punctual, ca la V-R lexical sets.
 
-De asemenea pʰ/tʰ/kʰ (aspirate) din setul original nu apar niciodată ca
-"ultim fonem" — aspirația e un alofon de atac de silabă, nu de coda finală
-de cuvânt — deci acele 3 intrări sunt moarte în practică. Nu le-am mai pus.
-
-Portul de mai sus e fidel 1:1 cu clasa cerută. Spune dacă vrei să adaug
-ramura /ɪz/ (sibilante) — e un `if` în plus, dar schimbă rezultatul pentru
-orice cuvânt terminat în s/z/sh/zh/ch/j.
-
-ACTUALIZARE (2026-08-12): 's' a fost adăugat la VOICELESS_CONSONANTS conform
-noii specificații. Asta NU rezolvă limitarea de mai sus — doar schimbă CE
-răspuns greșit primești pentru cuvinte terminate în /s/. Înainte: "kiss" →
-ramura /z/ → "kissṡ" (greșit, ar trebui /ɪz/). Acum: "kiss" → ramura /s/ →
-"kisss" (tot greșit — nici spelling-ul cu 3 s-uri, nici /s/ simplu nu e
-corect; real e /ɪz/, "kisses"). Dacă vrei corectitudine reală pe cuvinte
-terminate în sibilante, tot ramura /ɪz/ e nevoie, nu doar mutarea lui 's'
-între seturi. 'h' ca fonem final e practic mort în engleză (nu există
-cuvinte native terminate în /h/), deci adăugarea lui nu schimbă comportament
-observabil — l-am păstrat doar pentru fidelitate literală față de listă.
+'h' ca fonem final e practic mort în engleză (nu există cuvinte native
+terminate în /h/) — a fost scos din VOICELESS_CONSONANTS pentru fidelitate
+față de lista exactă din §2.2 Regula 12 ({p, t, k, f, th}), fără să schimbe
+vreun comportament observabil.
 */

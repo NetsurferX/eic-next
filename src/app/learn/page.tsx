@@ -486,6 +486,21 @@ export default function LearnPage() {
     setActive(i)
   }, [isPlayingRep, colUnlocked, levelIndex, active])
 
+  // ── "Hover intent" — la trecerea rapidă a mouse-ului peste mai multe
+  //   coloane (spre ex. când cursorul doar traversează grila spre alt
+  //   punct), nu vrem să se activeze fiecare coloană atinsă în trecere,
+  //   ca senzația să fie lină, nu sacadată. Se activează doar coloana pe
+  //   care mouse-ul chiar se oprește (110ms), iar plecarea anulează timer-ul. ──
+  const hoverIntentRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hoverSelectColumn = useCallback((i: number) => {
+    if (hoverIntentRef.current) clearTimeout(hoverIntentRef.current)
+    hoverIntentRef.current = setTimeout(() => selectColumn(i), 110)
+  }, [selectColumn])
+  const cancelHoverSelectColumn = useCallback(() => {
+    if (hoverIntentRef.current) { clearTimeout(hoverIntentRef.current); hoverIntentRef.current = null }
+  }, [])
+  useEffect(() => () => { if (hoverIntentRef.current) clearTimeout(hoverIntentRef.current) }, [])
+
   // ── Permite să revii la un nivel deja deblocat (curent sau terminat),
   //   ca să revezi coloanele lui — fără să atingi progresul (colUnlocked,
   //   starsEarned rămân neschimbate; doar „ce se vede" se mută). ──
@@ -592,6 +607,8 @@ export default function LearnPage() {
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectColumn(i)}
+              onMouseEnter={() => hoverSelectColumn(i)}
+              onMouseLeave={cancelHoverSelectColumn}
             >
               <div className="lesson-col-head">
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
