@@ -14,7 +14,7 @@ const SILENT_HEX = '#000000'
 
 export function applyRegexOverrides<
   T extends {
-    t: string; c?: string; u?: boolean
+    t: string; c?: string; u?: boolean; s?: string
     underlineOverride?: 'force' | 'deny'
     syllabicOverride?: boolean
     superscriptOverride?: string
@@ -33,6 +33,12 @@ export function applyRegexOverrides<
     pos += len
   }
 
+  // Regula CURE/RUR (a 18-a) — șirul fonemic real al cuvântului, reconstruit
+  // din nodurile deja produse de motor (nodes[].s concatenate), NU din IPA
+  // brut și NU din ortografie. Construit o singură dată per cuvânt — orice
+  // regulă cu `phonemicGate` își verifică poarta pe acest șir.
+  const phonemeStr = nodes.map(n => n.s ?? '').join('')
+
   const out = nodes.map(n => ({ ...n }))
 
   const active = rules
@@ -40,6 +46,14 @@ export function applyRegexOverrides<
     .sort((a, b) => a.priority - b.priority)
 
   for (const rule of active) {
+    if (rule.phonemicGate) {
+      try {
+        if (!new RegExp(rule.phonemicGate).test(phonemeStr)) continue
+      } catch {
+        continue // invalid gate regex — skip rather than crash rendering
+      }
+    }
+
     // Ensure the 'd' flag (match.indices) is present, no duplicate flags
     const flags = Array.from(new Set([...(rule.flags ?? ''), 'd'])).join('')
 

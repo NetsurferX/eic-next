@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { RenderNode } from '@/lib/renderNode'
 import { DEFAULT_CONFIG, applyRegexOverrides } from '@/lib/ruleConfig'
-import { resolveDisplay, DIPHTHONG_START, DIPHTHONG_END } from '@/lib/engine'
+import { resolveDisplay, DIPHTHONG_START, DIPHTHONG_END, applySyllabicConsonantDetection } from '@/lib/engine'
 import { TRICOLOR_BG_SIZE_Y, TRICOLOR_BG_POSITION_Y } from '@/lib/tricolorStyle'
 
 interface Props {
@@ -15,7 +15,8 @@ interface Props {
 // calibration instead of re-deriving its own copy.
 
 export default function WordRenderer({ nodes, wordStr }: Props) {
-  const renderNodes  = applyRegexOverrides(wordStr, nodes, DEFAULT_CONFIG.regexRules)
+  const syllabicNodes = applySyllabicConsonantDetection(nodes)
+  const renderNodes  = applyRegexOverrides(wordStr, syllabicNodes, DEFAULT_CONFIG.regexRules)
   const displayNodes = resolveDisplay(renderNodes)
 
   return (

@@ -1462,6 +1462,13 @@ button, textarea, input { font-family: var(--font-sans); }
   position: absolute; top: -6px; right: 4px;
   font-size: 13px; opacity: .6;
 }
+/* Numărul global al lecției (1→16..., peste toate nivelurile) — colț opus
+   lacătului, ca să nu se suprapună. */
+.lesson-number {
+  position: absolute; top: -6px; left: 4px;
+  font-size: 10px; font-weight: 700;
+  color: var(--color-text-muted); opacity: .55;
+}
 .lesson-next-hint {
   font-size: 10.5px; font-weight: 700; text-align: center;
   color: var(--lesson-color); opacity: .8;

@@ -26,8 +26,8 @@ export function Confetti({ count = 14, big = false }: { count?: number; big?: bo
 //    de pe pagina principală — doar cu culoare, mărime și opțiuni
 //    (bule/glow/inel/confetti mare) diferite. ──
 export const Cup = forwardRef<HTMLDivElement, {
-  progressPct: number; size?: number; color?: string; bandColors?: [string, string, string]; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number; big?: boolean; showBubbles?: boolean; className?: string; ring?: boolean; activePulse?: boolean; bump?: boolean
-}>(function Cup({ progressPct, size = 64, color = '#FFB300', bandColors, celebrating = false, allFull = false, idSuffix, confettiCount = 14, big = false, showBubbles = false, className = '', ring = false, activePulse = false, bump = false }, ref) {
+  progressPct: number; size?: number; color?: string; bandColors?: [string, string, string]; celebrating?: boolean; allFull?: boolean; idSuffix: string; confettiCount?: number; big?: boolean; showBubbles?: boolean; className?: string; ring?: boolean; activePulse?: boolean; bump?: boolean; emptying?: boolean
+}>(function Cup({ progressPct, size = 64, color = '#FFB300', bandColors, celebrating = false, allFull = false, idSuffix, confettiCount = 14, big = false, showBubbles = false, className = '', ring = false, activePulse = false, bump = false, emptying = false }, ref) {
   const innerTop = 15, innerBottom = 85
   const fillHeight = ((innerBottom - innerTop) * Math.max(0, Math.min(100, progressPct))) / 100
   const fillY = innerBottom - fillHeight
@@ -36,7 +36,7 @@ export const Cup = forwardRef<HTMLDivElement, {
   return (
     <div
       ref={ref}
-      className={`fill-cup ${allFull ? 'is-full' : ''} ${celebrating ? 'is-celebrating' : ''} ${activePulse ? 'is-active-pulse' : ''} ${bump ? 'is-bump' : ''} ${className}`}
+      className={`fill-cup ${allFull ? 'is-full' : ''} ${celebrating ? 'is-celebrating' : ''} ${activePulse ? 'is-active-pulse' : ''} ${bump ? 'is-bump' : ''} ${emptying ? 'is-emptying' : ''} ${className}`}
       style={{ width: size, height: size, '--cup-color': color } as CSSProperties}
     >
       <svg viewBox="0 0 100 100" className="fill-cup-svg" aria-hidden="true">

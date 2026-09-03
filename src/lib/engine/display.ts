@@ -281,72 +281,21 @@ function buildUnderlineSet(
   return { underlineSet: result, leadingGlideSet }
 }
 
-// ── Word-final 's' → ṡ (ULS rule) ───────────────────────────────────────────
-// Deterministic SPELLING rule (not IPA-driven) — ported 1:1 from the
-// reference implementation. Only ever touches the word's last character.
-//   1. -kes (cakes, bikes)               → unchanged (silent e hides the
-//      voiceless consonant from check #2)
-//   2. voiceless consonant directly       → unchanged (stops, cats, books,
-//      before 's' (p, t, k, f)             laughs... except digraph spellings,
-//                                           see note below)
-//   3. -ths: C+ths (months) / V+ths       → unchanged (/θs/)
-//      (maths) stay plain; VV+ths
-//      (mouths, oaths) get the dot        → dotted (/ðz/)
-//   4. everything else (vowels, -es,
-//      voiced consonants: dogs, flies,
-//      buses)                             → dotted
-const ULS_VOICELESS_BEFORE = new Set(['p', 't', 'k', 'f'])
-const ULS_VOWELS = new Set([...'aeiouy'])
-
-function applyEicSSuffixRule(word: string): string {
-  if (!word || word.length < 2) return word
-  const lastChar = word[word.length - 1]
-  if (lastChar !== 's' && lastChar !== 'S') return word
-
-  const lower = word.toLowerCase()
-  const sDot = lastChar === 'S' ? 'Ṡ' : 'ṡ'
-
-  // 1. Graphic protection for -kes (cakes, bikes)
-  if (lower.endsWith('kes')) return word
-
-  // 2. Direct voiceless consonant right before 's' (p, t, k, f)
-  if (ULS_VOICELESS_BEFORE.has(lower[lower.length - 2])) return word
-
-  // 3. Deterministic -ths rule
-  if (lower.endsWith('ths')) {
-    const stem = lower.slice(0, -3)
-    if (!stem) return word
-    if (!ULS_VOWELS.has(stem[stem.length - 1])) return word // C+ths (months)
-    if (stem.length >= 2 && ULS_VOWELS.has(stem[stem.length - 2])) {
-      return word.slice(0, -1) + sDot                        // VV+ths (mouths)
-    }
-    return word                                              // V+ths (maths)
-  }
-
-  // 4. Default — vowels, -es, voiced consonants (dogs, flies, buses)
-  return word.slice(0, -1) + sDot
-}
-
-// Applies applyEicSSuffixRule() at the word level, then writes the result
-// back onto whichever RenderNode holds the word's final character (grapheme
-// nodes can be more than one letter long, e.g. mute-e cases) — only that
-// node's last character is ever replaced.
-function applyVoicedFinalS(nodes: RenderNode[]): RenderNode[] {
-  const word = nodes.map(n => n.t ?? '').join('')
-  const result = applyEicSSuffixRule(word)
-  if (result === word) return nodes
-
-  let lastIdx = -1
-  for (let i = nodes.length - 1; i >= 0; i--) {
-    if (nodes[i].t && nodes[i].t.length > 0) { lastIdx = i; break }
-  }
-  if (lastIdx < 0) return nodes
-
-  const out = nodes.map(n => ({ ...n }))
-  const t = out[lastIdx].t
-  out[lastIdx] = { ...out[lastIdx], t: t.slice(0, -1) + result[result.length - 1] }
-  return out
-}
+// ── Word-final 's' → ṡ/ẋ (ULS rule) — REMOVED 2026-09 ───────────────────────
+// This used to run applyEicSSuffixRule() unconditionally on every word,
+// guessing /s/ vs /z/ from spelling alone and overwriting whatever the real
+// dictionary phoneme already said. That guess was wrong for every lexicon
+// word ending in vowel/voiced-consonant + 's' that ISN'T a plural suffix —
+// curious, famous, various, serious, generous, bus, plus, virus, yes... (26
+// confirmed cases, all silently mis-voiced). The correct /s/-vs-/z/ (and the
+// ṡ/ẋ dot diacritic) already comes straight from the real phoneme via
+// align.ts's DIACRITIC_GLYPHS table ('z|s' → ṡ, 'z|x' → ẋ) — that path reads
+// n.s (the actual phoneme), never re-derives it from spelling, so it was
+// never wrong in the first place. Keeping both was strictly worse: the
+// spelling-guess here could (and did) clobber the correct answer.
+// A smaller, now-moot bug lived in the guess's ULS_VOICELESS_BEFORE set too:
+// it was missing 's' itself, so double-ss words (miss/kiss/boss) fell
+// through to the "voiced" default — moot now that the whole function is gone.
 
 // ── Public output type ────────────────────────────────────────────────────────
 
@@ -376,7 +325,7 @@ export interface DisplayNode {
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function resolveDisplay(rawNodes: RenderNode[]): DisplayNode[] {
-  const nodes = applyVoicedFinalS(rawNodes)
+  const nodes = rawNodes
   const { trueSyllabic, diphthongGlide } = classifySyllabic(nodes)
   const diphthongSet  = buildDiphthongSet(nodes, diphthongGlide)
   const { underlineSet, leadingGlideSet } = buildUnderlineSet(nodes, diphthongGlide)

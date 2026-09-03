@@ -9,6 +9,8 @@ import { FoxHelper, type FoxTip, type FoxMood } from '@/components/game/FoxHelpe
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
+import WordRenderer from '@/components/WordRenderer'
+import type { RenderNode } from '@/lib/renderNode'
 
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
@@ -22,6 +24,34 @@ const REVIEW_THRESHOLD = 3      // clicking one word this many times sends it to
 // coloanei > 'en-US' implicit.
 const resolveAccent = (w: { accent?: Accent }, l: { accent?: Accent }): Accent =>
   w.accent ?? l.accent ?? 'en-US'
+
+// Toate cuvintele din toate lecțiile, o singură dată — sursă pentru fetch-ul
+// batch către /api/words la montare, care înlocuiește MarkedWord (colora
+// manual doar substring-ul `mark`, cu o culoare hardcodată din CSS) cu
+// WordRenderer (motorul real): fiecare literă din fiecare cuvânt își ia
+// culoarea ei reală din pipeline, nu doar grupul-țintă.
+const ALL_LESSON_WORDS: string[] = Array.from(new Set(
+  LEVELS.flatMap(lvl => lvl.lessons.flatMap(l => l.words.map(w => w.text.toLowerCase())))
+))
+// Accentul de COLORARE per cuvânt (nu doar audio) — până acum `resolveAccent`
+// alimenta doar redarea vocală (speak.ts); fără el trecut și la /api/words,
+// motorul alegea mereu implicit varianta US pentru colorare (regulă corectă
+// și intenționată pentru rhotic — vezi db.ts selectBest — dar greșită pentru
+// cazuri ca STRUT, unde US-ul acestui dicționar transcrie /ʌ/ ca schwa,
+// nefiind deloc despre rhotic). Construit o singură dată, la nivel de modul,
+// din aceeași sursă de adevăr (`resolveAccent`) ca audio-ul, ca cele două să
+// nu mai poată diverge.
+const ALL_LESSON_WORD_ACCENTS: Record<string, 'uk' | 'us'> = Object.fromEntries(
+  LEVELS.flatMap(lvl => lvl.lessons.flatMap(l => l.words.map(w =>
+    [w.text.toLowerCase(), resolveAccent(w, l) === 'en-GB' ? 'uk' : 'us'] as const
+  )))
+)
+// Numărul global al fiecărei lecții (1, 2, 3... peste toate nivelurile, nu
+// doar 1-4 repetat per nivel) — id-ul coloanei -> poziția ei în ordinea
+// completă din LEVELS. Calculat o singură dată, la nivel de modul.
+const GLOBAL_LESSON_NUMBER: Record<string, number> = Object.fromEntries(
+  LEVELS.flatMap(lvl => lvl.lessons.map(l => l.id)).map((id, i) => [id, i + 1])
+)
 
 // Numărătoare grosieră de silabe, doar ca să decidem dacă un cuvânt e
 // monosilabic (caz în care sublinierea accentului dispare complet — regula
@@ -131,8 +161,13 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
 export default function LearnPage() {
   const [levelIndex, setLevelIndex]         = useState(0)
   const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
-  const [colUnlocked, setColUnlocked]       = useState<boolean[][]>(() => LEVELS.map((_, i) => [i === 0, false, false, false]))
-  const [starsEarned, setStarsEarned]       = useState<number[][]>(() => LEVELS.map(() => [0, 0, 0, 0]))
+  // Dimensionat dinamic din level.lessons.length — NU mai presupune 4
+  // lecții/nivel (era hardcodat, bug găsit la Nivelul 5, care are 1 singură
+  // coloană: cu [i===0,false,false,false] hardcodat, coloana 0 a oricărui
+  // nivel cu alt număr de lecții decât 4 fie nu se deschidea, fie array-ul
+  // avea sloturi fantomă în plus).
+  const [colUnlocked, setColUnlocked]       = useState<boolean[][]>(() => LEVELS.map((lvl, i) => lvl.lessons.map((_, ci) => i === 0 && ci === 0)))
+  const [starsEarned, setStarsEarned]       = useState<number[][]>(() => LEVELS.map(lvl => lvl.lessons.map(() => 0)))
   const [active, setActive]                 = useState(0)
   const [allDone, setAllDone]               = useState(false)
 
@@ -219,6 +254,26 @@ export default function LearnPage() {
 
   // ── Warm up the speech-synthesis voice list so the first playWord() has it ready ──
   useEffect(() => { warmUpVoices() }, [])
+
+  // ── Colorare reală per cuvânt — fetch batch la montare către /api/words,
+  //   cu accentul de colorare corect per cuvânt (ALL_LESSON_WORD_ACCENTS,
+  //   vezi comentariul de mai sus). Până când sosește răspunsul (sau dacă
+  //   fetch-ul eșuează), MarkedWord rămâne fallback-ul vizual. ──
+  const [wordNodes, setWordNodes] = useState<Record<string, RenderNode[]>>({})
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/words', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words: ALL_LESSON_WORDS, accents: ALL_LESSON_WORD_ACCENTS }),
+    })
+      .then(res => res.json())
+      .then((data: { results?: Record<string, RenderNode[]> }) => {
+        if (!cancelled && data.results) setWordNodes(data.results)
+      })
+      .catch(() => { /* MarkedWord fallback rămâne activ */ })
+    return () => { cancelled = true }
+  }, [])
 
   // ── Restore progress from a previous visit ──
   useEffect(() => {
@@ -612,6 +667,7 @@ export default function LearnPage() {
             >
               <div className="lesson-col-head">
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
+                <span className="lesson-number" aria-hidden="true">{GLOBAL_LESSON_NUMBER[l.id]}</span>
                 <div
                   className="lesson-letter"
                   // Litera din capul coloanei ia și ea tricolorul real (nu
@@ -677,7 +733,9 @@ export default function LearnPage() {
                       aria-label={`Ascultă cuvântul ${w.text}`}
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />
+                      {wordNodes[w.text.toLowerCase()]
+                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} />
+                        : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />}
                     </button>
                   )
                 })}

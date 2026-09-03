@@ -36,6 +36,15 @@ export interface RegexRule {
   pattern: string      // regex source (no slashes), matched against the word
   flags?: string       // regex flags, default '' (case-sensitive; add 'i' for case-insensitive)
   group?: number       // capture group to target; 0 = whole match (default 0)
+  // Regula CURE/RUR (a 18-a) — poartă fonemică opțională, verificată pe
+  // fonemele REALE deja reconstruite de motor (nodes[].s concatenate, în
+  // notația proprie a motorului — nu IPA brut, nu ortografie), nu pe
+  // cuvântul scris. Necesară pentru cuvinte cu ortografie ambiguă
+  // (nature/measure/picture toate se termină în -ure ca și cure/ensure, dar
+  // fonetic n-au nimic în comun) — poarta fonemică le distinge corect, fără
+  // nicio listă de excepții. Verificată ÎNAINTE de `pattern` (dacă poarta nu
+  // se potrivește, regula e sărită complet, indiferent de ortografie).
+  phonemicGate?: string
   action: RegexRuleAction
   priority: number     // lower runs first; later rules can overwrite earlier results
   notes?: string

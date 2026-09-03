@@ -29,4 +29,5 @@ export { resolveDisplay, DIPHTHONG_START, DIPHTHONG_END, TRICOLOR_CSS, TRICOLOR_
 export type { DisplayNode } from './display'
 export { COLOR_SILENT, COLOR_CONSONANT, COLOR_MAP, getColor } from '../rules/colors'
 export { GRAPHIC_VOWELS, isGraphicVowel, isGraphicCons } from './align'
+export { applySyllabicConsonantDetection } from './syllabicConsonants'
 export type { RenderNode, Seg, WordProps } from './types'

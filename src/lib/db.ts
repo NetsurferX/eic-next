@@ -334,6 +334,39 @@ export function getBestNodesMany(words: string[]): Map<string, WordResult> {
   return result
 }
 
+// ── Suprascriere explicită de accent (pt. cuvinte de lecție unde varianta
+// implicită US ascunde fonemul-țintă — ex. STRUT: 'cup'/'son' au ʌ în uk,
+// dar ə în us, o convenție de transcriere americană pentru acest sunet,
+// nefiind deloc despre rhotic — regula 1/selectBest de mai jos rămâne
+// corectă și neatinsă pentru toate celelalte cazuri). NU folosește cache-ul
+// (B) — cache-ul e cheiat doar pe cuvânt, nu pe cuvânt+accent, deci un
+// rezultat forțat aici nu trebuie să polueze lookup-ul implicit ulterior
+// al aceluiași cuvânt. Cost: aceste lookup-uri punctuale nu se
+// cache-uiesc — acceptabil, sunt un subset mic de cuvinte de lecție, nu
+// trafic de volum.
+export function getBestNodesWithAccent(word: string, accent?: 'uk' | 'us'): WordResult | null {
+  if (!accent) return getBestNodes(word)
+
+  const { uk, us } = getRawVariants(word)
+  const preferred = accent === 'uk' ? uk : us
+  const fallback = accent === 'uk' ? us : uk
+  const chosen = preferred ?? fallback
+  if (!chosen) return null
+
+  return { nodes: chosen.nodes, variant: preferred ? accent : (accent === 'uk' ? 'us' : 'uk') }
+}
+
+export function getBestNodesManyWithAccents(
+  entries: { word: string; accent?: 'uk' | 'us' }[]
+): Map<string, WordResult> {
+  const result = new Map<string, WordResult>()
+  for (const { word, accent } of entries) {
+    const r = getBestNodesWithAccent(word, accent)
+    if (r) result.set(word, r)
+  }
+  return result
+}
+
 // ── Selection algorithm ───────────────────────────────────────────────────────
 // RULE 1 (spec 2026-08-13): "If /V/∼/Vr/ ⇒ EiC=/Vr/" — when RP (`uk`, non-
 // rhotic: bare vowel, no /r/) and GA (`us`, rhotic: vowel+/r/) attest the

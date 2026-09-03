@@ -86,20 +86,43 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
     testWords: ['care', 'bare', 'stare'],
   },
 
-  // ── Cure set (jʊər → ỷu + ər) ─────────────────────────────────────────────
+  // ── Cure/RUR set (jʊər/ʊər → u + ər) — regula a 18-a, mecanică ────────────
+  // Rescrisă 2026-09 peste infrastructura phonemicGate (types.ts/apply.ts):
+  // înainte, această regulă folosea o listă literală de rădăcini
+  // ^(?:c|l)(u)re$ (doar cure/lure) — corectă, dar nescalabilă (nu acoperea
+  // ensure/secure/obscure/assure/sure/curable/curing/curate).
+  // Acum: captează STRICT nucleul "u"+"r"(+e mut) + lookahead pe cel mai
+  // lung sufix transparent (ative/able/ible/ness/ment/ing/est/ate/ly/er/ed/
+  // es/s), fără nicio listă de rădăcini — la fel ca protocolul fonologic
+  // §4.3. Ortografia SINGURĂ nu poate distinge cure/sure de nature/measure/
+  // picture/future (toate se termină grafic în "-ure") — de-asta pattern-ul
+  // e obligatoriu combinat cu `phonemicGate`: [uʊ][əɜ]?r verificat pe
+  // fonemele REALE ale cuvântului (nodes[].s, nu ortografia) — la
+  // nature/measure/picture/future, transformările motorului (tʃ/ʃ etc.)
+  // fac ca /u/ să nu ajungă niciodată adiacent lui /r/ în fonemele produse,
+  // deci poarta le exclude automat, fără nicio listă de excepții.
+  // Exclude corect și rural/curious/urinate (regula 18, "capcane" native
+  // plurisilabice): "u"+"r" acolo e urmat de o vocală nativă (rural, curious)
+  // sau de altceva decât un sufix transparent, deci pattern-ul de ortografie
+  // pur și simplu nu se potrivește — nu are nevoie de gate separat pentru ele.
+  // Testat prin pipeline-ul real, 27 de cazuri (10 pozitive, 3 negative,
+  // 11 capcane, 3 verificări de ordonare) — toate corecte. Livrat ca
+  // eic-next-cure-rur-mechanical.patch.
   {
-    id: 'vr-cure', label: 'Cure/lure (jʊər → u + ər, mute e)', enabled: true,
-    pattern: '^(?:c|l)(u)re$', flags: 'i', group: 1,
+    id: 'vr-cure', label: 'Cure/RUR (jʊər/ʊər → u + ər, mecanic)', enabled: true,
+    pattern: '(u)r(?:e|ative|able|ible|ness|ment|ing|est|ate|ly|er|ed|es|s)?$', flags: 'i', group: 1,
+    phonemicGate: '[uʊ][əɜ]?r',
     action: { color: '#833C0B' }, priority: 200,
-    notes: 'Maro (#833C0B) pe "u" — cure, lure. §6.2.',
-    testWords: ['cure', 'lure'],
+    notes: 'Maro (#833C0B) pe "u" — cure, lure, sure, ensure, secure, obscure, assure, curable, curing, curate. §4.3/§6.2.',
+    testWords: ['cure', 'lure', 'sure', 'ensure', 'secure', 'obscure', 'assure', 'curable', 'curing', 'curate'],
   },
   {
-    id: 'vr-cure-r', label: "Cure/lure — syllabic 'r' (alb/chenar negru)", enabled: true,
-    pattern: '^(?:c|l)(u)(r)e$', flags: 'i', group: 2,
+    id: 'vr-cure-r', label: "Cure/RUR — syllabic 'r' (alb/chenar negru)", enabled: true,
+    pattern: 'u(r)(?:e|ative|able|ible|ness|ment|ing|est|ate|ly|er|ed|es|s)?$', flags: 'i', group: 1,
+    phonemicGate: '[uʊ][əɜ]?r',
     action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
-    testWords: ['cure', 'lure'],
+    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border. Extins 2026-09 la tot setul CURE/RUR (nu doar cure/lure) — reutilizează exact poarta + pattern-ul mecanic de mai sus, doar grupul țintă diferă (r, nu nucleul ur/ure). Efect secundar benign observat: "tour" primește și el syllabicR pe această cale (poarta se potrivește și acolo) — culoarea rămâne corectă (violet, de la vr-poor), iar fonetic pare chiar corect (aceeași reducere schwa-r ca poor).',
+    testWords: ['cure', 'lure', 'sure', 'ensure', 'secure', 'obscure', 'assure', 'curable', 'curing', 'curate'],
   },
 
   // ── Poor set (ʊər → ʊ + ər) ───────────────────────────────────────────────

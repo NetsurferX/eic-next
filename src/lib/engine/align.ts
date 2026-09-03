@@ -121,7 +121,12 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
   'z|s':   'ṡ',    // does, is          (s → /z/)
   'sh|s':  'ŝ',    // sugar             (s → /ʃ/)
   'ch|t':  'ẗ',    // culture           (t → /tʃ/)
-  'gz|x':  'ẋ',    // exam              (x → /gz/)
+  'z|x':   'ẋ',    // Xena              (x → /z/, single-letter spelling)
+  'gz|x':  'x̊',    // exam, example     (x → /gz/) — ring above, NOT a dot;
+                    // corrected 2026-09 after zooming into the reference
+                    // book photos (rb6.docx wrongly gave ӿ, a first guess
+                    // wrongly gave ẋ — the dot glyph, already used for /z/,
+                    // which would have collided visually with z|s/z|x above).
   'dh|th': 'ṫh',   // this, them        (th → /ð/, vocit)
   // 'th|th' (think, three — th → /θ/, surd) intentionally absent: spec
   // Tabelul T1 leaves the voiceless digraph plain, no diacritic.

@@ -20,20 +20,37 @@ import { type CSSProperties } from 'react'
 
 export type MascotState = 'idle' | 'pointing' | 'clapping' | 'cheering'
 
+// ── Stări de recompensă (folosite doar de overlay-ul MascotReward — vulpea
+//    "detașată" care merge la stea/cupă, o apucă și o cară). Complet
+//    independente de `MascotState`/`state` de mai sus, ca să nu strice
+//    niciun apel existent (`Mascot state="cheering"` etc.): când `action`
+//    e prezent, se adaugă DOAR o clasă suplimentară `mascot-${action}` pe
+//    wrapper, restul markup-ului (glow, praf, lăbuțe) rămâne identic. ──
+export type MascotAction =
+  | 'idle'
+  | 'walking'
+  | 'grabbing'
+  | 'holding-star'
+  | 'holding-cup'
+  | 'pouring'
+  | 'celebrating'
+
 export function Mascot({
   state = 'idle',
+  action,
   message = null,
   size = 96,
   className = '',
 }: {
   state?: MascotState
+  action?: MascotAction
   message?: string | null
   size?: number
   className?: string
 }) {
   return (
     <div
-      className={`mascot state-${state} ${className}`}
+      className={`mascot state-${state} ${action ? `mascot-${action}` : ''} ${className}`}
       style={{ '--mascot-size': `${size}px` } as CSSProperties}
       aria-hidden="true"
     >
@@ -85,7 +102,7 @@ export function Mascot({
         {/* lăbuțe — formă reală de labă de vulpe (pernuță ascuțită + 3 degete
             înclinate în evantai + vârfuri de gheare), vizibile doar în
             starea "clapping", aplaudă una spre cealaltă */}
-        <svg className="mascot-paw mascot-paw-left" viewBox="0 0 40 40" aria-hidden="true">
+        <svg className="mascot-paw mascot-paw-left mascot-arm-left" viewBox="0 0 40 40" aria-hidden="true">
           <defs>
             <linearGradient id="mascotPawPad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#FF9A3C" />
@@ -113,7 +130,7 @@ export function Mascot({
             <path d="M28,3.2 L26.6,0.4 L29.6,1.6 Z" fill="#5C2C0C" />
           </g>
         </svg>
-        <svg className="mascot-paw mascot-paw-right" viewBox="0 0 40 40" aria-hidden="true">
+        <svg className="mascot-paw mascot-paw-right mascot-arm-right" viewBox="0 0 40 40" aria-hidden="true">
           <path d="M20,34 C11,34 7,27 8,20 C9,13 14,9 20,9 C26,9 31,13 32,20 C33,27 29,34 20,34 Z"
                 fill="url(#mascotPawPad)" stroke="#8A3E0B" strokeWidth="1.3" />
           <g transform="rotate(-16 12 9)">
@@ -156,3 +173,5 @@ export function Mascot({
     </div>
   )
 }
+
+export default Mascot
