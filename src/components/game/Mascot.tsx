@@ -1,22 +1,27 @@
 'use client'
 
-import { type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 // ── Mascota EiC — vulpița din poveste, care participă la joc: se apleacă
 //    invitator spre buton când te așteaptă să apeși (`pointing`), bate din
 //    lăbuțe când câștigi o stea (`clapping`), sare de bucurie când termini
 //    o coloană sau un nivel (`cheering`), sau doar respiră liniștit cât
-//    timp asculți cuvântul (`idle`). Ilustrația de bază (decupată din
-//    desenul original, fundal eliminat) rămâne neschimbată — dinamismul și
-//    senzația de "bogăție" vin din straturile din jurul ei: glow radial pe
-//    două nivele, umbră de contact pe sol, inel de impact la aterizare,
-//    particule ambientale de praf/lumină, un luciu periodic mascat exact pe
-//    silueta vulpii, lăbuțe cu gradient plușat și chevroane animate pentru
-//    indiciul de "apasă aici" — plus transform-uri CSS (bob/tilt/squash-
-//    -stretch) pe fiecare stare, la fel ca la vechea mascotă-bufniță:
-//    nicio poziționare pe bază de `getBoundingClientRect`, poate fi plasată
-//    oriunde (dock fix pe /learn, sau ancorată în interiorul overlay-ului
-//    de nivel). ──
+//    timp asculți cuvântul (`idle`). ──
+//
+// ── OVERHAUL: ilustrația veche (o singură acuarelă statică + lăbuțe SVG
+//    desenate manual) a fost înlocuită cu un set real de cadre desenate —
+//    fiecare stare/acțiune are propriul pose (idle/blink/pointing/run/jump/
+//    clap/cheer, vezi /public/mascot/). Dinamismul nu mai vine doar din
+//    transform-uri CSS pe o imagine fixă, ci și din SCHIMBAREA reală a
+//    cadrului: clipire periodică în idle (2 cadre), fade încrucișat lin
+//    între poziții la orice tranziție de stare. Peste asta rămân toate
+//    straturile vechi — glow pe două nivele, umbră de contact, inel de
+//    impact, particule ambientale, luciu mascat exact pe silueta curentă,
+//    chevroane animate pentru indiciul de „apasă aici" — plus transform-uri
+//    CSS (bob/tilt/squash-stretch) potrivite fiecărui cadru nou. Lăbuțele
+//    SVG desenate manual au fost eliminate: noile ilustrații de „clapping"/
+//    „holding-star"/„holding-cup"/„pouring" au deja lăbuțele împreunate în
+//    desen, deci nu mai e nevoie de un strat separat peste ele. ──
 
 export type MascotState = 'idle' | 'pointing' | 'clapping' | 'cheering'
 
@@ -25,7 +30,8 @@ export type MascotState = 'idle' | 'pointing' | 'clapping' | 'cheering'
 //    independente de `MascotState`/`state` de mai sus, ca să nu strice
 //    niciun apel existent (`Mascot state="cheering"` etc.): când `action`
 //    e prezent, se adaugă DOAR o clasă suplimentară `mascot-${action}` pe
-//    wrapper, restul markup-ului (glow, praf, lăbuțe) rămâne identic. ──
+//    wrapper, și `action` are prioritate față de `state` la alegerea
+//    cadrului desenat (vezi `resolvePose`). ──
 export type MascotAction =
   | 'idle'
   | 'walking'
@@ -34,6 +40,35 @@ export type MascotAction =
   | 'holding-cup'
   | 'pouring'
   | 'celebrating'
+
+// ── fiecare stare/acțiune → cadrul ei desenat. `resolvePose` alege în
+//    funcție de `action` (dacă există) sau altfel de `state`. ──
+const STATE_POSE: Record<MascotState, string> = {
+  idle: '/mascot/fox-idle.png',
+  pointing: '/mascot/fox-pointing.png',
+  clapping: '/mascot/fox-clap.png',
+  cheering: '/mascot/fox-cheer.png',
+}
+
+const ACTION_POSE: Record<MascotAction, string> = {
+  idle: '/mascot/fox-idle.png',
+  walking: '/mascot/fox-run.png',
+  grabbing: '/mascot/fox-jump.png',
+  // ambele „duce" recompensa cu lăbuțele împreunate în față — desenul e
+  // identic, doar obiectul cărat (steaua/cupa) e adăugat separat, ca overlay
+  'holding-star': '/mascot/fox-clap.png',
+  'holding-cup': '/mascot/fox-clap.png',
+  pouring: '/mascot/fox-clap.png',
+  celebrating: '/mascot/fox-cheer.png',
+}
+
+const BLINK_POSE = '/mascot/fox-blink.png'
+
+function resolvePose(state: MascotState, action: MascotAction | undefined, blinking: boolean) {
+  if (action) return ACTION_POSE[action]
+  if (state === 'idle' && blinking) return BLINK_POSE
+  return STATE_POSE[state]
+}
 
 export function Mascot({
   state = 'idle',
@@ -48,6 +83,63 @@ export function Mascot({
   size?: number
   className?: string
 }) {
+  // ── clipire periodică — doar în idle „pur" (fără action), la intervale
+  //    ușor aleatorii (2.6s–4.8s), ca vulpea să nu pară înghețată când
+  //    stă și așteaptă. Complet oprită dacă tab-ul e ascuns sau utilizatorul
+  //    preferă mișcare redusă. ──
+  const [blinking, setBlinking] = useState(false)
+  useEffect(() => {
+    if (state !== 'idle' || action) {
+      setBlinking(false)
+      return
+    }
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      return
+    }
+    let openTimer: number
+    let closeTimer: number
+    const scheduleBlink = () => {
+      const delay = 2600 + Math.random() * 2200
+      openTimer = window.setTimeout(() => {
+        setBlinking(true)
+        closeTimer = window.setTimeout(() => {
+          setBlinking(false)
+          scheduleBlink()
+        }, 140)
+      }, delay)
+    }
+    scheduleBlink()
+    return () => {
+      window.clearTimeout(openTimer)
+      window.clearTimeout(closeTimer)
+    }
+  }, [state, action])
+
+  const pose = resolvePose(state, action, blinking)
+
+  // ── fade încrucișat între cadre — două straturi <img> suprapuse, cel nou
+  //    intră cu opacitate crescândă peste cel vechi, care rămâne dedesubt
+  //    până se termină tranziția; evită „pop"-ul unei schimbări brute de
+  //    `src`, la orice trecere de stare/acțiune sau la clipit. ──
+  const [layers, setLayers] = useState<{ src: string; id: number }[]>([{ src: pose, id: 0 }])
+  const nextId = useRef(1)
+  useEffect(() => {
+    setLayers((prev) => {
+      if (prev[prev.length - 1]?.src === pose) return prev
+      const id = nextId.current++
+      const updated = [...prev, { src: pose, id }]
+      // păstrăm cel mult ultimele 2 cadre — cel ieșit e curățat după fade
+      return updated.slice(-2)
+    })
+  }, [pose])
+  useEffect(() => {
+    if (layers.length < 2) return
+    const timer = window.setTimeout(() => {
+      setLayers((prev) => (prev.length < 2 ? prev : prev.slice(-1)))
+    }, 190)
+    return () => window.clearTimeout(timer)
+  }, [layers])
+
   return (
     <div
       className={`mascot state-${state} ${action ? `mascot-${action}` : ''} ${className}`}
@@ -85,67 +177,45 @@ export function Mascot({
 
         <div className="mascot-fox-anchor">
           <div className="mascot-fox-visual">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/mascot/fox.png"
-              alt=""
-              className="mascot-fox-img"
-              draggable={false}
+            {layers.map((layer, i) => {
+              const isOutgoing = i === 0 && layers.length > 1
+              return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={layer.id}
+                  src={layer.src}
+                  alt=""
+                  className="mascot-fox-img"
+                  style={
+                    isOutgoing
+                      ? {
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          opacity: 0,
+                          transition: 'opacity 180ms ease-out',
+                        }
+                      : { opacity: 1, transition: 'opacity 180ms ease-out' }
+                  }
+                  draggable={false}
+                />
+              )
+            })}
+            {/* luciu periodic, mascat pe silueta exactă a cadrului curent
+                (mask-image dinamic, legat de PNG-ul activ) — traversează
+                diagonal, ca pe o iconiță "glossy" modernă, fără să iasă
+                din contur, indiferent de cadru */}
+            <div
+              className="mascot-shine"
+              style={{
+                WebkitMaskImage: `url(${pose})`,
+                maskImage: `url(${pose})`,
+              }}
             />
-            {/* luciu periodic, mascat pe silueta exactă a vulpii (mask-image
-                pe același PNG) — traversează diagonal, ca pe o iconiță
-                "glossy" modernă, fără să iasă din contur */}
-            <div className="mascot-shine" />
           </div>
         </div>
-
-        {/* lăbuțe — formă reală de labă de vulpe (pernuță ascuțită + 3 degete
-            înclinate în evantai + vârfuri de gheare), vizibile doar în
-            starea "clapping", aplaudă una spre cealaltă */}
-        <svg className="mascot-paw mascot-paw-left mascot-arm-left" viewBox="0 0 40 40" aria-hidden="true">
-          <defs>
-            <linearGradient id="mascotPawPad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FF9A3C" />
-              <stop offset="100%" stopColor="#D85F12" />
-            </linearGradient>
-            <linearGradient id="mascotPawToe" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FFE3C2" />
-              <stop offset="100%" stopColor="#FFB067" />
-            </linearGradient>
-          </defs>
-          {/* pernuța principală, ușor conică spre bază, ca o labă reală */}
-          <path d="M20,34 C11,34 7,27 8,20 C9,13 14,9 20,9 C26,9 31,13 32,20 C33,27 29,34 20,34 Z"
-                fill="url(#mascotPawPad)" stroke="#8A3E0B" strokeWidth="1.3" />
-          {/* trei degete în evantai, fiecare cu vârf de gheară */}
-          <g transform="rotate(-16 12 9)">
-            <ellipse cx="12" cy="9" rx="4.6" ry="6.2" fill="url(#mascotPawToe)" stroke="#8A3E0B" strokeWidth="1" />
-            <path d="M12,3.2 L10.6,0.4 L13.6,1.6 Z" fill="#5C2C0C" />
-          </g>
-          <g>
-            <ellipse cx="20" cy="6.5" rx="4.8" ry="6.6" fill="url(#mascotPawToe)" stroke="#8A3E0B" strokeWidth="1" />
-            <path d="M20,0 L18.5,-2.8 L21.5,-1.6 Z" fill="#5C2C0C" />
-          </g>
-          <g transform="rotate(16 28 9)">
-            <ellipse cx="28" cy="9" rx="4.6" ry="6.2" fill="url(#mascotPawToe)" stroke="#8A3E0B" strokeWidth="1" />
-            <path d="M28,3.2 L26.6,0.4 L29.6,1.6 Z" fill="#5C2C0C" />
-          </g>
-        </svg>
-        <svg className="mascot-paw mascot-paw-right mascot-arm-right" viewBox="0 0 40 40" aria-hidden="true">
-          <path d="M20,34 C11,34 7,27 8,20 C9,13 14,9 20,9 C26,9 31,13 32,20 C33,27 29,34 20,34 Z"
-                fill="url(#mascotPawPad)" stroke="#8A3E0B" strokeWidth="1.3" />
-          <g transform="rotate(-16 12 9)">
-            <ellipse cx="12" cy="9" rx="4.6" ry="6.2" fill="url(#mascotPawToe)" stroke="#8A3E0B" strokeWidth="1" />
-            <path d="M12,3.2 L10.6,0.4 L13.6,1.6 Z" fill="#5C2C0C" />
-          </g>
-          <g>
-            <ellipse cx="20" cy="6.5" rx="4.8" ry="6.6" fill="url(#mascotPawToe)" stroke="#8A3E0B" strokeWidth="1" />
-            <path d="M20,0 L18.5,-2.8 L21.5,-1.6 Z" fill="#5C2C0C" />
-          </g>
-          <g transform="rotate(16 28 9)">
-            <ellipse cx="28" cy="9" rx="4.6" ry="6.2" fill="url(#mascotPawToe)" stroke="#8A3E0B" strokeWidth="1" />
-            <path d="M28,3.2 L26.6,0.4 L29.6,1.6 Z" fill="#5C2C0C" />
-          </g>
-        </svg>
 
         {/* indiciu vizual — vizibil doar în starea "pointing": trei chevroane
             care "curg" spre buton, ca un hint modern de swipe, nu o săgeată
@@ -162,7 +232,7 @@ export function Mascot({
           <path className="mascot-chevron c3" d="M28,8 L38,16 L28,24" stroke="url(#mascotPointGrad)" />
         </svg>
 
-        {/* scântei — vizibile doar în starea "cheering" */}
+        {/* scântei — vizibile în starea "cheering" și în acțiunea "celebrating" */}
         <div className="mascot-sparkles" aria-hidden="true">
           <span className="mascot-sparkle s1">✦</span>
           <span className="mascot-sparkle s2">✧</span>

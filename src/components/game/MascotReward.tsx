@@ -279,10 +279,19 @@ setAnimation(null)
 [clearTimers, schedule],
 )
 
+// Oprește imediat orice animație de recompensă în curs (elimină și
+// temporizatoarele programate, ȘI ascunde vulpea pe loc) — folosit când
+// utilizatorul navighează manual în altă parte (schimbă nivelul, resetează
+// jocul) în timp ce vulpea era încă la jumătatea drumului spre cupa mare.
+const stopReward = useCallback(() => {
+clearTimers()
+setAnimation(null)
+}, [clearTimers])
+
 return {
 animation,
 startReward,
-clearTimers,
+stopReward,
 }
 }
 

@@ -5,6 +5,7 @@ import { playStarChime, playLevelFanfare } from '@/lib/sound'
 import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress, type Lesson, type LessonWord, type Accent } from '@/lib/levels'
 import { Cup, Confetti } from '@/components/game/Cup'
 import { Mascot } from '@/components/game/Mascot'
+import MascotReward, { useMascotReward } from '@/components/game/MascotReward'
 import { FoxHelper, type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties } from 'react'
 import Link from 'next/link'
@@ -15,7 +16,6 @@ import type { RenderNode } from '@/lib/renderNode'
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
-const STAR_FLIGHT_MS = 112100     // how long the star takes to fly from the button into the cup
 const AUTO_DELAY_MS = 1650      // default gap between words — user-adjustable via the speed slider
 const AUTO_DELAY_KEY = 'eic-auto-delay-ms'
 const REVIEW_THRESHOLD = 3      // clicking one word this many times sends it to "Cuvinte de exersat"
@@ -186,18 +186,24 @@ export default function LearnPage() {
   const [showLevelOverlay, setShowLevelOverlay]   = useState(false)
   const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
 
-  // ── Steaua zburătoare — apare pe butonul „Repetă" chiar când o repetiție
-  //   se termină cu succes, crește scurt, apoi zboară vizual spre cupa
-  //   coloanei active și dispare acolo (cupa oricum se umple singură,
-  //   printr-o tranziție CSS proprie, de îndată ce starsEarned crește —
-  //   asta e doar „mesagerul" vizual dintre buton și cupă). Poziția de
-  //   start/sosire vine din getBoundingClientRect pe butonul activ, respectiv
-  //   pe wrapper-ul cupei coloanei — calculate o singură dată, în momentul
-  //   în care se câștigă steaua, nu urmărite continuu. ──
-  const [flyingStar, setFlyingStar] = useState<{ id: number; fromX: number; fromY: number; toX: number; toY: number; color: string } | null>(null)
-  const flyingStarIdRef = useRef(0)
-  const activeBtnRef = useRef<HTMLButtonElement | null>(null)
+  // ── Vulpea de recompensă — chiar când o repetiție se termină cu succes,
+  //   vulpița „se detașează" din dock, merge la steaua tocmai câștigată, o
+  //   apucă și o duce la cupa coloanei active; dacă acea stea a completat
+  //   coloana, apucă apoi cupa coloanei și o cară/o varsă în cupa mare de
+  //   nivel din sidebar (vezi MascotReward.tsx pentru cronologia completă).
+  //   Cupele/stelele se actualizează oricum prin propriul state React — asta
+  //   e doar „mesagerul" vizual, poziționat prin getBoundingClientRect pe
+  //   elementele reale (steaua din listă, cupa coloanei, cupa mare),
+  //   calculate o singură dată, în momentul în care se câștigă steaua. ──
+  const { animation: mascotAnimation, startReward, stopReward: cancelMascotReward } = useMascotReward()
+  const starRefs = useRef<Record<string, HTMLSpanElement | null>>({})
   const cupRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const bigCupRef = useRef<HTMLDivElement | null>(null)
+  // Coloana a cărei cupă e „golită" vizual chiar acum de vulpe, cât timp o
+  // duce/o varsă în cupa mare — vezi .fill-cup.is-emptying în globals.css.
+  // Progresul real (React state) rămâne 100%; doar acest flag temporar
+  // schimbă înfățișarea cupei coloanei respective cât ține animația.
+  const [emptyingColumnId, setEmptyingColumnId] = useState<string | null>(null)
 
   // ── Resetarea completă a jocului (buton + modal de confirmare) ──
   const [showResetConfirm, setShowResetConfirm] = useState(false)
@@ -445,35 +451,41 @@ export default function LearnPage() {
     triggerFox('Bravo, o stea în plus! 🌟', 'celebrate')
     playStarChime()
 
-    // ── Steaua zburătoare: pornește din poziția reală a butonului tocmai
-    //   apăsat și țintește cupa reală a coloanei active, citite chiar acum
-    //   prin getBoundingClientRect — un singur calcul, nu o urmărire
-    //   continuă, exact ca restul animațiilor din joc. Dacă din orice motiv
-    //   unul dintre elemente nu e încă montat, sărim peste efectul vizual
-    //   fără să blocăm restul logicii (stelele/cupa se actualizează oricum). ──
-    const btnEl = activeBtnRef.current
-    const cupEl = cupRefs.current[lesson.id]
-    if (btnEl && cupEl) {
-      const bRect = btnEl.getBoundingClientRect()
-      const cRect = cupEl.getBoundingClientRect()
-      const id = ++flyingStarIdRef.current
-      setFlyingStar({
-        id,
-        fromX: bRect.left + bRect.width / 2,
-        fromY: bRect.top + bRect.height / 2,
-        toX: cRect.left + cRect.width / 2,
-        toY: cRect.top + cRect.height / 2,
-        color: lesson.color,
-      })
-      setTimeout(() => {
-        setFlyingStar(f => (f && f.id === id ? null : f))
-      }, STAR_FLIGHT_MS)
-    }
-
     const updatedLevelStars = levelStars.map((v, idx) => (idx === active ? newCount : v))
     setStarsEarned(prev => prev.map((row, li) => (li === levelIndex ? updatedLevelStars : row)))
 
-    if (newCount === REPS_PER_LESSON) {
+    const columnIsComplete = newCount === REPS_PER_LESSON
+
+    // ── Vulpea de recompensă: pornește din poziția reală a stelei tocmai
+    //   câștigate, a cupei coloanei active și a cupei mari, citite chiar
+    //   acum prin getBoundingClientRect — un singur calcul, nu o urmărire
+    //   continuă. Dacă din orice motiv unul dintre elemente nu e încă
+    //   montat, sărim peste efectul vizual fără să blocăm restul logicii
+    //   (stelele/cupele se actualizează oricum, prin state-ul React de mai
+    //   sus). Cât timp vulpea cară cupa coloanei spre cupa mare (doar la
+    //   coloana completă), acea cupă e marcată `emptying` — vezi
+    //   .fill-cup.is-emptying în globals.css — sincronizat cu timpii din
+    //   MascotReward.tsx (apucarea cupei la 2300ms, overlay-ul dispare la
+    //   6000ms). ──
+    const starEl    = starRefs.current[`${lesson.id}-${newCount - 1}`]
+    const columnCup = cupRefs.current[lesson.id]
+    const bigCup    = bigCupRef.current
+    if (starEl && columnCup && bigCup) {
+      startReward({
+        starElement: starEl,
+        columnCupElement: columnCup,
+        bigCupElement: bigCup,
+        columnIsComplete,
+        starColor: lesson.color,
+      })
+      if (columnIsComplete) {
+        const completingColumnId = lesson.id
+        setTimeout(() => setEmptyingColumnId(completingColumnId), 2300)
+        setTimeout(() => setEmptyingColumnId(cur => (cur === completingColumnId ? null : cur)), 6000)
+      }
+    }
+
+    if (columnIsComplete) {
       setCelebrating(true)
 
       const isLastColumn = active + 1 >= level.lessons.length
@@ -502,7 +514,7 @@ export default function LearnPage() {
         if (isLastLevel) setAllDone(true)
       }
     }
-  }, [isPlayingRep, showLevelOverlay, nextLevel, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel, triggerFox])
+  }, [isPlayingRep, showLevelOverlay, nextLevel, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel, triggerFox, startReward])
 
   // ── Buton „Știu deja acest sunet" — sare direct la 5 stele, fără să mai
   //   redea audio, și avansează coloana la fel ca handleMainButton. ──
@@ -563,10 +575,12 @@ export default function LearnPage() {
     if (isPlayingRep || !unlockedLevels[i] || i === levelIndex) return
     autoCancel.current = true
     currentAudio.current?.pause()
+    cancelMascotReward()
+    setEmptyingColumnId(null)
     setLevelIndex(i)
     const firstUnlockedCol = colUnlocked[i].findIndex(Boolean)
     setActive(firstUnlockedCol === -1 ? 0 : firstUnlockedCol)
-  }, [isPlayingRep, unlockedLevels, levelIndex, colUnlocked])
+  }, [isPlayingRep, unlockedLevels, levelIndex, colUnlocked, cancelMascotReward])
 
   // ── Reia tot jocul de la zero: șterge progresul salvat și readuce toate
   //   flag-urile la valorile inițiale (aceleași cu cele din useState de mai
@@ -593,9 +607,10 @@ export default function LearnPage() {
     setLevelCelebrating(false)
     setShowLevelOverlay(false)
     setJustRevealedIndex(null)
-    setFlyingStar(null)
+    cancelMascotReward()
+    setEmptyingColumnId(null)
     setShowResetConfirm(false)
-  }, [])
+  }, [cancelMascotReward])
 
   const stopPlayback = useCallback(() => {
     autoCancel.current = true
@@ -697,6 +712,7 @@ export default function LearnPage() {
                     idSuffix={l.id}
                     showBubbles
                     activePulse={isActive && !trophyEarned}
+                    emptying={emptyingColumnId === l.id}
                   />
                 </div>
               )}
@@ -706,7 +722,11 @@ export default function LearnPage() {
 
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
                 {Array.from({ length: REPS_PER_LESSON }).map((_, s) => (
-                  <span key={s} className={`lesson-star-slot ${s < stars ? 'is-filled' : ''}`}>
+                  <span
+                    key={s}
+                    ref={(el) => { starRefs.current[`${l.id}-${s}`] = el }}
+                    className={`lesson-star-slot ${s < stars ? 'is-filled' : ''}`}
+                  >
                     <span className="lesson-star-icon">★</span>
                     {isActive && poppingStarIndex === s && (
                       <span className="lesson-star-pop" aria-hidden="true">
@@ -744,7 +764,6 @@ export default function LearnPage() {
               {isActive && isUnlocked && (
                 <div className="lesson-col-btn-wrap">
                   <button
-                    ref={activeBtnRef}
                     className="lesson-col-btn"
                     onClick={(e) => { e.stopPropagation(); handleMainButton() }}
                     disabled={isPlayingRep}
@@ -752,9 +771,6 @@ export default function LearnPage() {
                   >
                     {buttonLabel}
                   </button>
-                  {/* steaua "crește" chiar pe buton, în clipa în care e câștigată —
-                      înainte să pornească, ca element fix, spre cupă (vezi mai jos) */}
-                  {flyingStar && <span className="lesson-col-btn-star" aria-hidden="true">★</span>}
                 </div>
               )}
 
@@ -805,7 +821,7 @@ export default function LearnPage() {
         </button>
 
         <div className="lesson-progress-inline">
-          <Cup progressPct={progressPct} size={48} color="#FFB300" allFull={levelMastered} idSuffix="master" className="lesson-progress-cup" showBubbles ring />
+          <Cup ref={bigCupRef} progressPct={progressPct} size={48} color="#FFB300" allFull={levelMastered} idSuffix="master" className="lesson-progress-cup" showBubbles ring />
           <p className="lesson-progress-caption">
             {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
           </p>
@@ -899,26 +915,11 @@ export default function LearnPage() {
         </div>
       )}
 
-      {/* steaua zburătoare — element `position: fixed`, poziționat prin
+      {/* vulpea de recompensă — overlay `position: fixed`, poziționat prin
           coordonate viewport calculate o singură dată (vezi handleMainButton);
-          nu urmărește nimic continuu, doar animă de la punctul de start la
-          cel de sosire și dispare ── */}
-      {flyingStar && (
-        <span
-          key={flyingStar.id}
-          className="star-flight"
-          aria-hidden="true"
-          style={{
-            '--from-x': `${flyingStar.fromX}px`,
-            '--from-y': `${flyingStar.fromY}px`,
-            '--to-x': `${flyingStar.toX}px`,
-            '--to-y': `${flyingStar.toY}px`,
-            color: flyingStar.color,
-          } as CSSProperties}
-        >
-          ★
-        </span>
-      )}
+          nu urmărește nimic continuu, doar merge la stea, o duce la cupă și,
+          la coloană completă, cară/varsă cupa coloanei în cupa mare ── */}
+      <MascotReward animation={mascotAnimation} size={96} />
 
       {/* Vulpea-asistent — dock permanent, ascuns cât timp overlay-ul de
           nivel e deschis (acela are deja propria mascotă, în cupwrap) ── */}
