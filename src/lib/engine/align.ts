@@ -127,9 +127,17 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
                     // book photos (rb6.docx wrongly gave ӿ, a first guess
                     // wrongly gave ẋ — the dot glyph, already used for /z/,
                     // which would have collided visually with z|s/z|x above).
-  'dh|th': 'ṫh',   // this, them        (th → /ð/, vocit)
-  // 'th|th' (think, three — th → /θ/, surd) intentionally absent: spec
-  // Tabelul T1 leaves the voiceless digraph plain, no diacritic.
+  // 'dh|th' (this, father — th → /ð/, vocit) intentionally absent as of
+  // 2026-09-04: EiC-tehnic-spec.md Tabelul T1 (rândul /ð/) arată "th" plin,
+  // FĂRĂ diacritic, pentru exact acest caz — vechea intrare 'ṫh' de aici
+  // era o inversare (punea diacriticul pe varianta vocită, nu pe cea surdă).
+  // Eliminată la cererea lui Dorel ("Father nu se scrie cu punct pe t").
+  //
+  // NOTĂ / PROPUNERE (neaplicată — doar semnalată, nu s-a cerut): același
+  // tabel arată rândul /θ/ (thin, think — surd) CU diacritic 'tɦ', care nu
+  // are încă nicio intrare aici ('th|th' e complet absent din tabel, deci
+  // thin/think rămân plain 'th' negru). Dacă se dorește alinierea completă
+  // cu Tabelul T1, ar trebui adăugată separat: 'th|th': 'tɦ'.
 }
 
 // display → spelling(lowercase) → which slice carries the sound (gets the
@@ -401,6 +409,24 @@ export function align(rawWord: string, rawSegs: Seg[]): RenderNode[] {
       nodes.push(isPhantomWAfterSchwa
         ? { t: '', s: display, c: COLOR_SILENT, u: false, x: isCons }
         : { t: '', s: display, c: color ?? (isCons ? COLOR_CONSONANT : COLOR_SILENT), u: isStressed, x: isCons, superscriptOverride: display })
+      continue
+    }
+
+    // B_tehnic — cerere Dorel (2026-09-04): în setul door/force (/ɔːr/,
+    // display 'or' — door, floor, four, sport, short, force), litera 'r'
+    // trebuie să rămână NEAGRĂ ca orice consoană obișnuită, NU să împrumute
+    // rozul vocalei /o/. Different de celelalte vocale r-colored (ar/er/
+    // ur/ɪr/ɛr — vezi R_COLORED în consumeVowel mai sus), care rămân un
+    // singur nod fuzionat cu o singură culoare — acelea NU sunt afectate de
+    // acest bloc, doar 'or'. Desprindem doar litera finală 'r' consumată
+    // ca nod de consoană propriu (COLOR_CONSONANT), restul rulajului de
+    // vocală ('oo'/'ou'/'o'...) păstrează culoarea rozie normală.
+    if (isVowel && display === 'or' && /r$/i.test(consumed)) {
+      const vowelText = consumed.slice(0, -1)
+      const rLetter = consumed.slice(-1)
+      nodes.push({ t: vowelText, s: display, c: color ?? COLOR_SILENT, u: isStressed, x: false })
+      nodes.push({ t: rLetter, s: 'r', c: COLOR_CONSONANT, u: false, x: true })
+      if (muteTail) nodes.push({ t: muteTail, s: '', c: COLOR_SILENT, u: false, x: false })
       continue
     }
 
