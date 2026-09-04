@@ -1889,7 +1889,7 @@ button, textarea, input { font-family: var(--font-sans); }
   .lesson-title { font-size: 1.35rem; }
   .lesson-word { font-size: 22px; padding: 12px 8px; }
   .fox-helper { right: 12px; bottom: 12px; }
-  .fox-avatar { width: 48px; height: 48px; font-size: 24px; }
+  .fox-avatar { width: 48px; height: 48px; }
   .fox-bubble { max-width: 170px; }
   .level-overlay-card { max-width: 320px; }
 }
@@ -2094,8 +2094,11 @@ button, textarea, input { font-family: var(--font-sans); }
    Mascota EiC — vulpița prietenoasă care participă la joc: indică butonul
    de apăsat, aplaudă la fiecare stea și sare de bucurie când se termină o
    coloană sau un nivel, sau doar respiră liniștit în repaus. Ilustrația de
-   bază e o singură imagine raster (`fox.png`), dar "bogăția" vizuală vine
-   din straturile din jurul ei — glow radial cald, umbră de contact pe sol,
+   bază folosește un set de cadre desenate per stare/acțiune (fox-idle,
+   fox-blink, fox-pointing, fox-clap, fox-cheer(-big), fox-jump — vezi
+   `public/mascot/`; `fox.png`/`fox-run.png` nu se mai folosesc nicăieri),
+   dar "bogăția" vizuală vine și din straturile din jurul ei — glow radial
+   cald, umbră de contact pe sol,
    drop-shadow colorat pe siluetă, lăbuțe cu gradient plușat și scântei
    distribuite — plus transform-uri CSS (bob/tilt/squash-stretch) prin
    clase de stare (`.state-idle` / `.state-pointing` / `.state-clapping` /
@@ -2256,9 +2259,11 @@ button, textarea, input { font-family: var(--font-sans); }
     drop-shadow(0 2px 3px rgba(20, 10, 0, .28));
 }
 
-/* ── luciu periodic, mascat exact pe silueta vulpii (folosind alfa PNG-ului
-   ca mască) — traversează diagonal la fiecare ~4.5s, ca pe o iconiță
-   "glossy" modernă; nu iese niciodată din contur ── */
+/* ── luciu periodic, mascat exact pe silueta cadrului curent (folosind
+   alfa PNG-ului activ ca mască — setată dinamic inline, din JSX, ca să
+   urmărească poza afișată în fiecare moment; vezi `Mascot.tsx`) —
+   traversează diagonal la fiecare ~4.5s, ca pe o iconiță "glossy" modernă;
+   nu iese niciodată din contur ── */
 .mascot-shine {
   position: absolute;
   inset: 0;
@@ -2266,8 +2271,6 @@ button, textarea, input { font-family: var(--font-sans); }
   background-size: 260% 260%;
   background-position: -70% -70%;
   mix-blend-mode: screen;
-  -webkit-mask-image: url(/mascot/fox.png);
-  mask-image: url(/mascot/fox.png);
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -2592,12 +2595,25 @@ button, textarea, input { font-family: var(--font-sans); }
   width: 56px; height: 56px; border-radius: 50%;
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
-  font-size: 28px; cursor: pointer;
+  cursor: pointer;
   box-shadow: var(--shadow-md);
   animation: fox-idle-bounce 2.6s ease-in-out infinite;
   transition: transform .15s;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .fox-avatar:hover { transform: scale(1.08); }
+.fox-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  pointer-events: none;
+}
 @keyframes fox-idle-bounce {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50%      { transform: translateY(-5px) rotate(-4deg); }

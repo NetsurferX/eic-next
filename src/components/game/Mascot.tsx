@@ -52,14 +52,21 @@ const STATE_POSE: Record<MascotState, string> = {
 
 const ACTION_POSE: Record<MascotAction, string> = {
   idle: '/mascot/fox-idle.png',
-  walking: '/mascot/fox-run.png',
-  grabbing: '/mascot/fox-jump.png',
+  // nu există o poză de "alergare" utilizabilă (`fox-run.png` a fost
+  // retrasă din `public/mascot/`, la fel ca `fox.png` — nu se mai
+  // folosesc nicăieri) — poza de salt (`fox-jump.png`) e cea mai
+  // apropiată ca senzație de mișcare pentru "walking"
+  walking: '/mascot/fox-jump.png',
+  grabbing: '/mascot/fox-pointing.png',
   // ambele „duce" recompensa cu lăbuțele împreunate în față — desenul e
   // identic, doar obiectul cărat (steaua/cupa) e adăugat separat, ca overlay
   'holding-star': '/mascot/fox-clap.png',
   'holding-cup': '/mascot/fox-clap.png',
   pouring: '/mascot/fox-clap.png',
-  celebrating: '/mascot/fox-cheer.png',
+  // finalul recompensei (după ce cupa mare e umplută) — poza de bucurie
+  // "mare", diferită de starea "cheering" (fox-cheer.png) folosită la
+  // finalul unei singure coloane/nivel
+  celebrating: '/mascot/fox-cheer-big.png',
 }
 
 const BLINK_POSE = '/mascot/fox-blink.png'

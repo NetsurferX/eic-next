@@ -16,6 +16,16 @@ export type FoxAction = { id: string; label: string; onClick: () => void }
 
 const FIDGETS = ['fox-fidget-wag', 'fox-fidget-wink', 'fox-fidget-tilt']
 
+// ── avatarul rotund folosește portretele din `public/mascot/` (`fox.png`/
+//    `fox-run.png` nu se mai folosesc nicăieri) — câte un cadru pentru
+//    fiecare dispoziție ── */
+const FACE_BY_MOOD: Record<FoxMood, string> = {
+  idle: '/mascot/face-smile.png',
+  greeting: '/mascot/face-wink.png',
+  celebrate: '/mascot/face-laugh.png',
+  hint: '/mascot/face-thinking.png',
+}
+
 export function FoxHelper({
   idleTip,
   queue = [],
@@ -83,7 +93,8 @@ export function FoxHelper({
         aria-label="Asistent"
         title="Vulpea te ajută"
       >
-        {mood === 'celebrate' ? '🥳' : '🦊'}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={FACE_BY_MOOD[mood]} alt="" className="fox-avatar-img" draggable={false} />
       </button>
     </div>
   )
