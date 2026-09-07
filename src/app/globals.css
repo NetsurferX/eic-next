@@ -1590,7 +1590,7 @@ button, textarea, input { font-family: var(--font-sans); }
   padding: 14px 10px; /* de la 7px 6px */
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--lesson-color) 35%, var(--color-border));
-  background: color-mix(in srgb, var(--lesson-color) 10%, var(--color-bg));
+  background: #FFFFFF;
   color: var(--color-text-primary);
   transform: scale(1);
   transform-origin: center;
@@ -1601,6 +1601,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-word.is-clickable:hover {
   box-shadow: 0 3px 12px color-mix(in srgb, var(--lesson-color) 18%, transparent),
               0 0 0 1px color-mix(in srgb, var(--lesson-color) 12%, transparent);
+  background: #FFFFFF;
 }
 .lesson-word.is-clickable:active { transform: scale(.97); }
 .lesson-word:disabled { cursor: wait; }
@@ -1624,7 +1625,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-col.is-locked .lesson-word {
   color: var(--color-text-muted);
   border-color: var(--color-border-soft);
-  background: transparent;
+  background: #FFFFFF;
 }
 /* Literele colorate din coloanele blocate rămân vizibile, dar pastelate/
    blurate — nu complet gri — ca să se ghicească ce urmează fără să se
@@ -1639,7 +1640,7 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
   z-index: 1;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
-  background: color-mix(in srgb, var(--lesson-color) 22%, var(--color-bg));
+  background: #FFFFFF;
   /* Tot butonul crește ca UN singur bloc — litera colorată nu se mai umflă
      separat (asta rupea proporția); ea rămâne diferențiată doar prin
      culoare + glow (filter), vezi regula de mai jos. */
@@ -2140,6 +2141,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-col.is-active .lesson-word:hover {
   box-shadow: 0 3px 12px color-mix(in srgb, var(--lesson-color) 18%, transparent),
               0 0 0 1px color-mix(in srgb, var(--lesson-color) 12%, transparent);
+  background: #FFFFFF;
 }
 .lesson-col.is-locked::before,
 .lesson-col.is-locked::after { opacity: 0; }
