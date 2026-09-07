@@ -11,6 +11,7 @@ import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties }
 import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
+import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
 import type { RenderNode } from '@/lib/renderNode'
 
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
@@ -18,6 +19,8 @@ const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
 const REVEAL_MS = 900           // how long a freshly-unlocked column's reveal-in animation plays
 const AUTO_DELAY_MS = 1650      // default gap between words — user-adjustable via the speed slider
 const AUTO_DELAY_KEY = 'eic-auto-delay-ms'
+const SOUND_INTRO_SEEN_KEY = 'eic-sound-intro-seen'
+const BEGINNER_NOTE_SEEN_KEY = 'eic-beginner-note-seen'
 const REVIEW_THRESHOLD = 3      // clicking one word this many times sends it to "Cuvinte de exersat"
 
 // Alege accentul efectiv al unui cuvânt: override-ul cuvântului > accentul
@@ -169,6 +172,36 @@ export default function LearnPage() {
   const [colUnlocked, setColUnlocked]       = useState<boolean[][]>(() => LEVELS.map((lvl, i) => lvl.lessons.map((_, ci) => i === 0 && ci === 0)))
   const [starsEarned, setStarsEarned]       = useState<number[][]>(() => LEVELS.map(lvl => lvl.lessons.map(() => 0)))
   const [active, setActive]                 = useState(0)
+
+  // ── OnboardingSoundIntro — micro-demo animat, o singură dată per lecție
+  //   ("prima dată când elevul deschide o categorie nouă de sunet"). Set de
+  //   id-uri de lecție deja văzute, persistat separat de progres — ca elevul
+  //   să nu re-vadă demo-ul la fiecare vizită, doar prima dată per sunet.
+  const [seenIntros, setSeenIntros] = useState<Set<string>>(() => new Set())
+  const [introHydrated, setIntroHydrated] = useState(false)
+  const [introLesson, setIntroLesson] = useState<Lesson | null>(null)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SOUND_INTRO_SEEN_KEY)
+      if (raw) setSeenIntros(new Set(JSON.parse(raw)))
+    } catch { /* ignore */ }
+    setIntroHydrated(true)
+  }, [])
+
+  // ── Nota "beginner" (th=t, dh=d) — un mesaj de la vulpe, o singură dată
+  //   per lecție care are `beginnerNote`, NU o transformare de randare/audio
+  //   (analogia din carte e cu sunete ROMÂNEȘTI, nu o schimbare a
+  //   cuvântului englezesc). Tracking separat de seenIntros — sunt lucruri
+  //   conceptual diferite (demo animat vs. sfat text).
+  const [seenBeginnerNotes, setSeenBeginnerNotes] = useState<Set<string>>(() => new Set())
+  const [beginnerNoteHydrated, setBeginnerNoteHydrated] = useState(false)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(BEGINNER_NOTE_SEEN_KEY)
+      if (raw) setSeenBeginnerNotes(new Set(JSON.parse(raw)))
+    } catch { /* ignore */ }
+    setBeginnerNoteHydrated(true)
+  }, [])
   const [allDone, setAllDone]               = useState(false)
 
   const [playingWord, setPlayingWord]       = useState<string | null>(null)
@@ -344,6 +377,49 @@ export default function LearnPage() {
 
   const level     = LEVELS[levelIndex]
   const lesson    = level.lessons[active]
+
+  // Declanșează OnboardingSoundIntro prima dată când o lecție (deblocată)
+  // devine activă și n-a fost încă văzută. Nu rulează pentru lecții
+  // blocate — abia când elevul chiar ajunge la ea.
+  useEffect(() => {
+    if (!introHydrated) return
+    if (!lesson) return
+    if (!colUnlocked[levelIndex]?.[active]) return
+    if (seenIntros.has(lesson.id)) return
+    setIntroLesson(lesson)
+  }, [introHydrated, lesson, active, levelIndex, colUnlocked, seenIntros])
+
+  const handleIntroComplete = useCallback(() => {
+    if (!introLesson) return
+    setSeenIntros(prev => {
+      const next = new Set(prev)
+      next.add(introLesson.id)
+      try { localStorage.setItem(SOUND_INTRO_SEEN_KEY, JSON.stringify([...next])) } catch { /* ignore */ }
+      return next
+    })
+    setIntroLesson(null)
+  }, [introLesson])
+
+  // Declanșează nota "beginner" prima dată când o lecție cu `beginnerNote`
+  // (deblocată) devine activă. Așteaptă ca OnboardingSoundIntro să nu mai
+  // fie pe ecran (introLesson === null) — două mesaje simultan ar fi
+  // aglomerat, nu blocant unul pentru celălalt altfel.
+  useEffect(() => {
+    if (!beginnerNoteHydrated) return
+    if (!lesson?.beginnerNote) return
+    if (introLesson) return
+    if (!colUnlocked[levelIndex]?.[active]) return
+    if (seenBeginnerNotes.has(lesson.id)) return
+
+    triggerFox(lesson.beginnerNote, 'hint')
+    setSeenBeginnerNotes(prev => {
+      const next = new Set(prev)
+      next.add(lesson.id)
+      try { localStorage.setItem(BEGINNER_NOTE_SEEN_KEY, JSON.stringify([...next])) } catch { /* ignore */ }
+      return next
+    })
+  }, [beginnerNoteHydrated, lesson, introLesson, active, levelIndex, colUnlocked, seenBeginnerNotes, triggerFox])
+
   const earned    = starsEarned[levelIndex][active]
   const hasTrophy = earned >= REPS_PER_LESSON
 
@@ -864,6 +940,18 @@ export default function LearnPage() {
       </aside>
       </div>
 
+
+      {introLesson && (
+        <div className="sound-intro-overlay" role="dialog" aria-modal="true" aria-label={`Cum sună ${introLesson.letter}`}>
+          <OnboardingSoundIntro
+            phoneme={introLesson.letter}
+            exampleWord={introLesson.words[0].text}
+            color={introLesson.color}
+            accent={resolveAccent(introLesson.words[0], introLesson)}
+            onComplete={handleIntroComplete}
+          />
+        </div>
+      )}
 
       {showLevelOverlay && (
         <div className="level-overlay" role="dialog" aria-modal="true" aria-label="Nivel finalizat">

@@ -17,6 +17,13 @@ export interface Lesson {
   tabLabel: string   // Romanian colour-name shown on the tabs
   accent?: Accent    // implicit 'en-US' dacă lipsește
   words: LessonWord[]
+  // Notă explicativă pentru începători, afișată o singură dată (prin
+  // FoxHelper) prima dată când lecția devine activă — NU schimbă nimic în
+  // randare/audio, e strict o analogie pedagogică (ex. th=t, dh=d — cf.
+  // cărții: "Pentru începători: dh=d (dor, dop), iar th=t (tot, tapet)",
+  // exemple ROMÂNEȘTI, nu englezești — deci nu-i o transformare reală a
+  // sunetului englez, doar un sprijin temporar de apropiere).
+  beginnerNote?: string
 }
 
 // A level is a set of columns (rules) — USUALLY 4, but not fixed any more
@@ -246,6 +253,7 @@ export const LEVELS: Level[] = [
       },
       {
         id: 'th', letter: 'θ/ð', color: '#00A2E0', tabLabel: 'Bleu',
+        beginnerNote: 'Pentru începători: dacă încă nu-ți iese sunetul englezesc, poți citi „th" surd (thief, north) ca „t" românesc (tot, tapet), și „th" sonor (the, weather) ca „d" românesc (dor, dop) — un sprijin temporar, nu sunetul real englezesc.',
         words: [
           { text: 'think',   mark: 'th' },
           { text: 'north',   mark: 'th' },

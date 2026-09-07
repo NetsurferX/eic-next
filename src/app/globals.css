@@ -1806,6 +1806,64 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .level-overlay-btn:hover { transform: translateY(-2px) scale(1.03); }
 
+/* ══════════════════════════════════════════════════════════════════════
+   OnboardingSoundIntro — micro-demo animat, afișat o singură dată pe
+   ecran întreg (fixed, ca .level-overlay mai sus) prima dată când elevul
+   deschide o coloană/sunet nou. Vulpea "ascultă" apoi rostește exemplul.
+   ══════════════════════════════════════════════════════════════════════ */
+.sound-intro-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 10, 14, .6);
+  backdrop-filter: blur(5px);
+  animation: level-overlay-in 350ms ease;
+  padding: 1.5rem;
+}
+.sound-intro-card {
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.5rem 1.5rem;
+  animation: level-overlay-card-in 550ms cubic-bezier(.2,1.4,.4,1);
+}
+.sound-intro-mascot { margin-bottom: .5rem; }
+.sound-intro-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+  opacity: .65;
+  margin-bottom: .4rem;
+}
+.sound-intro-phoneme {
+  display: block;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 2.75rem;
+  line-height: 1;
+  margin-bottom: .5rem;
+}
+.sound-intro-word {
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1.3rem;
+}
+.sound-intro-btn {
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 700;
+  color: #fff;
+  border: none;
+  padding: .7rem 1.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  transition: transform .15s;
+}
+.sound-intro-btn:hover { transform: translateY(-2px) scale(1.03); }
+
 /* ── Shadowing panel ── */
 .shadow-panel {
   border: 1px solid var(--color-border);

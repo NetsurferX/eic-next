@@ -5,7 +5,7 @@
 
 import Database from 'better-sqlite3'
 import path from 'path'
-import { processIpa, extractProps, COLOR_CONSONANT } from './engine'
+import { processIpa, extractProps, COLOR_CONSONANT, guessIpa } from './engine'
 import type { RenderNode } from './engine'
 import { EiCSuffixVoicingPipeline } from './engine/suffixVoicing'
 import { getColor } from './rules/colors'
@@ -160,7 +160,12 @@ function firstIpaVariant(raw: string): string {
 
 export interface WordResult {
   nodes:   RenderNode[]
-  variant: 'uk' | 'us' | 'coin' | 'derived'
+  // 'guess' — word absent from both lexicon tables and not a regular -s/-es
+  // plural; pronunciation comes from engine/graphemeToPhoneme.ts's spelling
+  // rules instead of an attested dictionary row. Rendered identically to
+  // 'uk'/'us' (no visual distinction, per Dorel) — kept as its own tag only
+  // for internal bookkeeping/debugging (e.g. cache stats, future QA).
+  variant: 'uk' | 'us' | 'coin' | 'derived' | 'guess'
 }
 
 export interface VariantResult {
@@ -245,6 +250,18 @@ function tryPluralFallback(word: string): WordResult | null {
   return null
 }
 
+// ── Spelling-rule fallback for words absent from the lexicon entirely ─────────
+// Last resort in getBestNodes(), after tryPluralFallback() has also failed.
+// guessIpa() (engine/graphemeToPhoneme.ts) never throws and always returns a
+// non-empty string with exactly one stress mark, so this can't fail short of
+// an empty/non-letter input, which is already rejected earlier by the
+// /^[a-z'-]+$/ guard at the top of getBestNodes().
+function guessFallback(word: string): WordResult {
+  const ipa = guessIpa(word)
+  const nodes = processIpa(word, ipa)
+  return { nodes, variant: 'guess' }
+}
+
 // ── Core lookup — cache-first ─────────────────────────────────────────────────
 
 export function getBestNodes(word: string): WordResult | null {
@@ -267,7 +284,13 @@ export function getBestNodes(word: string): WordResult | null {
   const usRow = stmtUs().get(word) as { ipa: string } | undefined
 
   if (!ukRow && !usRow) {
-    const derived = tryPluralFallback(word)
+    // 1st fallback: regular -s/-es plural of an attested base word.
+    // 2nd fallback (word still nowhere in the lexicon under any form): guess
+    // a pronunciation from the spelling via graphemeToPhoneme.ts and run it
+    // through the exact same processIpa() pipeline a real dictionary row
+    // would use — align.ts/display.ts/regex overrides need no knowledge of
+    // where the phonemes came from.
+    const derived = tryPluralFallback(word) ?? guessFallback(word)
     if (!derived) return null
 
     try {
