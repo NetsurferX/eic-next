@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Mascot, { MascotAction } from './Mascot'
+import { StarIcon } from './StarIcon'
 
 export type RewardAnimationState = {
 action: MascotAction
@@ -326,7 +327,7 @@ animation.starColor ??
 '#ffc107',
 }}
 >
-★
+<StarIcon />
 </span>
 )}
 
@@ -338,11 +339,11 @@ animation.starColor ??
 
 {animation.action === 'pouring' && (
 <div className="mascot-reward-pouring-stars">
-<span>★</span>
-<span>★</span>
-<span>★</span>
-<span>★</span>
-<span>★</span>
+<span><StarIcon /></span>
+<span><StarIcon /></span>
+<span><StarIcon /></span>
+<span><StarIcon /></span>
+<span><StarIcon /></span>
 </div>
 )}
 </div>

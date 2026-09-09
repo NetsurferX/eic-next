@@ -89,6 +89,28 @@ export const LEVELS: Level[] = [
           { text: 'list', mark: 'i' },
         ],
       },
+      {
+        // EiC1/EiC2 — /ɪ/ scurt (lecția 'i' de mai sus) și /iː/ lung erau
+        // fuzionate anterior sub aceeași coloană/culoare fără nicio lecție
+        // dedicată lui /iː/ (gol confirmat, cf. auditului 2026-09-08).
+        // Aceeași culoare #CC0000 ca /ɪ/ e CORECTĂ (nu o greșeală) — spec-ul
+        // (B_tehnic_yesyes.docx) cere aceeași nuanță pentru ambele, iar
+        // singura diferență e gradient (scurt) vs. flat (lung), deja
+        // implementată corect în engine/display.ts prin SIMPLE_GRADIENT_
+        // SOUNDS (conține 'ɪ', nu conține 'i'). Deci lecția asta nu cere
+        // nicio schimbare de motor — doar conținutul de predare lipsea.
+        // Toate cele 6 cuvinte verificate prin pipeline-ul real (getBestNodesMany):
+        // s:'i', c:'#CC0000', flat.
+        id: 'iy', letter: 'iː', color: '#CC0000', tabLabel: 'Roșu lung',
+        words: [
+          { text: 'see',   mark: 'ee' },
+          { text: 'mean',  mark: 'ea' },
+          { text: 'tree',  mark: 'ee' },
+          { text: 'sleep', mark: 'ee' },
+          { text: 'three', mark: 'ee' },
+          { text: 'green', mark: 'ee' },
+        ],
+      },
     ],
   },
   {
@@ -111,14 +133,37 @@ export const LEVELS: Level[] = [
         ],
       },
       {
+        // EiC1/EiC2 — lecția asta amesteca anterior /uː/ lung (moon/food/
+        // room/soon) CU /ʊ/ scurt (book/good) sub aceeași coloană (gol
+        // confirmat, cf. auditului 2026-09-08). Rămâne DOAR /uː/ lung aici;
+        // /ʊ/ scurt capătă lecția proprie imediat mai jos (id 'oo-short').
+        // Aceeași culoare #7030A0 ca /ʊ/ e corectă (spec cere aceeași
+        // nuanță) — diferă doar flat (lung, aici) vs. gradient (scurt,
+        // lecția următoare), deja corect în engine/display.ts. Cele 2
+        // cuvinte noi (spoon, tooth) verificate prin pipeline-ul real:
+        // s:'u', c:'#7030A0', flat.
         id: 'u', letter: 'uː', color: '#7030A0', tabLabel: 'Mov',
         words: [
-          { text: 'moon', mark: 'oo' },
-          { text: 'food', mark: 'oo' },
-          { text: 'room', mark: 'oo' },
-          { text: 'soon', mark: 'oo' },
+          { text: 'moon',  mark: 'oo' },
+          { text: 'food',  mark: 'oo' },
+          { text: 'room',  mark: 'oo' },
+          { text: 'soon',  mark: 'oo' },
+          { text: 'spoon', mark: 'oo' },
+          { text: 'tooth', mark: 'oo' },
+        ],
+      },
+      {
+        // /ʊ/ scurt — separat din fosta lecție 'u' (vezi nota de mai sus).
+        // Toate cele 6 cuvinte verificate prin pipeline-ul real: s:'ʊ',
+        // c:'#7030A0', gradient (SIMPLE_GRADIENT_SOUNDS din display.ts).
+        id: 'oo-short', letter: 'ʊ', color: '#7030A0', tabLabel: 'Mov scurt',
+        words: [
           { text: 'book', mark: 'oo' },
           { text: 'good', mark: 'oo' },
+          { text: 'put',  mark: 'u' },
+          { text: 'look', mark: 'oo' },
+          { text: 'foot', mark: 'oo' },
+          { text: 'push', mark: 'u' },
         ],
       },
       {
@@ -409,7 +454,7 @@ export const LEVELS: Level[] = [
   },
 ]
 
-export const STORAGE_KEY = 'eic-lesson-progress-v6'   // bumped — v5 saves are shaped for the old 3-level/4-column-per-level LEVELS array; Nivelurile 4-8 (variable column counts) need a fresh shape
+export const STORAGE_KEY = 'eic-lesson-progress-v7'   // bumped — v6 saves are shaped for lvl1/lvl2 with 4 lessons each; EiC1/EiC2 split (iː + ʊ scurt separate) le crește la 5
 export const REPS_PER_LESSON = 5
 
 export interface SavedProgress {

@@ -1,12 +1,24 @@
 // src/lib/rules/overrides/vr-lexical-sets.ts
 //
 // B_tehnic §6.2 — V-R forced-schwa lexical sets (near/bear/cure/poor/our/
-// tower-flower/fire). Whole-span colour overrides for the vowel-run, plus
-// (§6.1) "alb cu chenar negru" (white fill / black border) styling for the
-// syllabic 'r' itself in a few representative spelling shapes.
+// tower-flower/fire). Whole-span colour overrides for the vowel-run.
 //
-// Splitting the vowel run from the syllabic-r glyph properly still needs
-// align.ts/display.ts work — see EiC-tehnic-spec.md §10.5.
+// 2026-09 — "alb cu chenar negru" pe 'r' însuși NU mai e o listă de reguli
+// regex per-cuvânt aici. E un detector general, mecanic, în
+// engine/syllabicR.ts (applySyllabicRDetection), care rulează pe fonemele
+// REALE (nodes[].s/.t) ÎNAINTE de applyRegexOverrides — cf. cererii „fă-o
+// regulă generală". Acoperă automat: near, dear, here, there, interfere,
+// care, bare, stare, bear, hair, poor, tour, fire, tyre, ire, premiere —
+// fără nicio listă de cuvinte. Vezi engine/syllabicR.ts pentru semnalul
+// exact și de ce EXCLUDE intenționat hour/our/tower/power/flower (acelea
+// rămân hand-written mai jos — distincția hour-DA/tower-NU e pedagogică,
+// nu fonetică, deci nu poate fi derivată mecanic) și formele CURE cu sufix
+// (curable/curing/curate — rămân pe vr-cure-r, deja mecanică, regula 18).
+//
+// Regulile de CULOARE de mai jos rămân necesare acolo unde motorul general
+// ar da implicit un rezultat greșit (de regulă: simbolul brut e clasat
+// "gradient" în SIMPLE_GRADIENT_SOUNDS, dar setul V-R cere flat) — verificat
+// cuvânt cu cuvânt prin pipeline-ul real, nu presupus.
 
 import type { RegexRule } from './types'
 
@@ -17,38 +29,24 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
   // isMute() safety net (see engine/display.ts notes) wrongly greyed out
   // the leading consonant ('n' in near, 'interf' in interfere) because it
   // now carried a "vowel" colour on graphic-consonant letters. Narrowed to
-  // just the vowel-letter span; the 'r' is handled separately below by
-  // vr-near-r / vr-interfere-r ("alb cu chenar negru").
+  // just the vowel-letter span. The 'r' itself no longer needs a rule here
+  // at all — engine/syllabicR.ts detects it mechanically (see file header).
   // Dropped 'ideal' from the old pattern: it has no /r/ at all (aɪˈdil) —
   // it isn't part of this V-R lexical set and the old unanchored pattern
   // would even match it as a bare substring inside any longer word
   // (e.g. "idealism"). Looked like a stray leftover, not removed lightly.
   {
     id: 'vr-near', label: 'Near (iər → i + ər)', enabled: true,
-    pattern: '^n(ea)r$', flags: 'i', group: 1,
+    pattern: '^(?:n|d)(ea)r$', flags: 'i', group: 1,
     action: { color: '#CC0000' }, priority: 200,
-    notes: 'Roșu (#CC0000) pe "ea" — Near, §6.2. R-ul separat, vezi vr-near-r.',
-    testWords: ['near'],
-  },
-  {
-    id: 'vr-near-r', label: "Near — syllabic 'r' (alb/chenar negru)", enabled: true,
-    pattern: '^n(ea)(r)$', flags: 'i', group: 2,
-    action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
-    testWords: ['near'],
+    notes: 'Roșu (#CC0000) pe "ea" — Near, §6.2. Extins 2026-09 la "dear" — segmentul brut dă exact același simbol ("ɪ", gradient) ca "near", deci are nevoie de același override de culoare (flat, nu gradient). R-ul e mecanic acum, vezi engine/syllabicR.ts.',
+    testWords: ['near', 'dear'],
   },
   {
     id: 'vr-interfere', label: 'Interfere (ere → i + ər, §2.2 Regula 8 group)', enabled: true,
     pattern: '^(?:interf)(e)re$', flags: 'i', group: 1,
     action: { color: '#CC0000' }, priority: 200,
-    notes: 'Roșu (#CC0000) pe "e" din "-fere" — aceeași familie Near, ortografiată "-ere" (Regula 8, grupul G).',
-    testWords: ['interfere'],
-  },
-  {
-    id: 'vr-interfere-r', label: "Interfere — syllabic 'r' (alb/chenar negru)", enabled: true,
-    pattern: '^(?:interf)(e)(r)e$', flags: 'i', group: 2,
-    action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
+    notes: 'Roșu (#CC0000) pe "e" din "-fere" — aceeași familie Near, ortografiată "-ere" (Regula 8, grupul G). R-ul e mecanic acum, vezi engine/syllabicR.ts.',
     testWords: ['interfere'],
   },
 
@@ -56,7 +54,7 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
   // Same colour-scope fix. Dropped 'aire' — not an entry in lexicon.db (not
   // a real headword), everything else unified into two shape-patterns:
   // bear/hair (vowel digraph, no trailing e) and care/bare/stare (single
-  // 'a' + r + silent trailing e).
+  // 'a' + r + silent trailing e). R-ul e mecanic acum (engine/syllabicR.ts).
   {
     id: 'vr-care-digraph', label: 'Bear/hair (eər → ea/ai + ər)', enabled: true,
     pattern: '^(?:b|h)(ea|ai)r$', flags: 'i', group: 1,
@@ -65,24 +63,10 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
     testWords: ['bear', 'hair'],
   },
   {
-    id: 'vr-care-digraph-r', label: "Bear/hair — syllabic 'r' (alb/chenar negru)", enabled: true,
-    pattern: '^(?:b|h)(ea|ai)(r)$', flags: 'i', group: 2,
-    action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
-    testWords: ['bear', 'hair'],
-  },
-  {
     id: 'vr-care-a-e', label: 'Care/bare/stare (eər → a + ər, mute e)', enabled: true,
     pattern: '^(?:c|b|st)(a)re$', flags: 'i', group: 1,
     action: { color: '#EE5B00' }, priority: 200,
     notes: 'Portocaliu (#EE5B00) pe "a" — care, bare, stare. §6.2.',
-    testWords: ['care', 'bare', 'stare'],
-  },
-  {
-    id: 'vr-care-a-e-r', label: "Care/bare/stare — syllabic 'r' (alb/chenar negru)", enabled: true,
-    pattern: '^(?:c|b|st)(a)(r)e$', flags: 'i', group: 2,
-    action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
     testWords: ['care', 'bare', 'stare'],
   },
 
@@ -108,6 +92,12 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
   // Testat prin pipeline-ul real, 27 de cazuri (10 pozitive, 3 negative,
   // 11 capcane, 3 verificări de ordonare) — toate corecte. Livrat ca
   // eic-next-cure-rur-mechanical.patch.
+  //
+  // NU mutată pe engine/syllabicR.ts (deși ar fi "mecanică" în același
+  // sens): syllabicR.ts nu încearcă deloc formele cu sufix (curable/
+  // curing/curate — au litere reale după 'r', deci testul lui de "niciun
+  // fonem real după r" le exclude intenționat). vr-cure-r rămâne singura
+  // acoperire pentru acele forme.
   {
     id: 'vr-cure', label: 'Cure/RUR (jʊər/ʊər → u + ər, mecanic)', enabled: true,
     pattern: '(u)r(?:e|ative|able|ible|ness|ment|ing|est|ate|ly|er|ed|es|s)?$', flags: 'i', group: 1,
@@ -121,23 +111,18 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
     pattern: 'u(r)(?:e|ative|able|ible|ness|ment|ing|est|ate|ly|er|ed|es|s)?$', flags: 'i', group: 1,
     phonemicGate: '[uʊ][əɜ]?r',
     action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border. Extins 2026-09 la tot setul CURE/RUR (nu doar cure/lure) — reutilizează exact poarta + pattern-ul mecanic de mai sus, doar grupul țintă diferă (r, nu nucleul ur/ure). Efect secundar benign observat: "tour" primește și el syllabicR pe această cale (poarta se potrivește și acolo) — culoarea rămâne corectă (violet, de la vr-poor), iar fonetic pare chiar corect (aceeași reducere schwa-r ca poor).',
+    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border. Extins 2026-09 la tot setul CURE/RUR (nu doar cure/lure) — reutilizează exact poarta + pattern-ul mecanic de mai sus, doar grupul țintă diferă (r, nu nucleul ur/ure). Efect secundar benign observat: "tour" primește și el syllabicR pe această cale (poarta se potrivește și acolo) — culoarea rămâne corectă (violet, de la vr-poor), iar fonetic pare chiar corect (aceeași reducere schwa-r ca poor). (Notă: "tour" fără sufix e oricum acoperit și mecanic de engine/syllabicR.ts — dublă acoperire, inofensivă.)',
     testWords: ['cure', 'lure', 'sure', 'ensure', 'secure', 'obscure', 'assure', 'curable', 'curing', 'curate'],
   },
 
   // ── Poor set (ʊər → ʊ + ər) ───────────────────────────────────────────────
+  // R-ul e mecanic acum (engine/syllabicR.ts) — inclusiv pentru "tour", care
+  // era înainte acoperit doar ca efect secundar al lui vr-cure-r.
   {
     id: 'vr-poor', label: 'Poor/tour (ʊər → oo/ou + ər)', enabled: true,
     pattern: '^(?:p|t)(oo|ou)r$', flags: 'i', group: 1,
     action: { color: '#7030A0' }, priority: 200,
     notes: 'Violet (#7030A0) pe "oo"/"ou" — poor, tour. §6.2.',
-    testWords: ['poor', 'tour'],
-  },
-  {
-    id: 'vr-poor-r', label: "Poor/tour — syllabic 'r' (alb/chenar negru)", enabled: true,
-    pattern: '^(?:p|t)(oo|ou)(r)$', flags: 'i', group: 2,
-    action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border.',
     testWords: ['poor', 'tour'],
   },
   // ── "our" set (2026-08-30 rewrite) ──────────────────────────────────────
@@ -154,6 +139,13 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
   // the already-silent 'h' of "hour") a muddy grey instead of leaving it
   // alone. Narrowing the colour span to ONLY the "ou" letters (group 2)
   // avoids ever touching a consonant node, so the bug can't trigger.
+  //
+  // vr-our-r NU a fost mutată pe engine/syllabicR.ts: verificat explicit
+  // (2026-09) — hour/our au schwa cu GRAFEM REAL ('u'/'w' consumat), exact
+  // ca tower/power/flower mai jos, deci mecanismul general nu le poate
+  // distinge fără ambiguitate (ar trebui să le trateze IDENTIC, dar
+  // rezultatul dorit e opus: hour DA, tower NU). Distincția e pedagogică
+  // (cf. notelor lui Dorel), nu fonetică — rămâne hand-written aici.
   {
     id: 'vr-our', label: 'Our set — "ou" digraph (aw, green)', enabled: true,
     pattern: '^([hsd]?)(ou)(r)$', flags: 'i', group: 2,
@@ -165,7 +157,7 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
     id: 'vr-our-r', label: "Our set — syllabic 'r' (alb/chenar negru)", enabled: true,
     pattern: '^([hsd]?)(ou)(r)$', flags: 'i', group: 3,
     action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 — fused /ər/ grapheme (no separate schwa letter in this set, unlike tower/flower), white fill + black border. Covers hour/our/sour/dour.',
+    notes: '§6.1 — fused /ər/ grapheme (no separate schwa letter in this set, unlike tower/flower), white fill + black border. Covers hour/our/sour/dour. Intenționat NU pe engine/syllabicR.ts — vezi comentariul de deasupra.',
     testWords: ['hour', 'our', 'sour', 'dour'],
   },
 
@@ -192,34 +184,21 @@ export const VR_LEXICAL_SET_RULES: RegexRule[] = [
     id: 'vr-tower-power-flower-w', label: "Tower/power/flower — 'w' shares the /aw/ green + underline", enabled: true,
     pattern: '^(?:t|p|fl)(o)(w)er$', flags: 'i', group: 2,
     action: { color: '#23D300', underline: 'force' }, priority: 200,
-    notes: 'Verde neon (#23D300) + subliniere pe \'w\' — "ow" citit ca un singur bloc vizual /aw/, deși /ə/ e fonemul dus de \'w\'. Dogma sistemului: w e vocală aici, deci participă la sublinierea silabei accentuate ca orice altă vocală. §3.3/§4.1/§6.2.',
+    notes: 'Verde neon (#23D300) + subliniere pe \'w\' — "ow" citit ca un singur bloc vizual /aw/, deși /ə/ e fonemul dus de \'w\'. Dogma sistemului: w e vocală aici, deci participă la sublinierea silabei accentuate ca orice altă vocală. §3.3/§4.1/§6.2. Nu primește (și nu trebuie să primească) syllabicR — vezi comentariul de la vr-our-r.',
     testWords: ['tower', 'power', 'flower'],
   },
 
-  // ── Fire/tyre/ire — aɪər → aỷ + ər ────────────────────────────────────────
-  // Also needs NO colour override any more: the /aɪ/ ("ay̓") sound is
-  // already coloured #4472C4 by colors.ts for every word. The blanket
-  // whole-word colour rule that used to live here is retired for the same
-  // reason as tower/flower (isMute() bug on 'f'/'t' consonants, and it was
-  // also wrongly recolouring the genuinely-silent final 'e' blue instead of
-  // leaving it grey). What DOES still need a manual rule is the syllabic
-  // 'r' styling — see vr-fire-tyre-ire-r below, which replaces the old
-  // fire-only 'vr-fire-r'.
+  // ── Fire/tyre/ire/premiere/here/there — fără nicio regulă aici ───────────
+  // Nu mai au nevoie de nicio regulă în acest fișier. Culoarea vine deja
+  // corect din motorul general (colors.ts: /aɪ/ #4472C4 pentru fire/tyre/
+  // ire; /iː/-familia #CC0000 pentru here; /eə/-familia #EE5B00 pentru
+  // there; "ie" din premiere iese deja #CC0000). Iar 'r'-ul silabic e
+  // acoperit mecanic de engine/syllabicR.ts (vezi antetul fișierului) —
+  // inclusiv cross-dublet-ul SQUARE/NEAR al lui "premiere" (§4.4), care nu
+  // mai are nevoie de o regulă dedicată doar pentru acel cuvânt.
   //
-  // (id 'vr-fire-tyre' intentionally retired 2026-08-30 — see above)
-
-  // ── §6.1 — "alb cu chenar negru" styling for the syllabic 'r' itself
-  // (as opposed to the vowel-run colour above). near-r and poor-r moved up
-  // next to their colour rules in the 2026-08-30 rewrite (were duplicated
-  // here under the same ids, which is why they're gone from this spot).
-  {
-    id: 'vr-fire-tyre-ire-r', label: "Fire/tyre/ire — syllabic 'r' (alb/chenar negru)", enabled: true,
-    // Consolidated 2026-08-30 (was 'vr-fire-r', fire-only). All three spell
-    // /aɪər/ with an 'i' or 'y' vowel letter + 'r' + a silent final 'e' —
-    // same shape, so one pattern covers all three instead of one per word.
-    pattern: '^([ft]?)(i|y)(r)e$', flags: 'i', group: 3,
-    action: { syllabicR: true }, priority: 205,
-    notes: '§6.1 Tabelul 3 — /ər/ grapheme, white fill + black border. Covers fire/tyre/ire.',
-    testWords: ['fire', 'tyre', 'ire'],
-  },
+  // (id-uri retrase 2026-09: 'vr-fire-tyre-ire-r', 'vr-premiere-r',
+  // 'vr-here-r', 'vr-there-r', 'vr-near-r', 'vr-interfere-r',
+  // 'vr-care-digraph-r', 'vr-care-a-e-r', 'vr-poor-r' — toate înlocuite de
+  // detectorul general.)
 ]

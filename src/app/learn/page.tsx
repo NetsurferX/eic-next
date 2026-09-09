@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
+import { StarIcon } from '@/components/game/StarIcon'
 import type { RenderNode } from '@/lib/renderNode'
 
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
@@ -803,11 +804,11 @@ export default function LearnPage() {
                     ref={(el) => { starRefs.current[`${l.id}-${s}`] = el }}
                     className={`lesson-star-slot ${s < stars ? 'is-filled' : ''}`}
                   >
-                    <span className="lesson-star-icon">★</span>
+                    <StarIcon className="lesson-star-icon" />
                     {isActive && poppingStarIndex === s && (
                       <span className="lesson-star-pop" aria-hidden="true">
                         <span className="pop-cup">🏆</span>
-                        <span className="pop-star">★</span>
+                        <StarIcon className="pop-star" />
                         <Confetti count={7} />
                       </span>
                     )}

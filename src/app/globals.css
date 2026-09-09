@@ -1487,11 +1487,11 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-star-icon {
   font-size: 14px; color: var(--color-border);
-  transition: color .2s, text-shadow .2s;
+  transition: color .2s, filter .2s;
 }
 .lesson-star-slot.is-filled .lesson-star-icon {
   color: var(--lesson-color);
-  text-shadow: 0 0 5px color-mix(in srgb, var(--lesson-color) 70%, transparent);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--lesson-color) 70%, transparent));
   animation: star-twinkle 2.4s ease-in-out infinite;
 }
 @keyframes star-twinkle {
@@ -1590,7 +1590,7 @@ button, textarea, input { font-family: var(--font-sans); }
   padding: 14px 10px; /* de la 7px 6px */
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--lesson-color) 35%, var(--color-border));
-  background: #FFFFFF;
+  background: var(--color-bg);
   color: var(--color-text-primary);
   transform: scale(1);
   transform-origin: center;
@@ -1601,7 +1601,6 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-word.is-clickable:hover {
   box-shadow: 0 3px 12px color-mix(in srgb, var(--lesson-color) 18%, transparent),
               0 0 0 1px color-mix(in srgb, var(--lesson-color) 12%, transparent);
-  background: #FFFFFF;
 }
 .lesson-word.is-clickable:active { transform: scale(.97); }
 .lesson-word:disabled { cursor: wait; }
@@ -1625,7 +1624,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-col.is-locked .lesson-word {
   color: var(--color-text-muted);
   border-color: var(--color-border-soft);
-  background: #FFFFFF;
+  background: transparent;
 }
 /* Literele colorate din coloanele blocate rămân vizibile, dar pastelate/
    blurate — nu complet gri — ca să se ghicească ce urmează fără să se
@@ -1640,7 +1639,7 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
   z-index: 1;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
-  background: #FFFFFF;
+  background: var(--color-bg);
   /* Tot butonul crește ca UN singur bloc — litera colorată nu se mai umflă
      separat (asta rupea proporția); ea rămâne diferențiată doar prin
      culoare + glow (filter), vezi regula de mai jos. */
@@ -2085,8 +2084,7 @@ button, textarea, input { font-family: var(--font-sans); }
   border-radius: calc(var(--radius-lg) - 1px);
   background: linear-gradient(135deg,
     color-mix(in srgb, #fff 72%, transparent) 0%,
-    transparent 28%, transparent 72%,
-    color-mix(in srgb, var(--lesson-color) 5%, transparent) 100%);
+    transparent 28%, transparent 100%);
   opacity: .55;
   pointer-events: none;
 }
@@ -2141,7 +2139,6 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-col.is-active .lesson-word:hover {
   box-shadow: 0 3px 12px color-mix(in srgb, var(--lesson-color) 18%, transparent),
               0 0 0 1px color-mix(in srgb, var(--lesson-color) 12%, transparent);
-  background: #FFFFFF;
 }
 .lesson-col.is-locked::before,
 .lesson-col.is-locked::after { opacity: 0; }
@@ -2541,7 +2538,7 @@ button, textarea, input { font-family: var(--font-sans); }
   display: inline-block;
   font-size: calc(var(--mascot-size, 96px) * .16);
   color: #ffc107;
-  text-shadow: 0 0 5px rgba(255, 193, 7, .8);
+  filter: drop-shadow(0 0 3px rgba(255, 193, 7, .8));
   animation: mascot-pour-fall 900ms ease-in infinite;
   opacity: 0;
 }
