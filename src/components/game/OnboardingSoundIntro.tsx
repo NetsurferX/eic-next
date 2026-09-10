@@ -45,7 +45,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, color, accent, onCo
   return (
     <div className="sound-intro-card">
       <Mascot
-        state={stage === 'speaking' ? 'talking' : stage === 'done' ? 'clapping' : 'idle'}
+        state={stage === 'speaking' ? 'pointing' : stage === 'done' ? 'clapping' : 'idle'}
         size={72}
         className="sound-intro-mascot"
       />

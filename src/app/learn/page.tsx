@@ -670,8 +670,8 @@ export default function LearnPage() {
 
     setLevelIndex(0)
     setUnlockedLevels(LEVELS.map((_, i) => i === 0))
-    setColUnlocked(LEVELS.map((_, i) => [i === 0, false, false, false]))
-    setStarsEarned(LEVELS.map(() => [0, 0, 0, 0]))
+    setColUnlocked(LEVELS.map((lvl, i) => lvl.lessons.map((_, ci) => i === 0 && ci === 0)))
+    setStarsEarned(LEVELS.map(lvl => lvl.lessons.map(() => 0)))
     setActive(0)
     setAllDone(false)
 
