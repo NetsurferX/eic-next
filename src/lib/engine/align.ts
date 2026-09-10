@@ -132,12 +132,9 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
   // FĂRĂ diacritic, pentru exact acest caz — vechea intrare 'ṫh' de aici
   // era o inversare (punea diacriticul pe varianta vocită, nu pe cea surdă).
   // Eliminată la cererea lui Dorel ("Father nu se scrie cu punct pe t").
-  //
-  // NOTĂ / PROPUNERE (neaplicată — doar semnalată, nu s-a cerut): același
-  // tabel arată rândul /θ/ (thin, think — surd) CU diacritic 'tɦ', care nu
-  // are încă nicio intrare aici ('th|th' e complet absent din tabel, deci
-  // thin/think rămân plain 'th' negru). Dacă se dorește alinierea completă
-  // cu Tabelul T1, ar trebui adăugată separat: 'th|th': 'tɦ'.
+  'th|th': 'tɦ',   // thin, think (th → /θ/, surd) — B_tehnic_yesyes.docx Tabelul
+                    // T1, rândul /θ/: diacritic pe varianta surdă, cf. cerere
+                    // explicită 2026-09 ("implementează-le pe toate").
 }
 
 // display → spelling(lowercase) → which slice carries the sound (gets the

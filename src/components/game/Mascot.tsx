@@ -23,7 +23,23 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 //    „holding-star"/„holding-cup"/„pouring" au deja lăbuțele împreunate în
 //    desen, deci nu mai e nevoie de un strat separat peste ele. ──
 
-export type MascotState = 'idle' | 'pointing' | 'clapping' | 'cheering'
+export type MascotState = 'idle' | 'pointing' | 'clapping' | 'cheering' | 'talking'
+
+// ── portrete faciale (`/public/mascot/face-*.png`) — extrase de multă vreme,
+//    dar nerandate nicăieri. Folosite ca overlay mic, lângă cap, DOAR peste
+//    starea `talking` (nu există o poză de corp dedicată "vorbește", deci
+//    corpul rămâne cel din idle — vezi STATE_POSE — iar portretul e semnalul
+//    vizual că vulpea rostește ceva). Implicit 'smile' dacă nu se dă `face`
+//    explicit. ──
+export type MascotFace = 'smile' | 'laugh' | 'surprised' | 'thinking' | 'wink'
+
+const FACE_PORTRAIT: Record<MascotFace, string> = {
+  smile: '/mascot/face-smile.png',
+  laugh: '/mascot/face-laugh.png',
+  surprised: '/mascot/face-surprised.png',
+  thinking: '/mascot/face-thinking.png',
+  wink: '/mascot/face-wink.png',
+}
 
 // ── Stări de recompensă (folosite doar de overlay-ul MascotReward — vulpea
 //    "detașată" care merge la stea/cupă, o apucă și o cară). Complet
@@ -48,6 +64,10 @@ const STATE_POSE: Record<MascotState, string> = {
   pointing: '/mascot/fox-pointing.png',
   clapping: '/mascot/fox-clap.png',
   cheering: '/mascot/fox-cheer.png',
+  // nu există o poză de corp dedicată "vorbește" — corpul rămâne cel din
+  // idle, iar portretul facial (vezi MascotFace de mai sus) e cel care
+  // semnalizează vorbirea.
+  talking: '/mascot/fox-idle.png',
 }
 
 const ACTION_POSE: Record<MascotAction, string> = {
@@ -80,16 +100,21 @@ function resolvePose(state: MascotState, action: MascotAction | undefined, blink
 export function Mascot({
   state = 'idle',
   action,
+  face,
   message = null,
   size = 96,
   className = '',
 }: {
   state?: MascotState
   action?: MascotAction
+  face?: MascotFace
   message?: string | null
   size?: number
   className?: string
 }) {
+  // portretul e vizibil doar peste `talking` — implicit 'smile' dacă nu se
+  // dă unul explicit; ignorat complet în orice altă stare/acțiune.
+  const facePortrait = state === 'talking' && !action ? FACE_PORTRAIT[face ?? 'smile'] : null
   // ── clipire periodică — doar în idle „pur" (fără action), la intervale
   //    ușor aleatorii (2.6s–4.8s), ca vulpea să nu pară înghețată când
   //    stă și așteaptă. Complet oprită dacă tab-ul e ascuns sau utilizatorul
@@ -221,6 +246,16 @@ export function Mascot({
                 maskImage: `url(${pose})`,
               }}
             />
+            {facePortrait && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={facePortrait}
+                src={facePortrait}
+                alt=""
+                className="mascot-face-portrait"
+                draggable={false}
+              />
+            )}
           </div>
         </div>
 

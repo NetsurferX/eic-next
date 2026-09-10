@@ -2344,6 +2344,25 @@ button, textarea, input { font-family: var(--font-sans); }
   95%           { opacity: 0; background-position: 170% 170%; }
 }
 
+/* ── portret facial (face-*.png) — overlay mic lângă capul vulpii, vizibil
+   doar în starea "talking" (nu există poză de corp dedicată "vorbește"),
+   cu o ușoară "respirație" ca semnal că vorbirea e activă, nu un cadru
+   înghețat ── */
+.mascot-face-portrait {
+  position: absolute;
+  top: -6%;
+  right: -4%;
+  width: 42%;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(20, 10, 0, .3));
+  animation: mascot-face-breathe 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes mascot-face-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
 /* ── stare: "pointing" — vulpea se apleacă spre buton, săgeata pulsează ── */
 .mascot.state-pointing .mascot-fox-anchor {
   animation: mascot-point-lean 900ms ease-in-out infinite;
@@ -2553,6 +2572,24 @@ button, textarea, input { font-family: var(--font-sans); }
   100% { opacity: 0; transform: translateY(38px) scale(1) rotate(140deg); }
 }
 
+/* fox-badge.png — apare o singură dată, deasupra vulpii, la "celebrating"-ul
+   de nivel complet (nu la fiecare coloană) — insignă de nivel terminat. */
+.mascot-reward-badge {
+  position: absolute;
+  top: -18%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: calc(var(--mascot-size, 96px) * .48);
+  height: auto;
+  filter: drop-shadow(0 3px 5px rgba(20, 10, 0, .35));
+  animation: mascot-badge-pop 520ms cubic-bezier(.34, 1.56, .64, 1) both;
+  pointer-events: none;
+}
+@keyframes mascot-badge-pop {
+  0%   { opacity: 0; transform: translate(-50%, 6px) scale(.4); }
+  100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
 /* ── stratul flotant al lui MascotReward — poziționat absolut pe
    viewport (x/y vin din `getBoundingClientRect`), centrat pe punctul
    țintă și cu o tranziție lină între fiecare "waypoint" al traseului
@@ -2630,9 +2667,10 @@ button, textarea, input { font-family: var(--font-sans); }
   .mascot-impact-ring, .mascot-dust-mote, .mascot-shine,
   .mascot-chevron, .mascot-sparkle,
   .mascot-reward-held-star, .mascot-reward-held-cup,
-  .mascot-reward-pouring-stars span { animation: none !important; }
+  .mascot-reward-pouring-stars span, .mascot-reward-badge { animation: none !important; }
   .mascot-impact-ring, .mascot-shine, .mascot-dust { opacity: 0 !important; }
   .mascot-reward-pouring-stars span { opacity: 1 !important; }
+  .mascot-reward-badge { opacity: 1 !important; }
   .mascot-reward-layer { transition: none !important; }
   .mascot-fox-img { transition: none !important; }
 }

@@ -20,6 +20,12 @@ bigCupX: number
 bigCupY: number
 
 starColor?: string
+
+// true doar la "celebrating"-ul de la finalul cupei mari (nivel complet),
+// false la "celebrating"-ul intermediar de la finalul unei coloane —
+// folosit ca să afișăm fox-badge.png doar la recompensa de nivel, nu la
+// fiecare coloană terminată.
+isLevelComplete?: boolean
 }
 
 type StartRewardOptions = {
@@ -190,6 +196,7 @@ setAnimation({
 ...baseState,
 
 action: 'celebrating',
+isLevelComplete: false,
 
 x: columnCupX,
 y: columnCupY,
@@ -263,6 +270,7 @@ setAnimation({
 ...baseState,
 
 action: 'celebrating',
+isLevelComplete: true,
 
 x: bigCupX,
 y: bigCupY,
@@ -345,6 +353,18 @@ animation.starColor ??
 <span><StarIcon /></span>
 <span><StarIcon /></span>
 </div>
+)}
+
+{/* fox-badge.png — apare o singură dată, la "celebrating"-ul de nivel
+complet (cupa mare vărsată), nu la fiecare coloană terminată. */}
+{animation.action === 'celebrating' && animation.isLevelComplete && (
+// eslint-disable-next-line @next/next/no-img-element
+<img
+src="/mascot/fox-badge.png"
+alt=""
+className="mascot-reward-badge"
+draggable={false}
+/>
 )}
 </div>
 )
