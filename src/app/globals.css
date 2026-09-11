@@ -2781,6 +2781,48 @@ button, textarea, input { font-family: var(--font-sans); }
   .fox-avatar, .fox-fidget-wag, .fox-fidget-tilt, .fox-fidget-wink { animation: none !important; }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   Intro mascotă — la deschiderea paginii, vulpea apare mare la centrul
+   ecranului, apoi „zboară" spre dock-ul permanent (.fox-helper/.fox-avatar,
+   colțul dreapta-jos). Poziția/scala de sosire (`.flying`) sunt calculate
+   manual după regulile `.fox-helper`/`.fox-avatar` de mai sus (offset 20px,
+   avatar 56px pe desktop; offset 12px, avatar 48px sub 720px) — dacă
+   acelea se schimbă, actualizează-le și pe astea.
+   ══════════════════════════════════════════════════════════════════════ */
+.mascot-intro-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  pointer-events: none; /* pur decorativ — nu blochează nimic dedesubt */
+}
+.mascot-intro-fox {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    top 600ms cubic-bezier(.32, .9, .34, 1),
+    left 600ms cubic-bezier(.32, .9, .34, 1),
+    transform 600ms cubic-bezier(.32, .9, .34, 1),
+    opacity 260ms ease 340ms;
+  opacity: 1;
+}
+/* 100% - 20px offset - 28px (jumătate din avatarul-țintă de 56px) */
+.mascot-intro-fox.flying {
+  top: calc(100% - 48px);
+  left: calc(100% - 48px);
+  transform: translate(-50%, -50%) scale(0.311); /* 56px / 180px */
+  opacity: 0;
+}
+@media (max-width: 720px) {
+  /* 100% - 12px offset - 24px (jumătate din avatarul-țintă de 48px) */
+  .mascot-intro-fox.flying {
+    top: calc(100% - 36px);
+    left: calc(100% - 36px);
+    transform: translate(-50%, -50%) scale(0.267); /* 48px / 180px */
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-intro-overlay { display: none; }
+}
+
 /* ── Slider de viteză între cuvinte ── */
 .lesson-speed-control { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: .6rem; }
 .lesson-speed-label { font-size: 11px; font-weight: 600; color: var(--color-text-muted); }

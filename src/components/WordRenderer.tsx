@@ -3,6 +3,7 @@ import type { RenderNode } from '@/lib/renderNode'
 import { DEFAULT_CONFIG, applyRegexOverrides } from '@/lib/ruleConfig'
 import { resolveDisplay, DIPHTHONG_START, DIPHTHONG_END, applySyllabicConsonantDetection, applySyllabicRDetection } from '@/lib/engine'
 import { TRICOLOR_BG_SIZE_Y, TRICOLOR_BG_POSITION_Y } from '@/lib/tricolorStyle'
+import { emitPipelineStage, nodesDiffer } from '@/lib/pipelineTrace'
 
 interface Props {
   nodes:   RenderNode[]
@@ -15,9 +16,21 @@ interface Props {
 // calibration instead of re-deriving its own copy.
 
 export default function WordRenderer({ nodes, wordStr }: Props) {
-  const syllabicNodes = applySyllabicRDetection(applySyllabicConsonantDetection(nodes))
-  const renderNodes  = applyRegexOverrides(wordStr, syllabicNodes, DEFAULT_CONFIG.regexRules)
+  // NOTE: split out + traced (each step reports to /debug/graph's live
+  // view via pipelineTrace.ts) at Dorel's explicit request. Purely
+  // additive — same three calls, same order, same output as before;
+  // emitPipelineStage() no-ops outside the browser and never throws.
+  const afterSyllabicConsonants = applySyllabicConsonantDetection(nodes)
+  emitPipelineStage(wordStr, 'syllabicConsonants', nodesDiffer(nodes, afterSyllabicConsonants))
+
+  const syllabicNodes = applySyllabicRDetection(afterSyllabicConsonants)
+  emitPipelineStage(wordStr, 'syllabicR', nodesDiffer(afterSyllabicConsonants, syllabicNodes))
+
+  const renderNodes = applyRegexOverrides(wordStr, syllabicNodes, DEFAULT_CONFIG.regexRules)
+  emitPipelineStage(wordStr, 'overrides', nodesDiffer(syllabicNodes, renderNodes))
+
   const displayNodes = resolveDisplay(renderNodes)
+  emitPipelineStage(wordStr, 'resolveDisplay', nodesDiffer(renderNodes, displayNodes))
 
   return (
     <span className="eic-word">

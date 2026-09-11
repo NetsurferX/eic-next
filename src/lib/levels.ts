@@ -24,6 +24,17 @@ export interface Lesson {
   // exemple ROMÂNEȘTI, nu englezești — deci nu-i o transformare reală a
   // sunetului englez, doar un sprijin temporar de apropiere).
   beginnerNote?: string
+  // Cuvânt-purtător scurt folosit DOAR de OnboardingSoundIntro (etapa
+  // "matching" — cercul/pătratul care vibrează), ca aproximare TTS a
+  // sunetului izolat: Web Speech API nu poate sintetiza direct un fonem
+  // IPA pur (ar citi simbolul ca literă din alfabet), deci folosim cel
+  // mai scurt cuvânt englezesc real care se apropie de sunetul curat
+  // (ex. "eye" pentru /aɪ/, "ooh" pentru /uː/). NU afectează randarea/
+  // motorul — e strict pedagogic, pentru demo-ul de deschidere a coloanei.
+  // Absent → componenta cade back pe exampleWord (primul cuvânt din
+  // lecție), potrivit pentru coloanele de consoane unde o aproximare de
+  // sunet izolat n-ar avea sens (sh, ch, dj, th, consoane silabice etc.).
+  matchWord?: string
 }
 
 // A level is a set of columns (rules) — USUALLY 4, but not fixed any more
@@ -44,7 +55,7 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 1 · Vocale scurte',
     lessons: [
       {
-        id: 'a', letter: 'a', color: '#008E40', tabLabel: 'Verde',
+        id: 'a', letter: 'a', color: '#008E40', tabLabel: 'Verde', matchWord: 'ah',
         words: [
           { text: 'dark',   mark: 'a' },
           { text: 'cart',   mark: 'a' },
@@ -55,7 +66,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'e', letter: 'e', color: '#EE5B00', tabLabel: 'Portocaliu',
+        id: 'e', letter: 'e', color: '#EE5B00', tabLabel: 'Portocaliu', matchWord: 'egg',
         words: [
           { text: 'bed',    mark: 'e' },
           { text: 'head',   mark: 'ea' },
@@ -66,7 +77,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'o', letter: 'o', color: '#FF3399', tabLabel: 'Roz',
+        id: 'o', letter: 'o', color: '#FF3399', tabLabel: 'Roz', matchWord: 'odd',
         // Coloana /o/ — accent britanic (regula 6 din EiC — /learn — Modificări de implementat)
         accent: 'en-GB',
         words: [
@@ -79,7 +90,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'i', letter: 'i', color: '#CC0000', tabLabel: 'Roșu',
+        id: 'i', letter: 'i', color: '#CC0000', tabLabel: 'Roșu', matchWord: 'it',
         words: [
           { text: 'sit',  mark: 'i' },
           { text: 'tip',  mark: 'i' },
@@ -96,7 +107,7 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 2 · Alte vocale',
     lessons: [
       {
-        id: 'ae', letter: 'æ', color: '#00A2E0', tabLabel: 'Bleu',
+        id: 'ae', letter: 'æ', color: '#00A2E0', tabLabel: 'Bleu', matchWord: 'add',
         // Coloana æ — accent britanic (regula 6). Cuvintele cu æn/æm (man, hand)
         // sunt oricum acoperite de accentul coloanei; word.accent rămâne
         // disponibil pentru un eventual cuvânt cu æn/æm dintr-o ALTĂ coloană.
@@ -111,7 +122,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'u', letter: 'uː', color: '#7030A0', tabLabel: 'Mov',
+        id: 'u', letter: 'uː', color: '#7030A0', tabLabel: 'Mov', matchWord: 'ooh',
         words: [
           { text: 'moon', mark: 'oo' },
           { text: 'food', mark: 'oo' },
@@ -137,7 +148,7 @@ export const LEVELS: Level[] = [
         // cuvinte (MarkedWord), pe litera din capul coloanei, pe butonul
         // "Repetă" și pe cupă — vezi lib/tricolorStyle.ts (TRICOLOR_BANDS /
         // TRICOLOR_CSS_HORIZONTAL) și /learn/page.tsx (lessonId === 'ou').
-        id: 'ou', letter: 'ə\u200Dʊ', color: '#CE1126', tabLabel: 'Tricolor',
+        id: 'ou', letter: 'ə\u200Dʊ', color: '#CE1126', tabLabel: 'Tricolor', matchWord: 'oh',
         words: [
           { text: 'go',   mark: 'o' },
           { text: 'boat', mark: 'oa' },
@@ -148,7 +159,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'ei', letter: 'eɪ', color: '#00246C', tabLabel: 'Bleumarin',
+        id: 'ei', letter: 'eɪ', color: '#00246C', tabLabel: 'Bleumarin', matchWord: 'ay',
         words: [
           { text: 'day',  mark: 'ay' },
           { text: 'name', mark: 'a' },
@@ -165,7 +176,7 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 3 · Diftongi',
     lessons: [
       {
-        id: 'ju', letter: 'juː', color: '#833C0B', tabLabel: 'Maro',
+        id: 'ju', letter: 'juː', color: '#833C0B', tabLabel: 'Maro', matchWord: 'you',
         words: [
           { text: 'cute',     mark: 'u' },
           { text: 'music',    mark: 'u' },
@@ -176,7 +187,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'ai', letter: 'aɪ', color: '#4472C4', tabLabel: 'Albastru',
+        id: 'ai', letter: 'aɪ', color: '#4472C4', tabLabel: 'Albastru', matchWord: 'eye',
         words: [
           { text: 'night', mark: 'i' },
           { text: 'my',    mark: 'y' },
@@ -187,7 +198,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'au', letter: 'aʊ', color: '#23D300', tabLabel: 'Verde deschis',
+        id: 'au', letter: 'aʊ', color: '#23D300', tabLabel: 'Verde deschis', matchWord: 'ow',
         words: [
           { text: 'loud',  mark: 'ou' },
           { text: 'cow',   mark: 'ow' },
@@ -198,7 +209,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'oi', letter: 'oɪ', color: '#FF3399', tabLabel: 'Roz-roșu',
+        id: 'oi', letter: 'oɪ', color: '#FF3399', tabLabel: 'Roz-roșu', matchWord: 'oy',
         words: [
           { text: 'boy',   mark: 'oy' },
           { text: 'coin',  mark: 'oi' },
@@ -375,7 +386,7 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 8 · Vocale suplimentare',
     lessons: [
       {
-        id: 'strut', letter: 'ʌ', color: '#008E40', tabLabel: 'Verde-gradient',
+        id: 'strut', letter: 'ʌ', color: '#008E40', tabLabel: 'Verde-gradient', matchWord: 'uh',
         // STRUT — necesită accent='en-GB' explicit: dicționarul US din acest
         // proiect transcrie STRUT ca schwa (/ə/), nu /ʌ/ (o convenție de
         // transcriere americană pentru acest sunet — nu ține de regula
@@ -393,7 +404,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'rotic-o', letter: 'o', color: '#FF3399', tabLabel: 'Roz',
+        id: 'rotic-o', letter: 'o', color: '#FF3399', tabLabel: 'Roz', matchWord: 'or',
         // [o] rotic (door/force) — distinct de [ɒ] non-rotic (hot/dog, deja
         // acoperit în Nivelul 1) prin lipsa gradientului: rotic e flat.
         words: [

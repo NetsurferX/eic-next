@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
+import { MascotIntro } from '@/components/game/MascotIntro'
 import { StarIcon } from '@/components/game/StarIcon'
 import type { RenderNode } from '@/lib/renderNode'
 
@@ -287,6 +288,10 @@ export default function LearnPage() {
   const dequeueFox = useCallback(() => setFoxQueue(q => q.slice(1)), [])
 
   const [hydrated, setHydrated] = useState(false)
+  // ── intro-ul cu vulpea mare, la centru, care „zboară" apoi spre dock-ul
+  //    permanent (FoxHelper) — vezi MascotIntro.tsx. Dock-ul e montat abia
+  //    după aterizare, ca predarea vizuală să fie fără sărituri. ──
+  const [introDone, setIntroDone] = useState(false)
   const autoCancel  = useRef(false)
   // Holds a { pause } handle for whatever's currently speaking (Web Speech API),
   // so the cleanup/stop logic below can silence it instantly either way.
@@ -1010,9 +1015,14 @@ export default function LearnPage() {
           la coloană completă, cară/varsă cupa coloanei în cupa mare ── */}
       <MascotReward animation={mascotAnimation} size={96} />
 
+      {/* Vulpea mare, la centru, la deschiderea paginii — „zboară" apoi
+          spre dock-ul de mai jos (vezi MascotIntro.tsx) ── */}
+      {!introDone && <MascotIntro onComplete={() => setIntroDone(true)} />}
+
       {/* Vulpea-asistent — dock permanent, ascuns cât timp overlay-ul de
-          nivel e deschis (acela are deja propria mascotă, în cupwrap) ── */}
-      {!showLevelOverlay && (
+          nivel e deschis (acela are deja propria mascotă, în cupwrap), sau
+          cât timp intro-ul de mai sus încă nu a „aterizat" ── */}
+      {!showLevelOverlay && introDone && (
         <FoxHelper
           idleTip={foxIdleHint}
           queue={foxQueue}
