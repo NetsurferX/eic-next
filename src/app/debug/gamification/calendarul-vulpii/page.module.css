@@ -1,0 +1,119 @@
+.wrap {
+  min-height: 100vh;
+  background: #fafaf7;
+  padding: 32px 20px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #2b2b2b;
+}
+
+.back {
+  display: inline-block;
+  color: #888;
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.back:hover { color: #444; }
+
+.stage {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.title { font-size: 26px; margin: 0 0 6px; }
+.sub { color: #666; font-size: 14px; margin: 0 0 20px; line-height: 1.5; }
+
+.streakBanner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #fff3e0, #ffe8cc);
+  border: 1px solid #f0d9a8;
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+}
+
+.foxEmoji { font-size: 34px; }
+
+.streakBanner strong { display: block; font-size: 18px; }
+.stageLabel { font-size: 12.5px; color: #a8752b; }
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.dayCell {
+  position: relative;
+  aspect-ratio: 1;
+  background: #fff;
+  border: 1px solid #e8e4da;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.dayCell.practiced {
+  background: #fff4e0;
+  border-color: #f0c98a;
+}
+
+.dayCell.today {
+  outline: 2px solid #e8590c;
+  outline-offset: 1px;
+}
+
+.dayNumber { color: #999; font-size: 10px; }
+.paw { font-size: 14px; }
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.stagesRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.stagePill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f3f5;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #999;
+}
+
+.stageReached {
+  background: #fff3e0;
+  color: #a8752b;
+  font-weight: 600;
+}
+
+.note {
+  max-width: 640px;
+  margin: 26px auto 0;
+  font-size: 12.5px;
+  color: #999;
+  line-height: 1.6;
+}

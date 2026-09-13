@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MODULE_NODES, MODULE_EDGES, type ModuleGroup } from "@/lib/moduleGraphData";
 
 /* =================================================================
@@ -155,11 +155,23 @@ function ShortestPathGame() {
     return pairs;
   }, [adj]);
 
-  const [roundIdx, setRoundIdx] = useState(() => Math.floor(Math.random() * candidates.length));
-  const pair = candidates[roundIdx];
-  const [path, setPath] = useState<string[]>(pair ? [pair.a] : []);
+  // roundIdx pornește null (identic pe server și pe client) — alegerea aleatorie
+  // se face abia în useEffect, adică doar pe client, ca să nu apară hydration
+  // mismatch (server și client alegeau anterior perechi diferite prin Math.random()
+  // direct în inițializarea state-ului).
+  const [roundIdx, setRoundIdx] = useState<number | null>(null);
+  const [path, setPath] = useState<string[]>([]);
   const [result, setResult] = useState<{ optimal: number; used: number } | null>(null);
   const [score, setScore] = useState({ perfect: 0, total: 0 });
+
+  useEffect(() => {
+    if (candidates.length === 0) return;
+    const idx = Math.floor(Math.random() * candidates.length);
+    setRoundIdx(idx);
+    setPath([candidates[idx].a]);
+  }, [candidates]);
+
+  const pair = roundIdx !== null ? candidates[roundIdx] : undefined;
 
   function nextRound() {
     const idx = Math.floor(Math.random() * candidates.length);

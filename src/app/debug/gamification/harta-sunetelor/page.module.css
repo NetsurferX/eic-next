@@ -1,0 +1,137 @@
+.wrap {
+  min-height: 100vh;
+  background: #fafaf7;
+  padding: 32px 20px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #2b2b2b;
+}
+
+.back {
+  display: inline-block;
+  color: #888;
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.back:hover { color: #444; }
+
+.stage {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.title { font-size: 26px; margin: 0 0 6px; }
+.sub { color: #666; font-size: 14px; margin: 0 0 22px; line-height: 1.5; }
+
+.mapFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(160deg, #cdeefd 0%, #eaf7ec 100%);
+  border-radius: 20px;
+  border: 1px solid #d7e8dd;
+  overflow: hidden;
+}
+
+.mapSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pathLine {
+  fill: none;
+  stroke: #ffffffaa;
+  stroke-width: 1.2;
+  stroke-dasharray: 2 2;
+}
+
+.island {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  transition: transform 0.15s ease;
+}
+
+.island:hover { transform: translate(-50%, -50%) scale(1.08); }
+
+.island.locked {
+  background: #f1f3f5;
+  opacity: 0.75;
+}
+
+.island.selected {
+  outline: 3px solid #333;
+  outline-offset: 2px;
+}
+
+.foxMarker {
+  position: absolute;
+  top: -22px;
+  font-size: 20px;
+}
+
+.checkMarker {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  background: #2f9e44;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoRow {
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.infoCard, .progressCard {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e8e4da;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoCard strong { font-size: 18px; }
+.statusLabel { font-size: 12.5px; color: #777; }
+
+.progressCard {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.progressCard span { font-size: 12px; color: #888; }
+.progressCard strong { font-size: 20px; }
+
+.note {
+  max-width: 760px;
+  margin: 26px auto 0;
+  font-size: 12.5px;
+  color: #999;
+  line-height: 1.6;
+}
