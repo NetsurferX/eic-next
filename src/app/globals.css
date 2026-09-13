@@ -2840,3 +2840,117 @@ button, textarea, input { font-family: var(--font-sans); }
   cursor: pointer;
 }
 .review-word-btn:hover { background: var(--color-surface-2); }
+
+/* ── EiC2 · meniul „Continuă ▾" de pe ecranul allDone (/learn) — apare doar
+   după terminarea întregului parcurs, oferă „Reia EiC1" și „Joacă EiC2".
+   Stil consistent cu .lesson-reset-btn / .reset-overlay de mai sus. ── */
+.eic2-menu { position: relative; margin-bottom: .6rem; }
+.eic2-menu-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 700; font-family: var(--font-sans);
+  color: #fff;
+  background: #FFB300;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: transform .15s, opacity .15s;
+}
+.eic2-menu-toggle:hover { transform: translateY(-1px); }
+.eic2-menu-list {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+  display: flex; flex-direction: column; min-width: 220px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  animation: level-overlay-card-in 180ms ease;
+}
+.eic2-menu-item {
+  display: block;
+  font-size: 13px; font-weight: 600; font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background: none; border: none;
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.eic2-menu-item:hover { background: var(--color-surface-2); }
+.eic2-menu-item + .eic2-menu-item { border-top: 1px solid var(--color-border-soft); }
+
+/* ── EiC2 · pagina jocului de recapitulare (/eic2) — izolată de restul
+   layout-ului din /learn, propriul mic set de stiluri. ── */
+.pingpong-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  display: flex; flex-direction: column; gap: .6rem;
+}
+.pingpong-top-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pingpong-back-link {
+  font-size: 13px; font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+.pingpong-back-link:hover { text-decoration: underline; }
+.pingpong-score { font-size: 14px; font-weight: 600; }
+.pingpong-title {
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 1.5rem; margin-top: .3rem;
+}
+.pingpong-instructions {
+  font-size: 13.5px; color: var(--color-text-secondary); opacity: .8;
+  margin-bottom: .4rem;
+}
+.pingpong-track {
+  position: relative;
+  height: 140px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.pingpong-bubble {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  padding: 10px 0;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: 700; font-size: 1.15rem;
+  color: var(--color-text-primary);
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  transition-property: left;
+  transition-timing-function: linear;
+}
+.pingpong-bubble.is-correct { border-color: #2e7d32; box-shadow: 0 0 0 4px rgba(46,125,50,.18); }
+.pingpong-bubble.is-wrong   { border-color: #CC0000; box-shadow: 0 0 0 4px rgba(204,0,0,.18); }
+.pingpong-word-mark { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2.5px; }
+.pingpong-options {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  padding: .5rem 0;
+}
+.pingpong-option {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform .12s;
+}
+.pingpong-option:hover { transform: scale(1.08); }
+.pingpong-option:active { transform: scale(.94); }
+.pingpong-footer {
+  display: flex; align-items: center; gap: .75rem; justify-content: center;
+  margin-top: .5rem;
+}
+.pingpong-misses { font-size: 13px; color: var(--color-text-secondary); opacity: .75; }

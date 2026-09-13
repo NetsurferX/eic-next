@@ -205,6 +205,7 @@ export default function LearnPage() {
     setBeginnerNoteHydrated(true)
   }, [])
   const [allDone, setAllDone]               = useState(false)
+  const [showEic2Menu, setShowEic2Menu]     = useState(false)   // meniul „Continuă ▾" de pe ecranul allDone (Reia EiC1 / Joacă EiC2)
 
   const [playingWord, setPlayingWord]       = useState<string | null>(null)
   // Coloana căreia îi aparține playingWord — necesar ca să nu se aprindă
@@ -912,6 +913,40 @@ export default function LearnPage() {
         <p className="lesson-subhead">
           {allDone ? 'Repetă cuvintele cu voce tare' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
         </p>
+
+        {allDone && (
+          <div className="eic2-menu">
+            <button
+              type="button"
+              className="eic2-menu-toggle"
+              onClick={() => setShowEic2Menu(v => !v)}
+              aria-expanded={showEic2Menu}
+              aria-haspopup="menu"
+            >
+              Continuă ▾
+            </button>
+            {showEic2Menu && (
+              <div className="eic2-menu-list" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="eic2-menu-item"
+                  onClick={() => { setShowEic2Menu(false); setShowResetConfirm(true) }}
+                >
+                  ↺ Reia EiC1 de la început
+                </button>
+                <Link
+                  href="/eic2"
+                  role="menuitem"
+                  className="eic2-menu-item"
+                  onClick={() => setShowEic2Menu(false)}
+                >
+                  🏓 Joacă EiC2 (recapitulare)
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="lesson-speed-control">
           <label htmlFor="speed-slider" className="lesson-speed-label">Viteză</label>

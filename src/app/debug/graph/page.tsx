@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ModuleGraph from "@/components/ModuleGraph";
 import PipelineTraceGraph from "@/components/PipelineTraceGraph";
+import ModuleGraphGame from "@/components/ModuleGraphGame";
 
 export const metadata: Metadata = {
   title: "EiC · Graf module",
@@ -34,6 +35,18 @@ export default function ModuleGraphPage() {
         pasul fix următor din secvență, nu o ramificație reală.
       </p>
       <PipelineTraceGraph />
+
+      <hr style={{ margin: "2.5rem 0", border: "none", borderTop: "1px solid var(--color-border, #e8e6e1)" }} />
+
+      <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.15rem", marginBottom: "0.25rem" }}>
+        Mini-jocuri algoritmice — graful de dependințe
+      </h2>
+      <p style={{ marginBottom: "1.25rem", opacity: 0.7, fontSize: "0.9rem" }}>
+        Trei jocuri pe datele reale din <code>moduleGraphData.ts</code>, fiecare verificat printr-un algoritm
+        de graf calculat la runtime: BFS pentru drumul cel mai scurt, grad de nod pentru hub-uri, sortare
+        topologică (Kahn) pentru ordinea de dependință.
+      </p>
+      <ModuleGraphGame />
     </main>
   );
 }

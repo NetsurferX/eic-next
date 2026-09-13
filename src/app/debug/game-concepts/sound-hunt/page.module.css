@@ -1,0 +1,154 @@
+.wrap {
+  min-height: 100vh;
+  background: linear-gradient(#eaf6ec, #fafaf7 320px);
+  padding: 32px 20px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #2b2b2b;
+}
+
+.back {
+  display: inline-block;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+
+.stage {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e8e4da;
+  border-radius: 20px;
+  padding: 28px 24px 32px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.title {
+  text-align: center;
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.sub {
+  text-align: center;
+  color: #777;
+  font-size: 13.5px;
+  margin: 0 0 22px;
+}
+
+.promptRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.fox {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.targetLabel {
+  font-size: 13px;
+  color: #777;
+}
+
+.targetSwatch {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: 2px solid rgba(0,0,0,0.08);
+}
+
+.word {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 26px;
+}
+
+.bushes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.bush {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+  cursor: pointer;
+  font-size: 26px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.12);
+}
+
+.bush:hover {
+  transform: scale(1.05);
+}
+
+.bush.correct {
+  outline: 4px solid #2f9e44;
+  outline-offset: 2px;
+}
+
+.bush.wrong {
+  outline: 4px solid #e03131;
+  outline-offset: 2px;
+  opacity: 0.55;
+}
+
+.timerTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: #eee;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.timerFill {
+  height: 100%;
+  background: #2f9e44;
+  transition: width 0.2s linear;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.score {
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.replay {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.note {
+  max-width: 640px;
+  margin: 22px auto 0;
+  font-size: 12.5px;
+  color: #999;
+  text-align: center;
+  line-height: 1.6;
+}
