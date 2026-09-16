@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   MODULE_NODES,
   MODULE_EDGES,
@@ -10,8 +9,12 @@ import {
   INCIDENTS,
   OPEN_INCIDENTS,
   CLOSED_INCIDENTS,
+  PIPELINE_FUNNEL,
+  PIPELINE_ENTRY_WORDS,
+  PIPELINE_EXTRA_STAGE_HISTOGRAM,
   type ModuleGroup,
 } from "../_repoData";
+import ObservatorNav from "../_ObservatorNav";
 
 /* =================================================================
    CONCEPT 1/3 — "Sala de control" (à la Prometheus/Grafana)
@@ -95,11 +98,9 @@ export default function SalaControl() {
             last scrape: {now ? fmtTime(now) : "—"} · static snapshot, nu date live
           </span>
         </div>
+        <ObservatorNav theme="dark" accent="#7fc8f8" />
         <p style={{ fontSize: "0.8rem", color: "#8a919c", marginTop: 0, marginBottom: "1.5rem" }}>
-          <Link href="/debug/observator" style={{ color: "#7fc8f8" }}>
-            ← alte concepte
-          </Link>{" "}
-          · toate cifrele de mai jos sunt măsurate manual pe cod (wc -l + graful de import-uri din{" "}
+          toate cifrele de mai jos sunt măsurate manual pe cod (wc -l + graful de import-uri din{" "}
           <code>moduleGraphData.ts</code>), nu simulate.
         </p>
 
@@ -172,6 +173,82 @@ export default function SalaControl() {
                 </div>
               ))}
           </div>
+        </Panel>
+
+        {/* funnel de cost per etapă a pipeline-ului — vezi comentariul din _repoData.ts:
+            NU e monoton descrescător, e afișat intenționat așa (procent din
+            PIPELINE_ENTRY_WORDS pt. fiecare etapă), nu forțat într-o formă de
+            pâlnie clasică — cifrele reale contează mai mult decât forma. */}
+        <Panel title="📉 Funnel de cost — pipeline pe tot lexiconul (147.375 cuvinte)">
+          <div style={{ display: "grid", gap: "0.5rem" }}>
+            {PIPELINE_FUNNEL.map((stage) => (
+              <div
+                key={stage.id}
+                style={{ display: "grid", gridTemplateColumns: "160px 1fr 130px", alignItems: "center", gap: "0.6rem" }}
+              >
+                <span style={{ fontSize: "0.78rem", color: "#a9afb8" }}>{stage.label}</span>
+                <div style={{ background: "#1e2226", borderRadius: 4, height: 14, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      width: `${stage.pct}%`,
+                      background: stage.id === "entry" ? "#565c66" : "#7fc8f8",
+                      height: "100%",
+                    }}
+                  />
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "#8a919c", textAlign: "right" }}>
+                  {stage.count.toLocaleString("ro-MD")} · {stage.pct}%
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gap: "0.3rem", marginTop: "0.9rem" }}>
+            {PIPELINE_FUNNEL.map((stage) => (
+              <p key={stage.id} style={{ margin: 0, fontSize: "0.72rem", color: "#6d7480" }}>
+                <strong style={{ color: "#8a919c" }}>{stage.label}:</strong> {stage.note}
+              </p>
+            ))}
+          </div>
+          <p style={{ margin: "0.7rem 0 0", fontSize: "0.72rem", color: "#565c66" }}>
+            Nu e o pâlnie clasică (nu scade monoton) — cele 3 etape suplimentare rulează secvențial
+            în pipeline, dar declanșarea uneia nu implică declanșarea alteia. Barele arată % din
+            lexicon care are nevoie de acea etapă, nu o mulțime care se restrânge succesiv.
+          </p>
+        </Panel>
+
+        {/* histogramă: câte din cele 3 etape suplimentare declanșează fiecare cuvânt, simultan */}
+        <Panel title="⚖️ Cost agregat per cuvânt (câte etape suplimentare, simultan)">
+          <div style={{ display: "grid", gap: "0.5rem" }}>
+            {PIPELINE_EXTRA_STAGE_HISTOGRAM.map((count, i) => (
+              <div
+                key={i}
+                style={{ display: "grid", gridTemplateColumns: "160px 1fr 130px", alignItems: "center", gap: "0.6rem" }}
+              >
+                <span style={{ fontSize: "0.78rem", color: "#a9afb8" }}>
+                  {i} etape{i === 1 ? "" : ""} extra
+                </span>
+                <div style={{ background: "#1e2226", borderRadius: 4, height: 14, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      width: `${(count / PIPELINE_ENTRY_WORDS) * 100}%`,
+                      background: ["#565c66", "#8fd694", "#ffb454", "#ff5d5d"][i],
+                      height: "100%",
+                    }}
+                  />
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "#8a919c", textAlign: "right" }}>
+                  {count.toLocaleString("ro-MD")} ·{" "}
+                  {(Math.round((count / PIPELINE_ENTRY_WORDS) * 1000) / 10).toFixed(1)}%
+                </span>
+              </div>
+            ))}
+          </div>
+          <p style={{ margin: "0.7rem 0 0", fontSize: "0.72rem", color: "#565c66" }}>
+            0 = cuvântul trece prin pipeline fără nicio ramură suplimentară declanșată (doar
+            segment+align+resolveDisplay de bază). 3 = cazul cel mai scump — syllabic detection ȘI
+            regex override ȘI gradient, toate pe același cuvânt ({PIPELINE_EXTRA_STAGE_HISTOGRAM[3]}{" "}
+            de cuvinte în tot lexiconul).
+          </p>
         </Panel>
 
         {/* "servicii critice" = hub-uri din graf, gamified ca uptime tiers */}
