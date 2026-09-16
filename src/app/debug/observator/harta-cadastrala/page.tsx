@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { MODULE_NODES, MODULE_EDGES, locOf, type ModuleGroup } from "../_repoData";
+import ObservatorNav from "../_ObservatorNav";
 
 /* =================================================================
    CONCEPT 2/3 — "Harta cadastrală"
@@ -188,10 +188,10 @@ export default function HartaCadastrala() {
       <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "1.4rem", marginBottom: "0.25rem" }}>
         Harta cadastrală a repo-ului
       </h1>
+      <ObservatorNav theme="light" accent="#2F5D8A" />
       <p style={{ marginBottom: "1rem", opacity: 0.7, fontSize: "0.9rem" }}>
-        <Link href="/debug/observator">← alte concepte</Link> · fiecare pătrat e o parcelă (fișier);
-        mărimea e proporțională cu LOC real, culoarea e zona (grupul din <code>moduleGraphData.ts</code>).
-        Click pe o parcelă pentru cartea funciară.
+        fiecare pătrat e o parcelă (fișier); mărimea e proporțională cu LOC real, culoarea e zona
+        (grupul din <code>moduleGraphData.ts</code>). Click pe o parcelă pentru cartea funciară.
       </p>
 
       <section
