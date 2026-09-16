@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { INCIDENTS, MODULE_NODES, type Incident } from "../_repoData";
+import ObservatorNav from "../_ObservatorNav";
 
 /* =================================================================
    CONCEPT 3/3 — "Tura de gardă" (stil SRE on-call)
@@ -75,11 +75,9 @@ export default function TuraDeGarda() {
           <h1 style={{ fontSize: "1.1rem", margin: 0 }}>🚨 Tura de gardă — eic-next on-call</h1>
           <span style={{ fontSize: "0.72rem", color: "#8b949e" }}>rezolvate azi: {solved.length}</span>
         </div>
+        <ObservatorNav theme="dark" accent="#58a6ff" />
         <p style={{ fontSize: "0.78rem", color: "#8b949e", marginTop: 0, marginBottom: "1.3rem" }}>
-          <Link href="/debug/observator" style={{ color: "#58a6ff" }}>
-            ← alte concepte
-          </Link>{" "}
-          · fiecare tichet e un bug real, deja documentat în istoricul sesiunilor de engine.
+          fiecare tichet e un bug real, deja documentat în istoricul sesiunilor de engine.
         </p>
 
         {!ticket ? (
