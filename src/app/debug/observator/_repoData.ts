@@ -165,3 +165,73 @@ export const INCIDENTS: Incident[] = [
 
 export const OPEN_INCIDENTS = INCIDENTS.filter((i) => i.status === "deschis");
 export const CLOSED_INCIDENTS = INCIDENTS.filter((i) => i.status === "rezolvat");
+
+/**
+ * Funnel de cost per etapă a pipeline-ului — date REALE, măsurate rulând
+ * pipeline-ul EXACT ca în WordRenderer.tsx (applySyllabicConsonantDetection
+ * → applySyllabicRDetection → applyRegexOverrides → resolveDisplay) peste
+ * toate cele 147.489 de rânduri distincte din lexicon.db (uk ∪ us), cu
+ * un script temporar (tmp-funnel-stats.ts, șters după rulare — la fel ca
+ * scripturile din docs/prompts.md). "Necesită etapa" = nodesDiffer() a
+ * întors true pt. acel cuvânt la acea etapă (aceeași definiție ca cea din
+ * pipelineTrace.ts, doar calculată offline pe tot lexiconul, nu doar pe
+ * cuvintele văzute live într-o sesiune de browser).
+ *
+ * IMPORTANT — nu e un funnel clasic (nu scade monoton): cele 3 etape sunt
+ * ramuri relativ independente ale aceluiași pipeline secvențial, nu un
+ * filtru care restrânge succesiv aceeași mulțime. Bara "Gradient" e mare
+ * (~41%) pentru că include AMBELE cazuri de gradient (diftong ȘI fade
+ * 70/30 pe vocalele scurte necolorate simplu), nu doar tricolorul rar
+ * /əʊ/ — deci nu e o eroare de măsurare, e o descoperire reală.
+ */
+export type FunnelStageId = "entry" | "syllabic" | "overrides" | "gradient";
+
+export interface FunnelStage {
+  id: FunnelStageId;
+  label: string;
+  count: number;
+  pct: number; // % din PIPELINE_ENTRY_WORDS, rotunjit la o zecimală
+  note: string;
+}
+
+export const PIPELINE_ENTRY_WORDS = 147375; // rânduri din lexicon.db procesate cu succes de getBestNodes()
+
+export const PIPELINE_FUNNEL: FunnelStage[] = [
+  {
+    id: "entry",
+    label: "Intrare (lexicon)",
+    count: 147375,
+    pct: 100,
+    note: "Toate rândurile din lexicon.db (uk ∪ us) care trec de getBestNodes().",
+  },
+  {
+    id: "syllabic",
+    label: "+ Syllabic detection",
+    count: 7569,
+    pct: 5.1,
+    note: "applySyllabicConsonantDetection + applySyllabicRDetection au modificat efectiv nodurile.",
+  },
+  {
+    id: "overrides",
+    label: "+ Regex override",
+    count: 206,
+    pct: 0.1,
+    note: "applyRegexOverrides (Tabelul 5, excepții lexicale) a schimbat ceva — cea mai rară etapă.",
+  },
+  {
+    id: "gradient",
+    label: "+ Gradient",
+    count: 60135,
+    pct: 40.8,
+    note: "resolveDisplay a marcat cel puțin un nod cu gradient:true (diftong sau fade 70/30).",
+  },
+];
+
+/**
+ * Histogramă: câte cuvinte au declanșat 0 / 1 / 2 / 3 din cele 3 etape
+ * suplimentare de mai sus, simultan — proxy pt. "cost agregat real per
+ * cuvânt". Suma celor 4 valori = PIPELINE_ENTRY_WORDS.
+ */
+export const PIPELINE_EXTRA_STAGE_HISTOGRAM: [number, number, number, number] = [
+  82320, 62220, 2815, 20,
+];
