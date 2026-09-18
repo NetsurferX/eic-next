@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MODULE_NODES, MODULE_EDGES, locOf, type ModuleGroup } from "../_repoData";
+import {
+  MODULE_NODES,
+  MODULE_EDGES,
+  locOf,
+  stageOf,
+  STAGE_LABEL,
+  STAGE_BADGE,
+  STAGE_COLOR,
+  type ModuleGroup,
+} from "../_repoData";
 import ObservatorNav from "../_ObservatorNav";
 
 /* =================================================================
@@ -190,8 +199,10 @@ export default function HartaCadastrala() {
       </h1>
       <ObservatorNav theme="light" accent="#2F5D8A" />
       <p style={{ marginBottom: "1rem", opacity: 0.7, fontSize: "0.9rem" }}>
-        fiecare pătrat e o parcelă (fișier); mărimea e proporțională cu LOC real, culoarea e zona
-        (grupul din <code>moduleGraphData.ts</code>). Click pe o parcelă pentru cartea funciară.
+        fiecare pătrat e o parcelă (fișier); mărimea e proporțională cu LOC real, culoarea de fundal
+        e zona (grupul din <code>moduleGraphData.ts</code>). Banda de sus + insigna din colț arată
+        etapa reală a pipeline-ului canonic de care se ocupă parcela (al doilea canal vizual,
+        independent de zonă). Click pe o parcelă pentru cartea funciară.
       </p>
 
       <section
@@ -368,11 +379,14 @@ export default function HartaCadastrala() {
                     const active = selected === n.id;
                     const onRoute = routePathSet?.has(n.id) ?? false;
                     const routeIndex = onRoute && route && route !== "no-path" ? route.path.indexOf(n.id) : -1;
+                    const stage = stageOf(n.id);
+                    const stageColor = STAGE_COLOR[stage];
+                    const stageBadge = STAGE_BADGE[stage];
                     return (
                       <button
                         key={n.id}
                         onClick={() => setSelected(n.id)}
-                        title={`${n.label} — ${loc} loc`}
+                        title={`${n.label} — ${loc} loc — etapă: ${STAGE_LABEL[stage]}`}
                         style={{
                           position: "relative",
                           width: side,
@@ -392,6 +406,40 @@ export default function HartaCadastrala() {
                           padding: "2px",
                         }}
                       >
+                        {/* bandă de sus — etapa de procesare */}
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: 4,
+                            borderRadius: "3px 3px 0 0",
+                            background: stageColor,
+                          }}
+                        />
+                        {/* insignă în colț — cod de etapă */}
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            minWidth: 16,
+                            height: 14,
+                            padding: "0 3px",
+                            borderRadius: 4,
+                            background: stageColor,
+                            color: "#fff",
+                            fontSize: "0.5rem",
+                            fontWeight: 700,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            lineHeight: 1,
+                          }}
+                        >
+                          {stageBadge}
+                        </span>
                         {onRoute && (
                           <span
                             style={{
@@ -426,6 +474,39 @@ export default function HartaCadastrala() {
             Chenar punctat = servitute (grad ≥ {HUB_DEGREE_THRESHOLD} — multe alte parcele depind de ea). Contur
             albastru + număr = parcelă pe traseul optim curent.
           </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.6rem",
+              marginTop: "0.5rem",
+              fontSize: "0.72rem",
+              opacity: 0.8,
+            }}
+          >
+            {(Object.keys(STAGE_LABEL) as (keyof typeof STAGE_LABEL)[]).map((stage) => (
+              <span key={stage} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                <span
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    background: STAGE_COLOR[stage],
+                    color: "#fff",
+                    fontSize: "0.5rem",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    lineHeight: 1,
+                  }}
+                >
+                  {STAGE_BADGE[stage]}
+                </span>
+                {STAGE_LABEL[stage]}
+              </span>
+            ))}
+          </div>
         </div>
 
         <aside
@@ -450,6 +531,28 @@ export default function HartaCadastrala() {
                 zonă: {ZONE_LABEL[selectedNode.group]}
                 <br />
                 suprafață: {locOf(selectedNode.id)} loc
+                <br />
+                etapă procesare:{" "}
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                    color: STAGE_COLOR[stageOf(selectedNode.id)],
+                    fontWeight: 600,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: 3,
+                      background: STAGE_COLOR[stageOf(selectedNode.id)],
+                      display: "inline-block",
+                    }}
+                  />
+                  {STAGE_LABEL[stageOf(selectedNode.id)]}
+                </span>
                 {selectedNode.note && (
                   <>
                     <br />

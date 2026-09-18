@@ -60,6 +60,88 @@ export function groupTotals(): Record<ModuleGroup, { loc: number; files: number 
   return totals;
 }
 
+/**
+ * Etapa reală a pipeline-ului canonic (getBestNodesMany → applySyllabicConsonantDetection
+ * → applySyllabicRDetection → applyRegexOverrides → resolveDisplay) de care se ocupă
+ * fiecare parcelă — verificat prin import-uri reale (nu presupus din denumire):
+ *
+ * - "entry": tot ce rulează în interiorul getBestNodes()/getBestNodesMany() din db.ts —
+ *   processIpa (phonologicalRules → segment → align), graphemeToPhoneme (fallback),
+ *   score.ts (selectBest), suffixVoicing.ts.
+ * - "syllabic-consonant" / "syllabic-r": exact fișierul care exportă funcția omonimă.
+ * - "overrides": applyRegexOverrides + tabelele de reguli pe care le consumă.
+ * - "display": resolveDisplay + colors.ts (singura sursă de culoare pe care o citește).
+ * - "cross-cutting": nu e o etapă anume — fie e tipul de date care traversează toate
+ *   etapele (types.ts), fie e barrel-ul public (engine/index.ts), fie e un consumator
+ *   care ORCHESTREAZĂ apelurile către etape (WordRenderer.tsx etc.), fie e strat de
+ *   suport UI din AVAL de pipeline (tricolorStyle.ts — folosit direct de WordRenderer
+ *   pentru CSS, nu de resolveDisplay).
+ */
+export type PipelineStage =
+  | "entry"
+  | "syllabic-consonant"
+  | "syllabic-r"
+  | "overrides"
+  | "display"
+  | "cross-cutting";
+
+export const STAGE_LABEL: Record<PipelineStage, string> = {
+  entry: "getBestNodesMany",
+  "syllabic-consonant": "applySyllabicConsonantDetection",
+  "syllabic-r": "applySyllabicRDetection",
+  overrides: "applyRegexOverrides",
+  display: "resolveDisplay",
+  "cross-cutting": "transversal — nu e o etapă",
+};
+
+export const STAGE_BADGE: Record<PipelineStage, string> = {
+  entry: "I",
+  "syllabic-consonant": "SC",
+  "syllabic-r": "SR",
+  overrides: "O",
+  display: "D",
+  "cross-cutting": "—",
+};
+
+/** Paletă distinctă de ZONE_COLOR — al doilea canal vizual, nu trebuie confundat cu zona. */
+export const STAGE_COLOR: Record<PipelineStage, string> = {
+  entry: "#c0392b",
+  "syllabic-consonant": "#d68910",
+  "syllabic-r": "#1f9e93",
+  overrides: "#7d3fc9",
+  display: "#2e8b3d",
+  "cross-cutting": "#8a8a8a",
+};
+
+export const STAGE_OF_MODULE: Record<string, PipelineStage> = {
+  "lib/db.ts": "entry",
+  "lib/engine/segment.ts": "entry",
+  "lib/engine/align.ts": "entry",
+  "lib/engine/graphemeToPhoneme.ts": "entry",
+  "lib/engine/score.ts": "entry",
+  "lib/engine/suffixVoicing.ts": "entry",
+  "lib/phonologicalRules.ts": "entry",
+
+  "lib/engine/syllabicConsonants.ts": "syllabic-consonant",
+
+  "lib/engine/syllabicR.ts": "syllabic-r",
+
+  "lib/rules/overrides/apply.ts": "overrides",
+  "lib/rules/overrides/index.ts": "overrides",
+  "lib/rules/overrides/misc.ts": "overrides",
+  "lib/rules/overrides/mute-e.ts": "overrides",
+  "lib/rules/overrides/vr-lexical-sets.ts": "overrides",
+  "lib/rules/overrides/yw-exceptions.ts": "overrides",
+  "lib/rules/overrides/types.ts": "overrides",
+
+  "lib/engine/display.ts": "display",
+  "lib/rules/colors.ts": "display",
+};
+
+export function stageOf(id: string): PipelineStage {
+  return STAGE_OF_MODULE[id] ?? "cross-cutting";
+}
+
 export type IncidentStatus = "rezolvat" | "deschis";
 export type IncidentSeverity = "SEV1" | "SEV2" | "SEV3";
 

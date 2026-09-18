@@ -1,0 +1,116 @@
+.wrap {
+  min-height: 100vh;
+  background: #fafaf7;
+  padding: 32px 20px 80px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #2b2b2b;
+}
+
+.back {
+  display: inline-block;
+  color: #888;
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.back:hover { color: #444; }
+
+.stage {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.title { font-size: 26px; margin: 0 0 6px; }
+.sub { color: #666; font-size: 14px; margin: 0 0 24px; line-height: 1.5; }
+
+.playground {
+  position: relative;
+  height: 320px;
+  border: 1px dashed #ddd6c4;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 60%, rgba(232,89,12,0.06), transparent 65%),
+    #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.anchor {
+  transition: transform 220ms cubic-bezier(.22,1,.36,1);
+  will-change: transform;
+}
+
+.hint {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: #aaa;
+  margin: 0;
+}
+
+.zoneIndicator {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #555;
+  justify-content: center;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.departe { background: #adb5bd; }
+.dot.apropiere { background: #f08c00; }
+.dot.aproape { background: #2f9e44; }
+
+.specs {
+  margin-top: 26px;
+  background: #fff;
+  border: 1px solid #e8e4da;
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.specs h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+  margin: 0 0 10px;
+}
+
+.specs ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.specs code {
+  background: #efece2;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12.5px;
+}
+
+.note {
+  font-size: 13px;
+  color: #8a7550;
+  border-top: 1px dashed #e8e4da;
+  padding-top: 10px;
+  margin: 0;
+  line-height: 1.5;
+}
