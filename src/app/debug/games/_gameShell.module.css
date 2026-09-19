@@ -1,0 +1,153 @@
+/* src/app/debug/games/_gameShell.module.css
+ *
+ * Shell CSS partajat de toate subpaginile-concept din /debug/games/*.
+ * Consolidat într-un singur fișier (în loc de câte un page.module.css
+ * aproape identic per folder) — fiecare subpagină importă doar din aici.
+ */
+
+.wrap {
+  min-height: 100vh;
+  background: linear-gradient(#f3f1ea, #fafaf7 320px);
+  padding: 32px 20px 80px;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  color: var(--color-text-primary, #1a1917);
+}
+
+.back {
+  display: inline-block;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+
+.stage {
+  max-width: 680px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--color-border, #e8e6e1);
+  border-radius: var(--radius-lg, 20px);
+  padding: 28px 24px 32px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.06));
+}
+
+.title {
+  text-align: center;
+  margin: 0 0 4px;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 22px;
+}
+
+.sub {
+  text-align: center;
+  color: #777;
+  font-size: 13.5px;
+  margin: 0 0 22px;
+  line-height: 1.4;
+}
+
+.note {
+  max-width: 680px;
+  margin: 18px auto 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #555;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.score {
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+.replay {
+  border: 1px solid var(--color-border, #e8e6e1);
+  background: var(--color-surface, #f8f7f4);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.replay:hover { background: var(--color-surface-2, #f1f0ec); }
+
+/* generic grid/card building blocks reused across concepts */
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--color-border, #e8e6e1);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--color-surface, #f8f7f4);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.card:disabled { cursor: default; opacity: .6; }
+
+.correct { outline: 3px solid #2f9e44; outline-offset: 2px; }
+.wrong   { outline: 3px solid #e03131; outline-offset: 2px; }
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: var(--color-surface-2, #f1f0ec);
+  color: #555;
+}
+
+.fox {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.timerTrack {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-surface-2, #f1f0ec);
+  overflow: hidden;
+  margin: 14px 0;
+}
+.timerFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2f9e44, #f08c00);
+  transition: width .05s linear;
+}
+
+.wordBig {
+  text-align: center;
+  font-size: 2rem;
+  margin: 10px 0 6px;
+}
+
+.rowCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
