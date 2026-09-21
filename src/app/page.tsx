@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import WordRenderer from '@/components/WordRenderer'
 import { useColorizer } from '@/lib/useColorizer'
 import LevelTeaser from '@/components/game/LevelTeaser'
+import IdeasNav from './debug/_IdeasNav'
 
 // ── Salut inițial, o singură dată la prima vizită a paginii principale ──
 // Aceeași convenție ca vulpea din /learn (localStorage eic-*-seen): apare
@@ -94,6 +95,9 @@ export default function Home() {
           />
         </div>
       </div>
+
+      {/* Acces la paginile cu idei (buton plutitor, stânga-jos) */}
+      <IdeasNav />
 
     </main>
   )
