@@ -15,6 +15,7 @@ import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
 import { MascotIntro } from '@/components/game/MascotIntro'
 import { StarIcon } from '@/components/game/StarIcon'
 import type { RenderNode } from '@/lib/renderNode'
+import { BuleleVulpiiOverlay, type BuleleVulpiiOverlayConfig } from '@/components/game/BuleleVulpiiOverlay'
 
 const POP_DURATION_MS = 5000    // how long the per-column cup→star pop animation plays
 const LEVEL_POP_MS = 1800       // how long the big level-cup celebration plays
@@ -38,6 +39,18 @@ const resolveAccent = (w: { accent?: Accent }, l: { accent?: Accent }): Accent =
 const ALL_LESSON_WORDS: string[] = Array.from(new Set(
   LEVELS.flatMap(lvl => lvl.lessons.flatMap(l => l.words.map(w => w.text.toLowerCase())))
 ))
+
+// ── Bulele Vulpii — toate coloanele din tot parcursul, într-o singură listă
+//   plată, în ordinea în care se deblochează (nivel după nivel). Servește
+//   DOAR la ales distractorii ("sunete anterioare") și sunetul următor
+//   pentru mini-jocul de baloane de după fiecare coloană — nu schimbă
+//   nimic din LEVELS/colUnlocked. ──
+const FLAT_LESSONS: Lesson[] = LEVELS.flatMap(lvl => lvl.lessons)
+function flatIndexOf(levelIdx: number, columnIdx: number): number {
+  let idx = 0
+  for (let i = 0; i < levelIdx; i++) idx += LEVELS[i].lessons.length
+  return idx + columnIdx
+}
 // Accentul de COLORARE per cuvânt (nu doar audio) — până acum `resolveAccent`
 // alimenta doar redarea vocală (speak.ts); fără el trecut și la /api/words,
 // motorul alegea mereu implicit varianta US pentru colorare (regulă corectă
@@ -220,6 +233,12 @@ export default function LearnPage() {
   // ── Level-scope celebration state ──
   const [levelCelebrating, setLevelCelebrating]   = useState(false)
   const [showLevelOverlay, setShowLevelOverlay]   = useState(false)
+  // Bulele Vulpii — config-ul jocului de baloane deschis după coloana curentă
+  // (null = nu rulează). Avansul normal (deblocare coloană/nivel), calculat
+  // în handleMainButton/handleStudiedButton, e ținut minte aici și rulat
+  // abia când copilul termină/sare peste joc — vezi pendingAdvanceRef.
+  const [buleleVulpiiConfig, setBuleleVulpiiConfig] = useState<BuleleVulpiiOverlayConfig | null>(null)
+  const pendingAdvanceRef = useRef<(() => void) | null>(null)
   const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
 
   // ── Vulpea de recompensă — chiar când o repetiție se termină cu succes,
@@ -571,31 +590,53 @@ export default function LearnPage() {
     if (columnIsComplete) {
       setCelebrating(true)
 
-      const isLastColumn = active + 1 >= level.lessons.length
-      if (!isLastColumn) {
-        setColUnlocked(prev => {
-          if (prev[levelIndex][active + 1]) return prev
-          const copy = prev.map(row => [...row])
-          copy[levelIndex][active + 1] = true
-          return copy
-        })
-        setJustRevealedIndex(active + 1)
-        setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
-        triggerFox('S-a deschis o coloană nouă!', 'celebrate')
-        // pauză scurtă pentru celebrare, apoi trece singur — fără buton „Continuă"
-        setTimeout(() => setActive(active + 1), 900)
+      const completingLevelIndex = levelIndex
+      const completingActive = active
+      const completingLevel = level
+      const completingIsLastLevel = isLastLevel
+
+      // ── Avansul normal (deblocare coloană/nivel), amânat până termină/sare
+      //    peste Bulele Vulpii — vezi pendingAdvanceRef mai jos. ──
+      const advance = () => {
+        const isLastColumn = completingActive + 1 >= completingLevel.lessons.length
+        if (!isLastColumn) {
+          setColUnlocked(prev => {
+            if (prev[completingLevelIndex][completingActive + 1]) return prev
+            const copy = prev.map(row => [...row])
+            copy[completingLevelIndex][completingActive + 1] = true
+            return copy
+          })
+          setJustRevealedIndex(completingActive + 1)
+          setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
+          triggerFox('S-a deschis o coloană nouă!', 'celebrate')
+          setActive(completingActive + 1)
+        }
+
+        // Every column in the level mastered → a full-screen overlay celebrates
+        // the level with its own beautiful cup, then either the next level
+        // unlocks or, on the final level, the whole journey is done.
+        if (updatedLevelStars.every(v => v >= REPS_PER_LESSON)) {
+          setLevelCelebrating(true)
+          setShowLevelOverlay(true)
+          playLevelFanfare()
+          setTimeout(() => setLevelCelebrating(false), LEVEL_POP_MS)
+          if (completingIsLastLevel) setAllDone(true)
+        }
       }
 
-      // Every column in the level mastered → a full-screen overlay celebrates
-      // the level with its own beautiful cup, then either the next level
-      // unlocks or, on the final level, the whole journey is done.
-      if (updatedLevelStars.every(v => v >= REPS_PER_LESSON)) {
-        setLevelCelebrating(true)
-        setShowLevelOverlay(true)
-        playLevelFanfare()
-        setTimeout(() => setLevelCelebrating(false), LEVEL_POP_MS)
-        if (isLastLevel) setAllDone(true)
-      }
+      // ── Bulele Vulpii — după fiecare coloană terminată, jocul de baloane
+      //    pentru sunetul tocmai încheiat (1-2 sunete anterioare ca
+      //    distractori, sunetul următor din parcurs ca al 4-lea buton).
+      //    PROPUNERE ne-confirmată încă: distractorii sunt pur și simplu
+      //    ultimele până la 2 coloane parcurse înaintea celei curente, NU
+      //    cele mai greșite real (nimic nu urmărește asta încă). ──
+      pendingAdvanceRef.current = advance
+      const flatIdx = flatIndexOf(completingLevelIndex, completingActive)
+      setBuleleVulpiiConfig({
+        lesson,
+        distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
+        nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+      })
     }
   }, [isPlayingRep, showLevelOverlay, nextLevel, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel, triggerFox, startReward])
 
@@ -608,28 +649,46 @@ export default function LearnPage() {
     const updatedLevelStars = levelStars.map((v, idx) => (idx === active ? newCount : v))
     setStarsEarned(prev => prev.map((row, li) => (li === levelIndex ? updatedLevelStars : row)))
 
-    const isLastColumn = active + 1 >= level.lessons.length
-    if (!isLastColumn) {
-      setColUnlocked(prev => {
-        if (prev[levelIndex][active + 1]) return prev
-        const copy = prev.map(row => [...row])
-        copy[levelIndex][active + 1] = true
-        return copy
-      })
-      setJustRevealedIndex(active + 1)
-      setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
-      triggerFox('S-a deschis o coloană nouă!', 'celebrate')
-      setActive(active + 1)
+    const completingLevelIndex = levelIndex
+    const completingActive = active
+    const completingLevel = level
+    const completingIsLastLevel = isLastLevel
+
+    const advance = () => {
+      const isLastColumn = completingActive + 1 >= completingLevel.lessons.length
+      if (!isLastColumn) {
+        setColUnlocked(prev => {
+          if (prev[completingLevelIndex][completingActive + 1]) return prev
+          const copy = prev.map(row => [...row])
+          copy[completingLevelIndex][completingActive + 1] = true
+          return copy
+        })
+        setJustRevealedIndex(completingActive + 1)
+        setTimeout(() => setJustRevealedIndex(null), REVEAL_MS)
+        triggerFox('S-a deschis o coloană nouă!', 'celebrate')
+        setActive(completingActive + 1)
+      }
+
+      if (updatedLevelStars.every(v => v >= REPS_PER_LESSON)) {
+        setLevelCelebrating(true)
+        setShowLevelOverlay(true)
+        playLevelFanfare()
+        setTimeout(() => setLevelCelebrating(false), LEVEL_POP_MS)
+        if (completingIsLastLevel) setAllDone(true)
+      }
     }
 
-    if (updatedLevelStars.every(v => v >= REPS_PER_LESSON)) {
-      setLevelCelebrating(true)
-      setShowLevelOverlay(true)
-      playLevelFanfare()
-      setTimeout(() => setLevelCelebrating(false), LEVEL_POP_MS)
-      if (isLastLevel) setAllDone(true)
-    }
-  }, [isPlayingRep, starsEarned, levelIndex, active, levelStars, level, isLastLevel, triggerFox])
+    // Bulele Vulpii și aici — "Știu deja acest sunet" tot completează
+    // coloana, deci tot declanșează jocul (de discutat dacă vrei ca acest
+    // buton să rămână un skip real, fără minijoc).
+    pendingAdvanceRef.current = advance
+    const flatIdx = flatIndexOf(completingLevelIndex, completingActive)
+    setBuleleVulpiiConfig({
+      lesson,
+      distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
+      nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+    })
+  }, [isPlayingRep, starsEarned, levelIndex, active, levelStars, level, lesson, isLastLevel, triggerFox])
 
   const selectColumn = useCallback((i: number) => {
     if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
@@ -1025,6 +1084,17 @@ export default function LearnPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {buleleVulpiiConfig && (
+        <BuleleVulpiiOverlay
+          config={buleleVulpiiConfig}
+          onDone={() => {
+            setBuleleVulpiiConfig(null)
+            pendingAdvanceRef.current?.()
+            pendingAdvanceRef.current = null
+          }}
+        />
       )}
 
       {showResetConfirm && (
