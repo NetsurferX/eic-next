@@ -63,14 +63,14 @@ export default function BuleleVulpiiIntegratPreview() {
         </div>
 
         <div className={styles.rowCenter} style={{ marginBottom: 18, gap: 8 }}>
-          {([1, 2, 3] as BuleleVulpiiLevel[]).map(lv => (
+          {([1, 2] as BuleleVulpiiLevel[]).map(lv => (
             <button
               key={lv}
               onClick={() => { setLevel(lv); setLastResult(null) }}
               className={styles.replay}
               style={lv === level ? { background: '#1a1917', color: '#fff', borderColor: '#1a1917' } : undefined}
             >
-              Nivel {lv} {lv === 1 ? '· literă' : lv === 2 ? '· fără literă' : '· cuvânt'}
+              Nivel {lv} {lv === 1 ? '· literă' : '· cuvânt'}
             </button>
           ))}
         </div>

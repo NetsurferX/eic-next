@@ -23,9 +23,13 @@ import type { Lesson, LessonWord } from '@/lib/levels'
 //    `distractorLessons`, ÎN ORDINEA dată — alegerea CARE coloane și cum
 //    sunt ordonate (după gravitate reală a greșelilor) rămâne la apelant;
 //    componenta doar le distribuie proporțional în cele 20 de baloane.
-//  - nivelurile 1/2/3 (literă / fără literă / cuvânt) NU se înlănțuie
-//    singure — apelantul decide, via onFinish, dacă trece la nivelul
-//    următor, repetă, sau oprește aici.
+//  - nivelurile 1/2 (literă / cuvânt) NU se înlănțuie singure — apelantul
+//    decide, via onFinish, dacă trece la nivelul următor, repetă, sau
+//    oprește aici.
+//
+// Actualizare 5 (2026-09-25): nivelul „balon gol" a fost eliminat; fostul
+// nivel 3 (cuvânt monosilabic) e acum nivelul 2. Coada a scăzut de la 20 la
+// 10 baloane (aceleași proporții 60/35/5), deci scorul maxim e ~10.
 //
 // Actualizare (2026-09-24): balonul se sparge efectiv la dinți (inel +
 // cioburi, dinții „mușcă"); o singură vulpe în joc (starea `idle`, fără
@@ -41,7 +45,7 @@ import type { Lesson, LessonWord } from '@/lib/levels'
 // într-o captură; baloanele evită doar colțul coșului.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type BuleleVulpiiLevel = 1 | 2 | 3
+export type BuleleVulpiiLevel = 1 | 2
 
 export interface BuleleVulpiiResult {
   level: BuleleVulpiiLevel
@@ -56,7 +60,7 @@ export interface BuleleVulpiiGameProps {
   distractorLessons?: Lesson[]
   /** Sunetul următor din parcurs — dacă există, apare ca al 4-lea buton și 5% din baloane (a 2 puncte). */
   nextLesson?: Lesson | null
-  /** Nivel 1 = literă în balon, 2 = balon gol, 3 = cuvânt monosilabic. Implicit 1. */
+  /** Nivel 1 = literă în balon, 2 = cuvânt monosilabic. Implicit 1. */
   level?: BuleleVulpiiLevel
   onFinish?: (result: BuleleVulpiiResult) => void
   /** Dacă e dat, apare butonul „Ieși" (cu confirmare); apelat când jucătorul chiar iese. */
@@ -84,12 +88,12 @@ function ttsWordFor(lesson: Lesson): string {
   return lesson.matchWord ?? lesson.words[0]?.text ?? lesson.letter
 }
 
-// 20 baloane: 60% sunet antrenat, ~35% distractori (împărțiți proporțional
-// între câți sunt dați), 5% sunetul următor (dacă există).
+// 10 baloane: 60% sunet antrenat, ~35% distractori (împărțiți proporțional
+// între câți sunt dați), 5% sunetul următor (dacă există — practic 1 balon).
 function buildQueue(current: Group, distractors: Group[], next: Group | null): QueueItem[] {
   const nextCount = next ? 1 : 0
-  let currentCount = 12
-  let distractorTotal = 20 - currentCount - nextCount
+  let currentCount = 6
+  let distractorTotal = 10 - currentCount - nextCount
   if (distractors.length === 0) {
     currentCount += distractorTotal
     distractorTotal = 0
@@ -129,7 +133,7 @@ const TICK_MS = 50
 // vârful lui atinge marginea de jos a dinților — acolo se sparge.
 const STAGE_H = 290
 const TEETH_BOTTOM = 40
-const BALLOON_SIZE = 46
+const BALLOON_SIZE = 62
 const MAX_RISE_PX = STAGE_H - TEETH_BOTTOM - BALLOON_SIZE
 const BALLOON_X_MIN = 14    // % — marginea stângă a balonului; coșul e în dreapta-sus
 const BALLOON_X_SPAN = 42
@@ -251,11 +255,10 @@ function FishBasket({ count, flash }: { count: number; flash: boolean }) {
 function renderBalloonContent(level: BuleleVulpiiLevel, b: LiveBalloon) {
   const solved = b.state === 'correct'
   const hex = b.group.lesson.color
-  if (level === 2) return null
   if (level === 1) {
     return <span style={{ color: solved ? hex : '#333', fontWeight: 700 }}>{b.group.lesson.letter}</span>
   }
-  // Nivel 3: cuvânt monosilabic, doar litera-țintă colorată la răspuns corect
+  // Nivel 2: cuvânt monosilabic, doar litera-țintă colorată la răspuns corect
   const text = b.word.text
   const mark = b.word.mark
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
@@ -524,10 +527,10 @@ export function BuleleVulpiiGame({
                   width: '100%', height: '100%', boxSizing: 'border-box', borderRadius: '50%',
                   background: '#fff', border: '2px solid #cfe4f2',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: level === 3 ? 12 : 18,
+                  fontSize: level === 2 ? 16 : 24,
                   boxShadow: '0 2px 6px rgba(0,0,0,.08)',
                   transition: balloon.state === 'correct' ? 'transform 400ms' : undefined,
-                  transform: balloon.state === 'correct' ? 'scale(0.7)' : 'scale(1)',
+                  transform: balloon.state === 'correct' ? 'scale(1.25)' : 'scale(1)',
                   animation: burst ? 'bv-pop 260ms ease-out forwards' : undefined,
                 }}
               >

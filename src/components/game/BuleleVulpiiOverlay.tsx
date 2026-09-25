@@ -42,7 +42,7 @@ export function BuleleVulpiiOverlay({
   const [result, setResult] = useState<BuleleVulpiiResult | null>(null)
 
   function handleContinue() {
-    if (result?.passed && level < 3) {
+    if (result?.passed && level < 2) {
       setLevel((level + 1) as BuleleVulpiiLevel)
       setResult(null)
       return
