@@ -1877,6 +1877,46 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .bulele-overlay-skip:hover { background: var(--color-surface-2); }
 
+/* fade-out fluent la închidere (sfârșit joc / „Sari peste" / „Ieși"),
+   ca revenirea la /learn să nu fie un pop brusc */
+.bulele-overlay-closing { animation: bulele-overlay-out 260ms ease forwards; }
+.bulele-overlay-closing .bulele-overlay-card { animation: bulele-overlay-card-out 260ms ease forwards; }
+@keyframes bulele-overlay-out {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes bulele-overlay-card-out {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(10px) scale(.97); }
+}
+
+/* fade-in la fiecare schimbare de nivel (1 → 2), ca jocul nou să nu
+   apară brusc peste locul celui anterior */
+.bulele-game-fade { animation: bulele-game-fade-in 380ms ease; }
+@keyframes bulele-game-fade-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.bulele-overlay-countdown {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.bulele-overlay-countdown-num {
+  display: inline-block;
+  font-size: 20px;
+  font-weight: 800;
+  min-width: 1.2em;
+  animation: bulele-countdown-tick 1s ease;
+}
+@keyframes bulele-countdown-tick {
+  0%   { transform: scale(1.5); opacity: .3; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    OnboardingSoundIntro — micro-demo animat, afișat o singură dată pe
    ecran întreg (fixed, ca .level-overlay mai sus) prima dată când elevul

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { Mascot } from './Mascot'
+import { Mascot, type MascotState } from './Mascot'
 import { speakWord } from '@/lib/speak'
 import type { Lesson, LessonWord } from '@/lib/levels'
 
@@ -90,10 +90,11 @@ function ttsWordFor(lesson: Lesson): string {
 
 // 10 baloane: 60% sunet antrenat, ~35% distractori (împărțiți proporțional
 // între câți sunt dați), 5% sunetul următor (dacă există — practic 1 balon).
+const TOTAL_BALLOONS = 10
 function buildQueue(current: Group, distractors: Group[], next: Group | null): QueueItem[] {
   const nextCount = next ? 1 : 0
   let currentCount = 6
-  let distractorTotal = 10 - currentCount - nextCount
+  let distractorTotal = TOTAL_BALLOONS - currentCount - nextCount
   if (distractors.length === 0) {
     currentCount += distractorTotal
     distractorTotal = 0
@@ -110,7 +111,8 @@ function buildQueue(current: Group, distractors: Group[], next: Group | null): Q
     }
   }
   if (next) items.push({ group: next })
-  return shuffle(items)
+  // gardă: indiferent de rotunjiri, coada nu depășește niciodată TOTAL_BALLOONS
+  return shuffle(items).slice(0, TOTAL_BALLOONS)
 }
 
 type Zone = 'blue' | 'pink'
@@ -289,7 +291,6 @@ export function BuleleVulpiiGame({
   const [queueLen, setQueueLen] = useState(0)
   const [balloon, setBalloon] = useState<LiveBalloon | null>(null)
   const [score, setScore] = useState(0)
-  const [missCount, setMissCount] = useState(0)
   const [hearts, setHearts] = useState(10)
   const [fourthVisible, setFourthVisible] = useState(false)
   const [hintGroup, setHintGroup] = useState<Group | null>(null)
@@ -383,7 +384,6 @@ export function BuleleVulpiiGame({
     setQueueLen(q.length)
     setQueuePos(0)
     setScore(0)
-    setMissCount(0)
     setHearts(10)
     setDone(null)
     spawnAt(0, q)
@@ -424,7 +424,6 @@ export function BuleleVulpiiGame({
       scoreRef.current -= 1
       setScore(scoreRef.current)
       missRef.current += 1
-      setMissCount(missRef.current)
       flashScore()
       setFourthVisible(false)
       // balonul lovește dinții → se sparge; dinții „mușcă" o clipă
@@ -472,29 +471,44 @@ export function BuleleVulpiiGame({
     ? 'linear-gradient(#fdeef4, #fbf7f8)'
     : 'linear-gradient(#eaf4fb, #f7fbfd)'
 
+  // Mascotă dinamică: bate din lăbuțe la răspuns corect, se apleacă
+  // invitator ("pointing") cât balonul e în zona-indiciu (roz), sare de
+  // bucurie la final dacă a trecut pragul, altfel doar respiră liniștit —
+  // fără starea `talking` (păstrăm o singură vulpe, fără portret facial
+  // suplimentar, ca înainte).
+  const mascotState: MascotState = done
+    ? (done.passed ? 'cheering' : 'idle')
+    : balloon?.state === 'correct'
+      ? 'clapping'
+      : balloon?.zone === 'pink' && balloon?.state === 'flying'
+        ? 'pointing'
+        : 'idle'
+
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit' }}>
+    <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit', position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 10, position: 'relative' }}>
-        {/* o singură vulpe: `idle` (nu `talking`, care adaugă un portret facial lângă cap) */}
-        <Mascot state={done?.passed ? 'cheering' : 'idle'} action={done?.passed ? 'celebrating' : undefined} size={56} />
+        <Mascot state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={56} />
         {helpMessage && (
           <span style={{ position: 'absolute', left: 60, top: -6, background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
             {helpMessage}
           </span>
         )}
         <span style={{ fontSize: 13, color: '#a03060' }}>💗 {hearts}</span>
-        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={pillBtnStyle}>🦊 Ajutor</button>
-        <button
-          onClick={() => (paused ? resumeGame() : pauseGame('pause'))}
-          disabled={!!done}
-          style={pillBtnStyle}
-        >
-          {paused ? '▶ Continuă' : '⏸ Pauză'}
-        </button>
-        {onExit && (
-          <button onClick={() => pauseGame('exit')} style={pillBtnStyle}>✕ Ieși</button>
-        )}
+        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={pillBtnStyle}>Ajută-mă</button>
+        <div style={{ marginLeft: 'auto' }}>
+          <button
+            onClick={() => (paused ? resumeGame() : pauseGame('pause'))}
+            disabled={!!done}
+            style={pillBtnStyle}
+          >
+            {paused ? '▶ Continuă' : '⏸ Pauză'}
+          </button>
+        </div>
       </div>
+
+      {onExit && (
+        <button onClick={() => pauseGame('exit')} aria-label="Ieși din joc" style={exitCornerBtnStyle}>✕</button>
+      )}
 
       <div style={{ position: 'relative', height: STAGE_H, borderRadius: 14, overflow: 'hidden', background: stageBg, transition: 'background 400ms' }}>
         {/* dinți zimțați, pe toată lățimea marginii de sus (statici — nu se mai deplasează) */}
@@ -618,15 +632,18 @@ export function BuleleVulpiiGame({
         })}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20, fontSize: 13, color: '#555', flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ fontWeight: 600, color: '#2b2b2b' }}>Scor: {score}</span>
-        <span>Greșeli: {missCount}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, fontSize: 13, color: '#555', flexWrap: 'wrap', gap: 8 }}>
+        <span style={festiveScoreStyle} className={scoreFlash ? 'bv-score-flash' : undefined}>
+          🎉 Scor: {score}
+        </span>
         <span>Balon {Math.min(queuePos + 1, queueLen)}/{queueLen}</span>
       </div>
 
       <style>{`
         @keyframes bv-flash { 0% { filter: brightness(1) } 50% { filter: brightness(1.6) } 100% { filter: brightness(1) } }
         .bv-flash { animation: bv-flash 400ms ease-out; }
+        @keyframes bv-score-flash { 0% { transform: scale(1) } 40% { transform: scale(1.35) rotate(-2deg) } 100% { transform: scale(1) } }
+        .bv-score-flash { animation: bv-score-flash 400ms ease-out; display: inline-block; }
         @keyframes bv-pop { 0% { transform: scale(1); opacity: 1 } 40% { transform: scale(1.35); opacity: 1 } 100% { transform: scale(1.7); opacity: 0 } }
         @keyframes bv-ring { 0% { transform: scale(.6); opacity: .9 } 100% { transform: scale(2); opacity: 0 } }
         @keyframes bv-shard { 0% { transform: translate(0,0) scale(1); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) scale(.3); opacity: 0 } }
@@ -657,4 +674,26 @@ const basketBadgeStyle: React.CSSProperties = {
 const pillBtnStyle: React.CSSProperties = {
   border: '1px solid #e8e6e1', background: '#f8f7f4', borderRadius: 999,
   padding: '6px 14px', fontSize: 12.5, cursor: 'pointer',
+}
+
+const exitCornerBtnStyle: React.CSSProperties = {
+  position: 'absolute', top: -6, right: -6, zIndex: 6,
+  width: 28, height: 28, borderRadius: '50%',
+  border: '1px solid #e2e2e2', background: '#fff',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontSize: 14, fontWeight: 700, color: '#666', lineHeight: 1,
+  cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,.15)',
+}
+
+const festiveScoreStyle: React.CSSProperties = {
+  fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive, sans-serif',
+  fontWeight: 800,
+  fontSize: 20,
+  letterSpacing: 0.3,
+  background: 'linear-gradient(90deg, #ff8a3d, #ffb703, #ff8a3d)',
+  WebkitBackgroundClip: 'text',
+  backgroundClip: 'text',
+  color: 'transparent',
+  textShadow: '0 1px 0 rgba(255,255,255,.5)',
+  transition: 'transform 200ms',
 }
