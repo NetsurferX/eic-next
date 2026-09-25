@@ -1,38 +1,33 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import WordRenderer from '@/components/WordRenderer'
 import { useColorizer } from '@/lib/useColorizer'
 import LevelTeaser from '@/components/game/LevelTeaser'
 import IdeasNav from './debug/_IdeasNav'
+import { MascotIntro } from '@/components/game/MascotIntro'
+import { FoxHelper, type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
 
 // ── Salut inițial, o singură dată la prima vizită a paginii principale ──
-// Aceeași convenție ca vulpea din /learn (localStorage eic-*-seen): apare
-// scurt deasupra editorului, apoi se închide singură sau la primul input.
-const HOME_GREETING_SEEN_KEY = 'eic-home-seen'
-const HOME_GREETING_TEXT = 'Salut! Scrie un cuvânt sau o propoziție mai jos ca să vezi fiecare sunet colorat 🎨'
-const HOME_GREETING_SHOW_DELAY_MS = 400
-const HOME_GREETING_HIDE_MS = 6000
+// Aceeași convenție ca /learn: vulpea mare apare la centru, salută
+// ("Salut!"/"Bine ai revenit!" — vezi MascotIntro.tsx, citește el însuși
+// localStorage `eic-fox-seen`), apoi „zboară" spre dock-ul permanent din
+// colțul dreapta-jos (FoxHelper), montat abia după aterizare.
+const HOME_IDLE_TIP = 'Scrie un cuvânt sau o propoziție ca să vezi fiecare sunet colorat 🎨'
 
 export default function Home() {
+  const router = useRouter()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { tokens, inputText, onInput } = useColorizer()
-  const [showGreeting, setShowGreeting] = useState(false)
+  const [introDone, setIntroDone] = useState(false)
 
-  useEffect(() => {
-    let seen = false
-    try { seen = localStorage.getItem(HOME_GREETING_SEEN_KEY) === '1' } catch { /* ignore */ }
-    if (seen) return
-    const show = setTimeout(() => setShowGreeting(true), HOME_GREETING_SHOW_DELAY_MS)
-    const hide = setTimeout(() => dismissGreeting(), HOME_GREETING_SHOW_DELAY_MS + HOME_GREETING_HIDE_MS)
-    return () => { clearTimeout(show); clearTimeout(hide) }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // ── Vulpea-asistent — coadă de mesaje declanșate din meniul de acțiuni ──
+  const [foxQueue, setFoxQueue] = useState<FoxTip[]>([])
+  const triggerFox = useCallback((text: string, mood?: FoxMood) => {
+    setFoxQueue(q => [...q, { id: `${Date.now()}-${Math.random()}`, text, mood }])
   }, [])
-
-  const dismissGreeting = () => {
-    setShowGreeting(false)
-    try { localStorage.setItem(HOME_GREETING_SEEN_KEY, '1') } catch { /* ignore */ }
-  }
+  const dequeueFox = useCallback(() => setFoxQueue(q => q.slice(1)), [])
 
   const rendered = tokens.map((tok, i) => {
     if (tok.isWhitespace) return <span key={i}>{tok.raw}</span>
@@ -57,19 +52,6 @@ export default function Home() {
 
       {/* The tool itself: one generous input, nothing competing for attention */}
       <div className="eic-editor-wrap">
-        {showGreeting && (
-          <div className="eic-greeting-toast" role="status">
-            <span>{HOME_GREETING_TEXT}</span>
-            <button
-              type="button"
-              className="eic-greeting-close"
-              onClick={dismissGreeting}
-              aria-label="Închide"
-            >
-              ×
-            </button>
-          </div>
-        )}
         <div className="eic-editor" onClick={() => textareaRef.current?.focus()}>
           <div className="eic-highlight" aria-hidden="true">
             {tokens.length === 0
@@ -81,10 +63,7 @@ export default function Home() {
             ref={textareaRef}
             className="eic-textarea"
             defaultValue={inputText}
-            onChange={e => {
-              onInput(e.target.value)
-              if (showGreeting) dismissGreeting()
-            }}
+            onChange={e => onInput(e.target.value)}
             placeholder=" "
             spellCheck={false}
             autoComplete="off"
@@ -98,6 +77,37 @@ export default function Home() {
 
       {/* Acces la paginile cu idei (buton plutitor, stânga-jos) */}
       <IdeasNav />
+
+      {/* Vulpea mare, la centru, la deschiderea paginii — salută, apoi
+          „zboară" spre dock-ul de mai jos (vezi MascotIntro.tsx) ── */}
+      {!introDone && <MascotIntro onComplete={() => setIntroDone(true)} />}
+
+      {/* Vulpea-asistent — dock permanent, montat abia după aterizare, ca
+          predarea vizuală să fie fără sărituri (vezi introDone mai sus) ── */}
+      {introDone && (
+        <FoxHelper
+          idleTip={HOME_IDLE_TIP}
+          queue={foxQueue}
+          onDequeue={dequeueFox}
+          actions={[
+            {
+              id: 'ce-e-asta',
+              label: 'Ce e "English in Colours"?',
+              onClick: () => triggerFox('Fiecare sunet din engleză are propria culoare — așa vezi cum se pronunță un cuvânt doar privindu-l, nu doar citindu-l.', 'hint'),
+            },
+            {
+              id: 'cum-functioneaza',
+              label: 'Cum funcționează culorile?',
+              onClick: () => triggerFox('Literele care sună la fel primesc aceeași culoare, indiferent cum sunt scrise — de-asta "ee" din "see" și "y" din "happy" pot avea aceeași culoare.', 'hint'),
+            },
+            {
+              id: 'la-joc',
+              label: 'Du-mă la joc',
+              onClick: () => router.push('/learn'),
+            },
+          ]}
+        />
+      )}
 
     </main>
   )
