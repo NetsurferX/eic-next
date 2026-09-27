@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+// import type — erased la compilare; valoarea runtime a lui `konva` se
+// încarcă dynamic, mai jos, doar client-side (vezi Actualizarea 6): un
+// import static la vârful fișierului face ca Next/Turbopack să încerce să
+// rezolve `konva` și în bundle-ul de SSR, unde lovește `Module not found:
+// canvas` (intrarea Node a Konva cere pachetul nativ `canvas`).
+import type Konva from 'konva'
+import confetti from 'canvas-confetti'
 import { Mascot, type MascotState } from './Mascot'
 import { speakWord } from '@/lib/speak'
 import type { Lesson, LessonWord } from '@/lib/levels'
@@ -12,11 +19,6 @@ import type { Lesson, LessonWord } from '@/lib/levels'
 // — primește sunetul antrenat + sunetele-distractor + sunetul următor ca
 // props, direct din LEVELS (levels.ts), deci scorul/culorile/cuvintele
 // coincid cu coloana pe care tocmai a terminat-o copilul în /learn.
-//
-// Mecanica dinți/coșuri a fost înlocuită cu varianta desenată (dinți zimțați
-// care se retrag spre stânga, coșuri de paie care alunecă spre centru,
-// pâlpâire la impact) pe baza referinței CSS/JS primite de la Dorel — nu mai
-// e schematică (emoji).
 //
 // Ce rămâne simplificat față de spec (de discutat separat):
 //  - "sunete anterioare problematice" sunt cele date de apelant în
@@ -43,6 +45,21 @@ import type { Lesson, LessonWord } from '@/lib/levels'
 // Actualizare 4: un singur coș (scorul total), sus în dreapta; peștii sunt
 // desenați mai firesc — specii/culori diferite, înclinați și îngrămădiți ca
 // într-o captură; baloanele evită doar colțul coșului.
+//
+// Actualizare 6 (2026-09-26) — motor de randare: zona de joc (dinți, coș,
+// balon) trece de pe DOM absolut-poziționat + CSS keyframes pe <canvas>,
+// desenat imperativ cu `konva` (fără `react-konva` — bug confirmat,
+// nerezolvat, cu React 18.3.x sub Turbopack: konvajs/react-konva#851).
+// Efectul de spargere/reușită trece de la cioburi+inel desenate manual la
+// `canvas-confetti` (culorat cu culoarea sunetului la reușită, gri discret la
+// ratare). Mascota, inimile/ajutor, pauză/ieșire, butoanele de culoare și
+// scorul din subsol RĂMÂN DOM, neschimbate — logica de stare (coadă, scor,
+// inimi, indiciu, pauză) e IDENTICĂ cu varianta anterioară, doar randarea
+// vizuală a zonei de joc s-a schimbat. Simplificat deliberat față de arta
+// SVG originală a coșului/peștilor: coșul e un contur din aceeași formă
+// (path-ul SVG original, refolosit ca `Konva.Path`), iar peștii sunt elipse
+// colorate (nu desenul detaliat cu aripioare/solzi) — de rafinat ulterior
+// dacă fidelitatea vizuală contează.
 // ─────────────────────────────────────────────────────────────────────────
 
 export type BuleleVulpiiLevel = 1 | 2
@@ -122,7 +139,7 @@ interface LiveBalloon {
   id: number
   group: Group
   word: LessonWord
-  x: number
+  x: number // % orizontal (0-100) în zona de joc — convertit în px la desenare
   progress: number
   zone: Zone
   state: BalloonState
@@ -130,148 +147,64 @@ interface LiveBalloon {
 
 const FLIGHT_MS = 5200
 const TICK_MS = 50
-// Geometria zonei de joc: dinții pe toată lățimea marginii de sus, coșurile
-// în colțurile de sus, sub dinți; balonul urcă prin coloana centrală până când
-// vârful lui atinge marginea de jos a dinților — acolo se sparge.
+// Geometria zonei de joc: dinții pe toată lățimea marginii de sus, coșul
+// în colțul dreapta-sus, sub dinți; balonul urcă prin coloana centrală până
+// când vârful lui atinge marginea de jos a dinților — acolo se sparge.
 const STAGE_H = 290
-const TEETH_BOTTOM = 40
+const TEETH_TOP = 6
+const TEETH_H = 34
+const TEETH_BOTTOM = TEETH_TOP + TEETH_H // 40
 const BALLOON_SIZE = 62
+const BALLOON_R = BALLOON_SIZE / 2
 const MAX_RISE_PX = STAGE_H - TEETH_BOTTOM - BALLOON_SIZE
-const BALLOON_X_MIN = 14    // % — marginea stângă a balonului; coșul e în dreapta-sus
+const BALLOON_X_MIN = 14 // % — marginea stângă a balonului; coșul e în dreapta-sus
 const BALLOON_X_SPAN = 42
 const BASKET_W = 100
 const BASKET_H = 78
+const BASKET_MARGIN = 8
 const MAX_FISH_SHOWN = 8
-// dintele: un triunghi cu umeri, repetat pe orizontală ca mască CSS
-const TOOTH_MASK = `url("data:image/svg+xml,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='28' height='34' viewBox='0 0 28 34'><path d='M0 0H28V14L14 34L0 14Z' fill='black'/></svg>")}")`
 let balloonSeq = 0
 
-// Patru „specii" (spate, burtă, aripioare), ca peștii din coș să nu fie
-// identici: argintiu-albăstrui, auriu-portocaliu, păstrăv măsliniu (cu pete),
-// roșiatic. Poziția/înclinarea fiecărui pește vin din FISH_SLOTS — un morman
-// așezat în deschiderea coșului, nu un rând ordonat.
+// Patru „specii" (spate/aripioare), ca peștii din coș să nu fie identici:
+// argintiu-albăstrui, auriu-portocaliu, păstrăv măsliniu, roșiatic.
+// Poziția/înclinarea fiecărui pește vin din FISH_SLOTS — un morman așezat în
+// deschiderea coșului, nu un rând ordonat. (Elipse colorate — simplificare
+// față de desenul SVG original cu aripioare/solzi/pete.)
 const FISH_PALETTE = [
-  { back: '#3f6d8a', belly: '#dfe9ee', fin: '#2c5068', spots: false },
-  { back: '#e2721f', belly: '#f8c98a', fin: '#a94d10', spots: false },
-  { back: '#6b7a3a', belly: '#e9e2b4', fin: '#4a5626', spots: true },
-  { back: '#c9553f', belly: '#f5bfae', fin: '#8f3524', spots: false },
+  { back: '#3f6d8a', fin: '#2c5068' },
+  { back: '#e2721f', fin: '#a94d10' },
+  { back: '#6b7a3a', fin: '#4a5626' },
+  { back: '#c9553f', fin: '#8f3524' },
 ]
-// [stânga, sus, înclinare°] în coordonatele coșului (100×78); ordinea = ordinea la umplere.
-// Primii pești stau în deschiderea coșului (sus 8–9 — zona vizibilă dintre buza din spate
-// și peretele din față, care acoperă tot ce e sub y≈27 la centru); ceilalți se
-// îngrămădesc deasupra, peste buza din spate.
+// [stânga, sus, înclinare°] în coordonatele coșului (100×78, aceleași ca path-ul SVG).
 const FISH_SLOTS: [number, number, number][] = [
   [34, 9, -6], [12, 8, -12], [54, 8, 10], [30, 0, 8],
   [52, -2, -14], [14, -3, 16], [36, -10, -4], [24, -14, 20],
 ]
-
-function Fish({ index }: { index: number }) {
-  const uid = useId().replace(/:/g, '')
-  const pal = FISH_PALETTE[index % FISH_PALETTE.length]
-  const [left, top, rot] = FISH_SLOTS[index % FISH_SLOTS.length]
-  return (
-    <div style={{ position: 'absolute', left, top, width: 34, height: 17, transform: `rotate(${rot}deg)` }}>
-      <svg className="bv-fish" width="34" height="17" viewBox="0 0 40 20" style={{ overflow: 'visible' }} aria-hidden="true">
-        <defs>
-          <linearGradient id={`fg${uid}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor={pal.back} />
-            <stop offset=".55" stopColor={pal.back} />
-            <stop offset=".75" stopColor={pal.belly} />
-            <stop offset="1" stopColor={pal.belly} />
-          </linearGradient>
-        </defs>
-        {/* coada bifurcată, înotătoarea dorsală */}
-        <path d="M29 10 L39 2.5 Q36.5 10 39 17.5 Z" fill={pal.fin} stroke="rgba(0,0,0,.3)" strokeWidth=".6" strokeLinejoin="round" />
-        <path d="M12 4 Q17 -1 25 4.5 Z" fill={pal.fin} stroke="rgba(0,0,0,.3)" strokeWidth=".6" />
-        {/* corpul cu spate întunecat și burtă deschisă */}
-        <path d="M2 10 C5 4, 14 2, 22 3.5 C27 4.5, 30 8, 31 10 C30 12, 27 15.5, 22 16.5 C14 18, 5 16, 2 10 Z" fill={`url(#fg${uid})`} stroke={pal.fin} strokeWidth=".8" />
-        {pal.spots && (
-          <g fill="rgba(0,0,0,.35)">
-            <circle cx="14" cy="6.5" r=".9" /><circle cx="19" cy="5.5" r=".8" /><circle cx="23" cy="7" r=".8" />
-          </g>
-        )}
-        {/* linia laterală, solzi, branhie */}
-        <path d="M7 10 Q18 8.3 29 10" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".8" />
-        <path d="M12 6.5 q2.2 2 0 4.5 M16 6 q2.2 2.4 0 5 M20 6.3 q2.2 2.2 0 4.6 M24 7 q2 2 0 4" fill="none" stroke="rgba(0,0,0,.14)" strokeWidth=".7" />
-        <path d="M9.5 6 Q7.8 10 9.5 14" fill="none" stroke="rgba(0,0,0,.3)" strokeWidth=".9" />
-        {/* înotătoarea pectorală și ochiul */}
-        <path d="M13 12.5 Q16 16.5 20 15 Q17 12.5 13 12.5 Z" fill={pal.fin} opacity=".85" />
-        <circle cx="5.6" cy="8.4" r="1.7" fill="#f7f2de" stroke="rgba(0,0,0,.4)" strokeWidth=".4" />
-        <circle cx="5.3" cy="8.4" r=".95" fill="#111" />
-      </svg>
-    </div>
-  )
-}
-
-// Coș din nuiele împletite (SVG), care acumulează pești — câte unul pentru
-// fiecare punct/balon colectat. Straturi: interiorul + buza din spate → peștii
-// → peretele din față (împletitura) + buza răsucită din față, ca peștii să
-// stea „în" coș. Numărul real e pe perete; peștii vizibili sunt limitați la
-// MAX_FISH_SHOWN ca să nu iasă din coș.
+// coșul din nuiele — același contur SVG folosit înainte, refolosit direct ca
+// Konva.Path (`data` acceptă sintaxa unui atribut `d` de SVG)
 const BASKET_BODY = 'M7 18 C8 52 18 76 50 76 C82 76 92 52 93 18 A43 11 0 0 1 7 18 Z'
 
-function FishBasket({ count, flash }: { count: number; flash: boolean }) {
-  const uid = useId().replace(/:/g, '')
-  const shown = Math.min(Math.max(count, 0), MAX_FISH_SHOWN)
-  return (
-    <div className={flash ? 'bv-flash' : ''} style={basketWrapStyle}>
-      <svg width={BASKET_W} height={BASKET_H} viewBox="0 0 100 78" style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-        <ellipse cx="50" cy="18" rx="43" ry="11" fill="#4f341a" />
-        <ellipse cx="50" cy="18" rx="43" ry="11" fill="none" stroke="#a5742f" strokeWidth="5" />
-      </svg>
-      {Array.from({ length: shown }).map((_, i) => (
-        <Fish key={i} index={i} />
-      ))}
-      <svg width={BASKET_W} height={BASKET_H} viewBox="0 0 100 78" style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-        <defs>
-          <pattern id={`w${uid}`} width="14" height="10" patternUnits="userSpaceOnUse">
-            <rect width="14" height="10" fill="#9c6a28" />
-            <rect x="0.5" y="0.6" width="12.5" height="4" rx="2" fill="#d9ae66" />
-            <rect x="-6.5" y="5.6" width="12.5" height="4" rx="2" fill="#c8994f" />
-            <rect x="7.5" y="5.6" width="12.5" height="4" rx="2" fill="#c8994f" />
-            <rect x="6.2" y="0" width="1.6" height="10" fill="rgba(60,35,8,.28)" />
-          </pattern>
-          <linearGradient id={`s${uid}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#3a2208" stopOpacity=".5" />
-            <stop offset=".3" stopColor="#fff" stopOpacity=".08" />
-            <stop offset=".7" stopColor="#3a2208" stopOpacity=".05" />
-            <stop offset="1" stopColor="#3a2208" stopOpacity=".55" />
-          </linearGradient>
-          <clipPath id={`c${uid}`}><path d={BASKET_BODY} /></clipPath>
-        </defs>
-        <path d={BASKET_BODY} fill={`url(#w${uid})`} stroke="#6e4a1c" strokeWidth="1.2" />
-        <path d={BASKET_BODY} fill={`url(#s${uid})`} />
-        <g clipPath={`url(#c${uid})`} fill="none" stroke="rgba(60,35,8,.35)" strokeWidth="1.2">
-          <path d="M0 36 Q50 50 100 36" />
-          <path d="M0 50 Q50 64 100 50" />
-          <path d="M0 63 Q50 75 100 63" />
-        </g>
-        <path d="M7 18 A43 11 0 0 0 93 18" fill="none" stroke="#b78334" strokeWidth="6" strokeLinecap="round" />
-        <path d="M7 18 A43 11 0 0 0 93 18" fill="none" stroke="#e6bd72" strokeWidth="3" strokeDasharray="5 4" />
-      </svg>
-      <span style={basketBadgeStyle}>{count}</span>
-    </div>
-  )
+// dinți zimțați pe toată lățimea curentă a scenei (lățime variabilă — panoul
+// e responsive; se redesenează la resize)
+function teethPoints(w: number, toothW = 28): number[] {
+  const count = Math.max(2, Math.round(w / toothW))
+  const step = w / count
+  const pts: number[] = [0, 0]
+  for (let i = 0; i <= count; i++) pts.push(i * step, i % 2 === 0 ? TEETH_H : TEETH_H * 0.4)
+  pts.push(w, 0)
+  return pts
 }
 
-function renderBalloonContent(level: BuleleVulpiiLevel, b: LiveBalloon) {
-  const solved = b.state === 'correct'
-  const hex = b.group.lesson.color
-  if (level === 1) {
-    return <span style={{ color: solved ? hex : '#333', fontWeight: 700 }}>{b.group.lesson.letter}</span>
-  }
-  // Nivel 2: cuvânt monosilabic, doar litera-țintă colorată la răspuns corect
-  const text = b.word.text
-  const mark = b.word.mark
-  const idx = text.toLowerCase().indexOf(mark.toLowerCase())
-  if (idx === -1 || !solved) return <span style={{ color: '#333' }}>{text}</span>
-  return (
-    <span style={{ color: '#333' }}>
-      {text.slice(0, idx)}
-      <span style={{ color: hex, fontWeight: 700 }}>{text.slice(idx, idx + mark.length)}</span>
-      {text.slice(idx + mark.length)}
-    </span>
-  )
+// măsoară lățimea unui text cu un context 2D offscreen — pentru poziționarea
+// segmentelor colorate (nivelul 2: doar litera-țintă colorată în cuvânt)
+let measureCtx: CanvasRenderingContext2D | null = null
+function measureTextWidth(text: string, font: string): number {
+  if (typeof document === 'undefined') return text.length * 8
+  if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d')
+  if (!measureCtx) return text.length * 8
+  measureCtx.font = font
+  return measureCtx.measureText(text).width
 }
 
 export function BuleleVulpiiGame({
@@ -310,6 +243,22 @@ export function BuleleVulpiiGame({
   const missHandledFor = useRef<Set<number>>(new Set())
   const pausedRef = useRef(false)
   const pendingSpawnRef = useRef<null | (() => void)>(null)
+
+  // ── Konva: refs către scenă și shape-uri persistente ──
+  const containerRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<Konva.Stage | null>(null)
+  const layerRef = useRef<Konva.Layer | null>(null)
+  const bgRef = useRef<Konva.Rect | null>(null)
+  const teethRef = useRef<Konva.Line | null>(null)
+  const basketGroupRef = useRef<Konva.Group | null>(null)
+  const basketBadgeRef = useRef<Konva.Text | null>(null)
+  const fishGroupRef = useRef<Konva.Group | null>(null)
+  const balloonGroupRef = useRef<Konva.Group | null>(null)
+  const stageWRef = useRef(620)
+  const fontFamilyRef = useRef('sans-serif')
+  const lastBurstId = useRef<number | null>(null)
+  const konvaModRef = useRef<typeof import('konva').default | null>(null)
+  const [stageReady, setStageReady] = useState(false)
 
   const paused = overlay !== null
 
@@ -467,15 +416,9 @@ export function BuleleVulpiiGame({
     ? [currentGroup, ...distractorGroups, nextGroup]
     : [currentGroup, ...distractorGroups]
 
-  const stageBg = balloon?.zone === 'pink'
-    ? 'linear-gradient(#fdeef4, #fbf7f8)'
-    : 'linear-gradient(#eaf4fb, #f7fbfd)'
-
   // Mascotă dinamică: bate din lăbuțe la răspuns corect, se apleacă
   // invitator ("pointing") cât balonul e în zona-indiciu (roz), sare de
-  // bucurie la final dacă a trecut pragul, altfel doar respiră liniștit —
-  // fără starea `talking` (păstrăm o singură vulpe, fără portret facial
-  // suplimentar, ca înainte).
+  // bucurie la final dacă a trecut pragul, altfel doar respiră liniștit.
   const mascotState: MascotState = done
     ? (done.passed ? 'cheering' : 'idle')
     : balloon?.state === 'correct'
@@ -483,6 +426,244 @@ export function BuleleVulpiiGame({
       : balloon?.zone === 'pink' && balloon?.state === 'flying'
         ? 'pointing'
         : 'idle'
+
+  // ── construiește scena Konva o singură dată; se demontează la unmount ──
+  // `konva` se încarcă prin import() dynamic (nu static la vârful
+  // fișierului), ca să nu fie deloc parte din bundle-ul de SSR — vezi nota
+  // de la importul de tip de mai sus.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    let cancelled = false
+    let ro: ResizeObserver | null = null
+
+    import('konva').then(mod => {
+      if (cancelled) return
+      const Konva = mod.default
+      konvaModRef.current = Konva
+      fontFamilyRef.current = window.getComputedStyle(document.body).fontFamily || 'sans-serif'
+
+      const w0 = el.clientWidth || 620
+      stageWRef.current = w0
+      const stage = new Konva.Stage({ container: el, width: w0, height: STAGE_H })
+      const layer = new Konva.Layer()
+      stage.add(layer)
+
+      const bg = new Konva.Rect({
+        x: 0, y: 0, width: w0, height: STAGE_H,
+        fillLinearGradientStartPoint: { x: 0, y: 0 },
+        fillLinearGradientEndPoint: { x: 0, y: STAGE_H },
+        fillLinearGradientColorStops: [0, '#eaf4fb', 1, '#f7fbfd'],
+      })
+
+      const teeth = new Konva.Line({
+        points: teethPoints(w0), closed: true, y: TEETH_TOP,
+        fill: '#dce9f5', stroke: '#8baac9', strokeWidth: 1,
+      })
+
+      const basketGroup = new Konva.Group({ x: w0 - BASKET_W - BASKET_MARGIN, y: TEETH_BOTTOM + 14 })
+      const rim = new Konva.Ellipse({
+        x: 50, y: 18, radiusX: 43, radiusY: 11,
+        fill: '#4f341a', stroke: '#a5742f', strokeWidth: 2,
+      })
+      const body = new Konva.Path({
+        data: BASKET_BODY, fill: '#c8994f', stroke: '#6e4a1c', strokeWidth: 1.2, opacity: 0.96,
+      })
+      const fishGroup = new Konva.Group()
+      const badge = new Konva.Text({
+        x: 0, y: BASKET_H - 22, width: BASKET_W, align: 'center',
+        text: '0', fontSize: 13, fontStyle: 'bold', fontFamily: fontFamilyRef.current, fill: '#5c4424',
+      })
+      basketGroup.add(rim, body, fishGroup, badge)
+
+      const balloonGroup = new Konva.Group({ visible: false })
+      const balloonCircle = new Konva.Circle({
+        radius: BALLOON_R, fill: '#ffffff', stroke: '#cfe4f2', strokeWidth: 2,
+        shadowColor: 'black', shadowOpacity: 0.15, shadowBlur: 6,
+      })
+      balloonGroup.add(balloonCircle)
+
+      layer.add(bg, teeth, basketGroup, balloonGroup)
+      layer.draw()
+
+      stageRef.current = stage
+      layerRef.current = layer
+      bgRef.current = bg
+      teethRef.current = teeth
+      basketGroupRef.current = basketGroup
+      basketBadgeRef.current = badge
+      fishGroupRef.current = fishGroup
+      balloonGroupRef.current = balloonGroup
+
+      ro = new ResizeObserver(entries => {
+        const cw = entries[0]?.contentRect.width
+        if (!cw || Math.abs(cw - stageWRef.current) < 1) return
+        stageWRef.current = cw
+        stage.width(cw)
+        bg.width(cw)
+        teeth.points(teethPoints(cw))
+        basketGroup.x(cw - BASKET_W - BASKET_MARGIN)
+        layer.batchDraw()
+      })
+      ro.observe(el)
+
+      setStageReady(true)
+    })
+
+    return () => {
+      cancelled = true
+      ro?.disconnect()
+      stageRef.current?.destroy()
+      stageRef.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // fundalul zonei de joc (albastru spălăcit / roz spălăcit în zona-indiciu)
+  useEffect(() => {
+    const bg = bgRef.current
+    if (!bg) return
+    bg.fillLinearGradientColorStops(
+      balloon?.zone === 'pink' ? [0, '#fdeef4', 1, '#fbf7f8'] : [0, '#eaf4fb', 1, '#f7fbfd'],
+    )
+    layerRef.current?.batchDraw()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [balloon?.zone, stageReady])
+
+  // peștii din coș + cifra scorului — redesenați la fiecare schimbare de scor
+  useEffect(() => {
+    const Konva = konvaModRef.current
+    const fishGroup = fishGroupRef.current
+    const badge = basketBadgeRef.current
+    const basketGroup = basketGroupRef.current
+    if (!Konva || !fishGroup || !badge) return
+    fishGroup.destroyChildren()
+    const shown = Math.min(Math.max(score, 0), MAX_FISH_SHOWN)
+    for (let i = 0; i < shown; i++) {
+      const pal = FISH_PALETTE[i % FISH_PALETTE.length]
+      const [left, top, rot] = FISH_SLOTS[i % FISH_SLOTS.length]
+      fishGroup.add(new Konva.Ellipse({
+        x: left, y: top, radiusX: 15, radiusY: 7, rotation: rot,
+        fill: pal.back, stroke: pal.fin, strokeWidth: 1,
+      }))
+    }
+    badge.text(String(Math.max(score, 0)))
+    layerRef.current?.batchDraw()
+    if (scoreFlash && basketGroup) {
+      basketGroup.to({
+        scaleX: 1.15, scaleY: 1.15, duration: 0.12,
+        onFinish: () => basketGroup.to({ scaleX: 1, scaleY: 1, duration: 0.18 }),
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [score, scoreFlash, stageReady])
+
+  // dinții „mușcă" la impact
+  useEffect(() => {
+    const teeth = teethRef.current
+    if (!teeth || !teethChomp) return
+    teeth.to({
+      scaleY: 0.8, y: TEETH_TOP + 5, duration: 0.12,
+      onFinish: () => teeth.to({
+        scaleY: 1.05, y: TEETH_TOP - 1, duration: 0.15,
+        onFinish: () => teeth.to({ scaleY: 1, y: TEETH_TOP, duration: 0.12 }),
+      }),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teethChomp, stageReady])
+
+  // poziția/conținutul/starea vizuală a balonului curent
+  useEffect(() => {
+    const Konva = konvaModRef.current
+    const group = balloonGroupRef.current
+    const layer = layerRef.current
+    if (!Konva || !group || !layer) return
+    if (!balloon) { group.visible(false); layer.batchDraw(); return }
+
+    group.visible(true)
+    const w = stageWRef.current
+    const xPx = (balloon.x / 100) * w
+    const yPx = STAGE_H - BALLOON_SIZE - (Math.min(balloon.progress, 100) / 100) * MAX_RISE_PX
+    group.position({ x: xPx + BALLOON_R, y: yPx + BALLOON_R })
+
+    const scale = balloon.state === 'correct' ? 1.25 : 1
+    group.scale({ x: scale, y: scale })
+    group.opacity(balloon.state === 'miss' ? 0 : 1)
+
+    // (re)construiește conținutul text — nivelul 1: literă; nivelul 2: cuvânt
+    // cu doar litera-țintă colorată la răspuns corect
+    group.find('.balloon-text').forEach(n => n.destroy())
+    const solved = balloon.state === 'correct'
+    const hex = balloon.group.lesson.color
+    const fam = fontFamilyRef.current
+    const fontSize = level === 2 ? 16 : 24
+
+    if (level === 1) {
+      const letter = balloon.group.lesson.letter
+      const cssFont = `700 ${fontSize}px ${fam}`
+      const w0 = measureTextWidth(letter, cssFont)
+      group.add(new Konva.Text({
+        name: 'balloon-text', text: letter, x: -w0 / 2, y: -fontSize / 2,
+        fontSize, fontStyle: 'bold', fontFamily: fam, fill: solved ? hex : '#333',
+      }))
+    } else {
+      const text = balloon.word.text
+      const mark = balloon.word.mark
+      const idx = text.toLowerCase().indexOf(mark.toLowerCase())
+      const cssFont = `700 ${fontSize}px ${fam}`
+      if (idx === -1 || !solved) {
+        const w0 = measureTextWidth(text, cssFont)
+        group.add(new Konva.Text({
+          name: 'balloon-text', text, x: -w0 / 2, y: -fontSize / 2,
+          fontSize, fontFamily: fam, fill: '#333',
+        }))
+      } else {
+        const pre = text.slice(0, idx)
+        const markTxt = text.slice(idx, idx + mark.length)
+        const post = text.slice(idx + mark.length)
+        const wPre = measureTextWidth(pre, cssFont)
+        const wMark = measureTextWidth(markTxt, cssFont)
+        const wPost = measureTextWidth(post, cssFont)
+        let cx = -(wPre + wMark + wPost) / 2
+        const y = -fontSize / 2
+        group.add(new Konva.Text({ name: 'balloon-text', text: pre, x: cx, y, fontSize, fontFamily: fam, fill: '#333' }))
+        cx += wPre
+        group.add(new Konva.Text({ name: 'balloon-text', text: markTxt, x: cx, y, fontSize, fontStyle: 'bold', fontFamily: fam, fill: hex }))
+        cx += wMark
+        group.add(new Konva.Text({ name: 'balloon-text', text: post, x: cx, y, fontSize, fontFamily: fam, fill: '#333' }))
+      }
+    }
+    if (balloon.group.kind === 'next') {
+      group.add(new Konva.Text({ name: 'balloon-text', text: '✨', x: BALLOON_R - 10, y: -BALLOON_R - 6, fontSize: 13 }))
+    }
+
+    layer.batchDraw()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [balloon, level, stageReady])
+
+  // particule (canvas-confetti) la reușită/ratare — o singură dată per balon
+  useEffect(() => {
+    if (!balloon || balloon.state === 'flying') return
+    if (lastBurstId.current === balloon.id) return
+    lastBurstId.current = balloon.id
+
+    const rect = containerRef.current?.getBoundingClientRect()
+    const w = stageWRef.current
+    const xPx = (balloon.x / 100) * w + BALLOON_R
+    const yPx = STAGE_H - BALLOON_SIZE - (Math.min(balloon.progress, 100) / 100) * MAX_RISE_PX + BALLOON_R
+    const originX = rect ? (rect.left + xPx) / window.innerWidth : 0.5
+    const originY = rect ? (rect.top + yPx) / window.innerHeight : 0.3
+    const miss = balloon.state === 'miss'
+    confetti({
+      particleCount: miss ? 14 : 40,
+      spread: miss ? 55 : 70,
+      startVelocity: miss ? 18 : 32,
+      gravity: miss ? 1.4 : 1,
+      scalar: miss ? 0.6 : 0.9,
+      colors: miss ? ['#c9c9c9', '#ffffff', '#9aa0a6'] : [balloon.group.lesson.color, '#ffffff', '#ffd166'],
+      origin: { x: originX, y: originY },
+    })
+  }, [balloon])
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit', position: 'relative' }}>
@@ -510,71 +691,8 @@ export function BuleleVulpiiGame({
         <button onClick={() => pauseGame('exit')} aria-label="Ieși din joc" style={exitCornerBtnStyle}>✕</button>
       )}
 
-      <div style={{ position: 'relative', height: STAGE_H, borderRadius: 14, overflow: 'hidden', background: stageBg, transition: 'background 400ms' }}>
-        {/* dinți zimțați, pe toată lățimea marginii de sus (statici — nu se mai deplasează) */}
-        <div
-          className={teethChomp ? 'bv-chomp' : ''}
-          style={{
-            position: 'absolute', top: 6, left: 0, right: 0, height: 34,
-            background: 'repeating-linear-gradient(45deg, #8baac9, #8baac9 10px, #fff 10px, #fff 20px)',
-            WebkitMaskImage: TOOTH_MASK, maskImage: TOOTH_MASK,
-            WebkitMaskSize: '28px 34px', maskSize: '28px 34px',
-            WebkitMaskRepeat: 'repeat-x', maskRepeat: 'repeat-x',
-            transformOrigin: 'top center',
-          }}
-        />
-        {/* coșul din nuiele — sus în dreapta, sub dinți; mereu vizibil */}
-        <div style={{ position: 'absolute', right: 8, top: TEETH_BOTTOM + 14 }}>
-          <FishBasket count={Math.max(score, 0)} flash={scoreFlash} />
-        </div>
-
-        {balloon && (() => {
-          // urcă drept, până la dinți (care acoperă toată lățimea); coșul e în colțul dreapta-sus
-          const leftPct = balloon.x
-          const bottomPx = (Math.min(balloon.progress, 100) / 100) * MAX_RISE_PX
-          const burst = balloon.state === 'miss'
-          return (
-            <div style={{ position: 'absolute', left: `${leftPct}%`, bottom: bottomPx, width: BALLOON_SIZE, height: BALLOON_SIZE }}>
-              <div
-                style={{
-                  position: 'relative',
-                  width: '100%', height: '100%', boxSizing: 'border-box', borderRadius: '50%',
-                  background: '#fff', border: '2px solid #cfe4f2',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: level === 2 ? 16 : 24,
-                  boxShadow: '0 2px 6px rgba(0,0,0,.08)',
-                  transition: balloon.state === 'correct' ? 'transform 400ms' : undefined,
-                  transform: balloon.state === 'correct' ? 'scale(1.25)' : 'scale(1)',
-                  animation: burst ? 'bv-pop 260ms ease-out forwards' : undefined,
-                }}
-              >
-                {renderBalloonContent(level, balloon)}
-                {balloon.group.kind === 'next' && (
-                  <span style={{ position: 'absolute', top: -8, right: -6, fontSize: 13 }}>✨</span>
-                )}
-              </div>
-              {burst && (
-                <>
-                  <span className="bv-ring" />
-                  {Array.from({ length: 8 }).map((_, i) => {
-                    const a = (i * Math.PI) / 4
-                    return (
-                      <span
-                        key={i}
-                        className="bv-shard"
-                        style={{
-                          background: i % 2 ? '#fff' : balloon.group.lesson.color,
-                          ['--dx' as string]: `${Math.cos(a) * 34}px`,
-                          ['--dy' as string]: `${Math.sin(a) * 34}px`,
-                        }}
-                      />
-                    )
-                  })}
-                </>
-              )}
-            </div>
-          )
-        })()}
+      <div style={{ position: 'relative', height: STAGE_H, borderRadius: 14, overflow: 'hidden' }}>
+        <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 
         {overlay && !done && (
           <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: 'rgba(255,255,255,.94)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
@@ -640,35 +758,11 @@ export function BuleleVulpiiGame({
       </div>
 
       <style>{`
-        @keyframes bv-flash { 0% { filter: brightness(1) } 50% { filter: brightness(1.6) } 100% { filter: brightness(1) } }
-        .bv-flash { animation: bv-flash 400ms ease-out; }
         @keyframes bv-score-flash { 0% { transform: scale(1) } 40% { transform: scale(1.35) rotate(-2deg) } 100% { transform: scale(1) } }
         .bv-score-flash { animation: bv-score-flash 400ms ease-out; display: inline-block; }
-        @keyframes bv-pop { 0% { transform: scale(1); opacity: 1 } 40% { transform: scale(1.35); opacity: 1 } 100% { transform: scale(1.7); opacity: 0 } }
-        @keyframes bv-ring { 0% { transform: scale(.6); opacity: .9 } 100% { transform: scale(2); opacity: 0 } }
-        @keyframes bv-shard { 0% { transform: translate(0,0) scale(1); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) scale(.3); opacity: 0 } }
-        @keyframes bv-chomp { 0% { transform: translateY(0) scaleY(1) } 30% { transform: translateY(5px) scaleY(.8) } 60% { transform: translateY(-1px) scaleY(1.05) } 100% { transform: translateY(0) scaleY(1) } }
-        .bv-chomp { animation: bv-chomp 450ms ease-out; }
-        @keyframes bv-fish-in { 0% { transform: translateY(-14px) scale(.4); opacity: 0 } 70% { transform: translateY(2px) scale(1.15); opacity: 1 } 100% { transform: translateY(0) scale(1); opacity: 1 } }
-        .bv-fish { animation: bv-fish-in 350ms ease-out; }
-        .bv-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #9cc7e4; animation: bv-ring 450ms ease-out forwards; pointer-events: none; }
-        .bv-shard { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3px 0 0 -3px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); animation: bv-shard 500ms ease-out forwards; pointer-events: none; }
       `}</style>
     </div>
   )
-}
-
-const basketWrapStyle: React.CSSProperties = {
-  position: 'relative',
-  width: BASKET_W, height: BASKET_H,
-  filter: 'drop-shadow(0 3px 3px rgba(0,0,0,.2))',
-}
-
-const basketBadgeStyle: React.CSSProperties = {
-  position: 'absolute', left: '50%', bottom: 10, transform: 'translateX(-50%)',
-  padding: '0 8px', borderRadius: 9, border: '1px solid #b78334',
-  background: 'rgba(255,248,230,.94)',
-  fontSize: 12, fontWeight: 700, lineHeight: '17px', color: '#5c4424',
 }
 
 const pillBtnStyle: React.CSSProperties = {
