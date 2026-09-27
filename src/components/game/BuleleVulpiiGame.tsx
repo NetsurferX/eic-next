@@ -676,10 +676,39 @@ export function BuleleVulpiiGame({
         <span style={festiveScoreStyle} className={scoreFlash ? 'bv-score-flash' : undefined}>
           🎉 Scor: {score}
         </span>
-        <span>Balon {Math.min(queuePos + 1, queueLen)}/{queueLen}</span>
+        <div
+          role="img"
+          aria-label={`Balon ${Math.min(queuePos + 1, queueLen)} din ${queueLen}`}
+          style={{ display: 'flex', alignItems: 'center', gap: 3 }}
+        >
+          {Array.from({ length: queueLen }).map((_, i) => (
+            <span
+              key={i}
+              aria-hidden="true"
+              className={`bv-balloon-pip${i < queuePos ? ' bv-balloon-pip-gone' : ''}`}
+            >
+              <svg viewBox="0 0 24 30" width="20" height="24" fill="none">
+                <path
+                  d="M12 1C6.2 1 2 5.9 2 11.3c0 5.4 4.3 10.4 9 12.4a1.1 1.1 0 0 0 .9 0c4.8-2 9.1-7 9.1-12.4C21 5.9 17.8 1 12 1Z"
+                  fill="currentColor"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinejoin="round"
+                />
+                <path d="M11 23.7 12 29l1-5.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            </span>
+          ))}
+        </div>
       </div>
 
       <style>{`
+        .bv-balloon-pip {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 20px; height: 24px; overflow: hidden; color: #b7bec7;
+          transition: opacity 380ms ease, transform 380ms ease, width 380ms ease 40ms, margin 380ms ease 40ms;
+        }
+        .bv-balloon-pip-gone { opacity: 0; transform: scale(.35) translateY(-8px); width: 0; margin: 0 -1.5px; }
         @keyframes bv-flash { 0% { filter: brightness(1) } 50% { filter: brightness(1.6) } 100% { filter: brightness(1) } }
         .bv-flash { animation: bv-flash 400ms ease-out; }
         @keyframes bv-score-flash { 0% { transform: scale(1) } 40% { transform: scale(1.35) rotate(-2deg) } 100% { transform: scale(1) } }
