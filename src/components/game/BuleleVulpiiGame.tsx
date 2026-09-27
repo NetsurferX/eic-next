@@ -139,128 +139,157 @@ const BALLOON_SIZE = 62
 const MAX_RISE_PX = STAGE_H - TEETH_BOTTOM - BALLOON_SIZE
 const BALLOON_X_MIN = 14    // % — marginea stângă a balonului; coșul e în dreapta-sus
 const BALLOON_X_SPAN = 42
-// Actualizare 6 (2026-09-27): peștii erau ilizibili ca pești (citeau ca
-// ovaluri colorate) — la 34×17px, cu contur subțire (.6–.9) și solzi fini,
-// silueta se pierde complet, chiar și pe ecran mare (confirmat identic pe
-// Vercel, deci nu era cache). Fix: pești ~40% mai mari (FISH_SCALE), contur
-// exterior mult mai gros și închis la culoare (siluetă clară de la distanță),
-// ochi mai mare, solzii fini eliminați (zgomot la scară mică, nu detaliu);
-// mai puțini pești vizibili simultan (8→6) ca să nu se aglomereze/topească
-// unul în altul.
-const FISH_SCALE = 1.4
-const BASKET_W = Math.round(100 * FISH_SCALE)
-const BASKET_H = Math.round(78 * FISH_SCALE)
-const MAX_FISH_SHOWN = 6
+// Actualizare 7 (2026-09-27): coșul static (chiar și repoziționat corect
+// „în interior") tot avea un plafon dur — la 7+ pești nu mai încăpeau vizual
+// și rămânea doar cifra din badge, fără mișcare. Dorel a propus înlocuirea
+// completă cu un acvariu: peștii înoată liber (ținte aleatorii, tranziție
+// CSS între ele — aceeași tehnică ca la trenurile din /debug/live/harta-metrou),
+// deci nu mai există „prea mulți ca să încapă" — pot să se suprapună/treacă
+// unii pe lângă alții cât timp înoată, la fel ca într-un acvariu real.
+// Corpul SVG al peștelui (Fish) rămâne cel din actualizarea 6; doar poziția
+// nu mai vine din FISH_SLOTS fixe, ci e controlată de useSwimmingFish() de
+// mai jos, care ține totul într-un singur fișier (fără hook separat).
+const FISH_SCALE = 1.15
+const ACVARIU_W = 210
+const ACVARIU_H = 128
+const MAX_SWIM_FISH = 12   // peste atâția, badge-ul arată cifra exactă oricum
+const SWIM_RETARGET_MIN_MS = 1700
+const SWIM_RETARGET_MAX_MS = 3200
+const SWIM_TRANSITION_S = 1.6
 // dintele: un triunghi cu umeri, repetat pe orizontală ca mască CSS
 const TOOTH_MASK = `url("data:image/svg+xml,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='28' height='34' viewBox='0 0 28 34'><path d='M0 0H28V14L14 34L0 14Z' fill='black'/></svg>")}")`
 let balloonSeq = 0
 
-// Patru „specii" (spate, burtă, aripioare), ca peștii din coș să nu fie
-// identici: argintiu-albăstrui, auriu-portocaliu, păstrăv măsliniu (cu pete),
-// roșiatic. Poziția/înclinarea fiecărui pește vin din FISH_SLOTS — un morman
-// așezat în deschiderea coșului, nu un rând ordonat.
 const FISH_PALETTE = [
   { back: '#3f6d8a', belly: '#dfe9ee', fin: '#2c5068', spots: false },
   { back: '#e2721f', belly: '#f8c98a', fin: '#a94d10', spots: false },
   { back: '#6b7a3a', belly: '#e9e2b4', fin: '#4a5626', spots: true },
   { back: '#c9553f', belly: '#f5bfae', fin: '#8f3524', spots: false },
 ]
-// [stânga, sus, înclinare°] în coordonatele coșului (100×78, ÎNAINTE de
-// FISH_SCALE — se înmulțesc cu scala la randare); doar 6 poziții (nu 8),
-// mai depărtate una de alta, ca peștii mai mari să nu se topească vizual
-// unul în altul. Ordinea = ordinea la umplere.
-const FISH_SLOTS: [number, number, number][] = [
-  [10, 9, -8], [46, 10, 6], [66, 2, -12],
-  [26, -4, 12], [4, -12, -4], [50, -13, 16],
-]
 const FISH_W = Math.round(34 * FISH_SCALE)
 const FISH_H = Math.round(17 * FISH_SCALE)
 
+// Corpul SVG al peștelui e independent de poziție — primește doar culoarea
+// (după index, ca înainte) și e poziționat/orientat de părinte (Acvariu).
 function Fish({ index }: { index: number }) {
   const uid = useId().replace(/:/g, '')
   const pal = FISH_PALETTE[index % FISH_PALETTE.length]
-  const [left, top, rot] = FISH_SLOTS[index % FISH_SLOTS.length]
   return (
-    <div style={{ position: 'absolute', left: left * FISH_SCALE, top: top * FISH_SCALE, width: FISH_W, height: FISH_H, transform: `rotate(${rot}deg)` }}>
-      <svg className="bv-fish" width={FISH_W} height={FISH_H} viewBox="0 0 40 20" style={{ overflow: 'visible' }} aria-hidden="true">
-        <defs>
-          <linearGradient id={`fg${uid}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor={pal.back} />
-            <stop offset=".55" stopColor={pal.back} />
-            <stop offset=".75" stopColor={pal.belly} />
-            <stop offset="1" stopColor={pal.belly} />
-          </linearGradient>
-        </defs>
-        {/* coada bifurcată, înotătoarea dorsală — contur gros și închis la
-            culoare, ca silueta să se citească și mică/suprapusă */}
-        <path d="M28 10 L39 1.5 Q35.5 10 39 18.5 Z" fill={pal.fin} stroke="#1a1006" strokeWidth="1.1" strokeLinejoin="round" />
-        <path d="M11 3.5 Q17 -2.5 26 4 Z" fill={pal.fin} stroke="#1a1006" strokeWidth="1.1" strokeLinejoin="round" />
-        {/* corpul cu spate întunecat și burtă deschisă */}
-        <path d="M1.5 10 C4.5 3, 14 0.5, 22.5 2.5 C28 3.8, 31 8, 32 10 C31 12, 28 16.2, 22.5 17.5 C14 19.5, 4.5 17, 1.5 10 Z" fill={`url(#fg${uid})`} stroke="#1a1006" strokeWidth="1.3" />
-        {pal.spots && (
-          <g fill="rgba(0,0,0,.4)">
-            <circle cx="14" cy="6.3" r="1.3" /><circle cx="19.5" cy="5.2" r="1.1" /><circle cx="24" cy="7" r="1.1" />
-          </g>
-        )}
-        {/* linia laterală și branhia — un singur semn clar fiecare, fără solzi fini */}
-        <path d="M7 10 Q18 8 29 10" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="1.1" />
-        <path d="M9 5.5 Q7 10 9 14.5" fill="none" stroke="rgba(0,0,0,.4)" strokeWidth="1.1" />
-        {/* înotătoarea pectorală și ochiul, mărit ca să se distingă la scară mică */}
-        <path d="M13 12.5 Q16.5 17 21 15.2 Q17.5 12.5 13 12.5 Z" fill={pal.fin} stroke="#1a1006" strokeWidth=".8" opacity=".9" />
-        <circle cx="5.8" cy="8.2" r="2.4" fill="#f7f2de" stroke="#1a1006" strokeWidth=".6" />
-        <circle cx="5.4" cy="8.2" r="1.3" fill="#111" />
-      </svg>
-    </div>
+    <svg className="bv-fish" width={FISH_W} height={FISH_H} viewBox="0 0 40 20" style={{ overflow: 'visible', display: 'block' }} aria-hidden="true">
+      <defs>
+        <linearGradient id={`fg${uid}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor={pal.back} />
+          <stop offset=".55" stopColor={pal.back} />
+          <stop offset=".75" stopColor={pal.belly} />
+          <stop offset="1" stopColor={pal.belly} />
+        </linearGradient>
+      </defs>
+      {/* coada bifurcată, înotătoarea dorsală — contur gros și închis la
+          culoare, ca silueta să se citească și mică/suprapusă */}
+      <path className="bv-fish-tail" d="M28 10 L39 1.5 Q35.5 10 39 18.5 Z" fill={pal.fin} stroke="#1a1006" strokeWidth="1.1" strokeLinejoin="round" />
+      <path d="M11 3.5 Q17 -2.5 26 4 Z" fill={pal.fin} stroke="#1a1006" strokeWidth="1.1" strokeLinejoin="round" />
+      {/* corpul cu spate întunecat și burtă deschisă */}
+      <path d="M1.5 10 C4.5 3, 14 0.5, 22.5 2.5 C28 3.8, 31 8, 32 10 C31 12, 28 16.2, 22.5 17.5 C14 19.5, 4.5 17, 1.5 10 Z" fill={`url(#fg${uid})`} stroke="#1a1006" strokeWidth="1.3" />
+      {pal.spots && (
+        <g fill="rgba(0,0,0,.4)">
+          <circle cx="14" cy="6.3" r="1.3" /><circle cx="19.5" cy="5.2" r="1.1" /><circle cx="24" cy="7" r="1.1" />
+        </g>
+      )}
+      {/* linia laterală și branhia — un singur semn clar fiecare, fără solzi fini */}
+      <path d="M7 10 Q18 8 29 10" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="1.1" />
+      <path d="M9 5.5 Q7 10 9 14.5" fill="none" stroke="rgba(0,0,0,.4)" strokeWidth="1.1" />
+      {/* înotătoarea pectorală și ochiul, mărit ca să se distingă la scară mică */}
+      <path d="M13 12.5 Q16.5 17 21 15.2 Q17.5 12.5 13 12.5 Z" fill={pal.fin} stroke="#1a1006" strokeWidth=".8" opacity=".9" />
+      <circle cx="5.8" cy="8.2" r="2.4" fill="#f7f2de" stroke="#1a1006" strokeWidth=".6" />
+      <circle cx="5.4" cy="8.2" r="1.3" fill="#111" />
+    </svg>
   )
 }
 
-// Coș din nuiele împletite (SVG), care acumulează pești — câte unul pentru
-// fiecare punct/balon colectat. Straturi: interiorul + buza din spate → peștii
-// → peretele din față (împletitura) + buza răsucită din față, ca peștii să
-// stea „în" coș. Numărul real e pe perete; peștii vizibili sunt limitați la
-// MAX_FISH_SHOWN ca să nu iasă din coș.
-const BASKET_BODY = 'M7 18 C8 52 18 76 50 76 C82 76 92 52 93 18 A43 11 0 0 1 7 18 Z'
+interface SwimFish { id: number; x: number; y: number; flip: boolean }
 
-function FishBasket({ count, flash }: { count: number; flash: boolean }) {
-  const uid = useId().replace(/:/g, '')
-  const shown = Math.min(Math.max(count, 0), MAX_FISH_SHOWN)
+// Fiecare pește își reprogramează singur (setTimeout recursiv, întârziere
+// randomizată) următoarea țintă — nu un singur interval global — ca să nu
+// înoate toți sincronizat. Poziția efectivă vine din CSS (left/top +
+// transition), la fel ca la trenurile din harta-metrou; aici doar calculăm
+// ținta și lăsăm browserul să interpoleze.
+const ACVARIU_SAND_H = 14
+
+function useSwimmingFish(count: number) {
+  const boundsW = ACVARIU_W - FISH_W
+  const boundsH = ACVARIU_H - FISH_H - ACVARIU_SAND_H // nu intră sub nisip
+  const fishRef = useRef<Map<number, SwimFish>>(new Map())
+  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+  const [fish, setFish] = useState<SwimFish[]>([])
+
+  function publish() {
+    setFish(Array.from(fishRef.current.values()).sort((a, b) => a.id - b.id))
+  }
+
+  function retarget(id: number) {
+    const cur = fishRef.current.get(id)
+    if (!cur) return
+    const nx = Math.round(Math.random() * boundsW)
+    const ny = Math.round(Math.random() * boundsH)
+    fishRef.current.set(id, { id, x: nx, y: ny, flip: nx > cur.x })
+    publish()
+    const delay = SWIM_RETARGET_MIN_MS + Math.random() * (SWIM_RETARGET_MAX_MS - SWIM_RETARGET_MIN_MS)
+    timersRef.current.set(id, setTimeout(() => retarget(id), delay))
+  }
+
+  useEffect(() => {
+    const shown = Math.min(count, MAX_SWIM_FISH)
+    // pești noi: intră înotând din marginea din stânga
+    for (let id = 0; id < shown; id++) {
+      if (fishRef.current.has(id)) continue
+      const y = Math.round(Math.random() * boundsH)
+      fishRef.current.set(id, { id, x: -FISH_W, y, flip: true })
+      const delay = 60 + id * 140 // intră unul câte unul, nu toți deodată
+      timersRef.current.set(id, setTimeout(() => retarget(id), delay))
+    }
+    // pești în minus (scor scăzut): scoatem din capăt, oprim timerul lor
+    fishRef.current.forEach((_, id) => {
+      if (id >= shown) {
+        const t = timersRef.current.get(id)
+        if (t) clearTimeout(t)
+        timersRef.current.delete(id)
+        fishRef.current.delete(id)
+      }
+    })
+    publish()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count])
+
+  useEffect(() => () => { timersRef.current.forEach((t) => clearTimeout(t)) }, [])
+
+  return fish
+}
+
+function Acvariu({ count, flash }: { count: number; flash: boolean }) {
+  const shown = Math.max(count, 0)
+  const fish = useSwimmingFish(shown)
   return (
-    <div className={flash ? 'bv-flash' : ''} style={basketWrapStyle}>
-      <svg width={BASKET_W} height={BASKET_H} viewBox="0 0 100 78" style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-        <ellipse cx="50" cy="18" rx="43" ry="11" fill="#4f341a" />
-        <ellipse cx="50" cy="18" rx="43" ry="11" fill="none" stroke="#a5742f" strokeWidth="5" />
-      </svg>
-      {Array.from({ length: shown }).map((_, i) => (
-        <Fish key={i} index={i} />
+    <div className={flash ? 'bv-flash' : ''} style={acvariuWrapStyle}>
+      {/* sticla + apa: gradient albastru-verde translucid + linie de apă sus */}
+      <div style={acvariuGlassStyle} />
+      <div className="bv-bubbles" aria-hidden="true">
+        <span /><span /><span />
+      </div>
+      {fish.map((f) => (
+        <div
+          key={f.id}
+          style={{
+            position: 'absolute', left: f.x, top: f.y,
+            transition: `left ${SWIM_TRANSITION_S}s ease-in-out, top ${SWIM_TRANSITION_S}s ease-in-out`,
+            transform: f.flip ? 'scaleX(-1)' : undefined,
+          }}
+        >
+          <Fish index={f.id} />
+        </div>
       ))}
-      <svg width={BASKET_W} height={BASKET_H} viewBox="0 0 100 78" style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-        <defs>
-          <pattern id={`w${uid}`} width="14" height="10" patternUnits="userSpaceOnUse">
-            <rect width="14" height="10" fill="#9c6a28" />
-            <rect x="0.5" y="0.6" width="12.5" height="4" rx="2" fill="#d9ae66" />
-            <rect x="-6.5" y="5.6" width="12.5" height="4" rx="2" fill="#c8994f" />
-            <rect x="7.5" y="5.6" width="12.5" height="4" rx="2" fill="#c8994f" />
-            <rect x="6.2" y="0" width="1.6" height="10" fill="rgba(60,35,8,.28)" />
-          </pattern>
-          <linearGradient id={`s${uid}`} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#3a2208" stopOpacity=".5" />
-            <stop offset=".3" stopColor="#fff" stopOpacity=".08" />
-            <stop offset=".7" stopColor="#3a2208" stopOpacity=".05" />
-            <stop offset="1" stopColor="#3a2208" stopOpacity=".55" />
-          </linearGradient>
-          <clipPath id={`c${uid}`}><path d={BASKET_BODY} /></clipPath>
-        </defs>
-        <path d={BASKET_BODY} fill={`url(#w${uid})`} stroke="#6e4a1c" strokeWidth="1.2" />
-        <path d={BASKET_BODY} fill={`url(#s${uid})`} />
-        <g clipPath={`url(#c${uid})`} fill="none" stroke="rgba(60,35,8,.35)" strokeWidth="1.2">
-          <path d="M0 36 Q50 50 100 36" />
-          <path d="M0 50 Q50 64 100 50" />
-          <path d="M0 63 Q50 75 100 63" />
-        </g>
-        <path d="M7 18 A43 11 0 0 0 93 18" fill="none" stroke="#b78334" strokeWidth="6" strokeLinecap="round" />
-        <path d="M7 18 A43 11 0 0 0 93 18" fill="none" stroke="#e6bd72" strokeWidth="3" strokeDasharray="5 4" />
-      </svg>
-      <span style={basketBadgeStyle}>{count}</span>
+      {/* nisip jos, decor */}
+      <div style={acvariuSandStyle} />
+      <span style={acvariuBadgeStyle}>{count}</span>
     </div>
   )
 }
@@ -536,7 +565,7 @@ export function BuleleVulpiiGame({
         />
         {/* coșul din nuiele — sus în dreapta, sub dinți; mereu vizibil */}
         <div style={{ position: 'absolute', right: 8, top: TEETH_BOTTOM + 14 }}>
-          <FishBasket count={Math.max(score, 0)} flash={scoreFlash} />
+          <Acvariu count={Math.max(score, 0)} flash={scoreFlash} />
         </div>
 
         {balloon && (() => {
@@ -662,6 +691,14 @@ export function BuleleVulpiiGame({
         .bv-chomp { animation: bv-chomp 450ms ease-out; }
         @keyframes bv-fish-in { 0% { transform: translateY(-14px) scale(.4); opacity: 0 } 70% { transform: translateY(2px) scale(1.15); opacity: 1 } 100% { transform: translateY(0) scale(1); opacity: 1 } }
         .bv-fish { animation: bv-fish-in 350ms ease-out; }
+        @keyframes bv-tail-wag { 0% { transform: rotate(0deg) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0deg) } }
+        .bv-fish-tail { transform-origin: 28px 10px; animation: bv-tail-wag 650ms ease-in-out infinite; }
+        @keyframes bv-bubble { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: .8 } 100% { transform: translateY(-120px) scale(1); opacity: 0 } }
+        .bv-bubbles { position: absolute; inset: 0; pointer-events: none; }
+        .bv-bubbles span { position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.55); animation: bv-bubble 3.2s linear infinite; }
+        .bv-bubbles span:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .bv-bubbles span:nth-child(2) { left: 55%; width: 4px; height: 4px; animation-delay: 1.1s; }
+        .bv-bubbles span:nth-child(3) { left: 80%; width: 6px; height: 6px; animation-delay: 2.1s; }
         .bv-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #9cc7e4; animation: bv-ring 450ms ease-out forwards; pointer-events: none; }
         .bv-shard { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3px 0 0 -3px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); animation: bv-shard 500ms ease-out forwards; pointer-events: none; }
       `}</style>
@@ -669,17 +706,33 @@ export function BuleleVulpiiGame({
   )
 }
 
-const basketWrapStyle: React.CSSProperties = {
+const acvariuWrapStyle: React.CSSProperties = {
   position: 'relative',
-  width: BASKET_W, height: BASKET_H,
+  width: ACVARIU_W, height: ACVARIU_H,
+  borderRadius: 14,
+  overflow: 'hidden',
   filter: 'drop-shadow(0 3px 3px rgba(0,0,0,.2))',
+  border: '3px solid rgba(255,255,255,.8)',
+  boxShadow: 'inset 0 0 14px rgba(20,60,80,.35)',
 }
 
-const basketBadgeStyle: React.CSSProperties = {
-  position: 'absolute', left: '50%', bottom: Math.round(10 * FISH_SCALE), transform: 'translateX(-50%)',
-  padding: '0 8px', borderRadius: 9, border: '1px solid #b78334',
-  background: 'rgba(255,248,230,.94)',
-  fontSize: 13, fontWeight: 700, lineHeight: '19px', color: '#5c4424',
+const acvariuGlassStyle: React.CSSProperties = {
+  position: 'absolute', inset: 0,
+  background: 'linear-gradient(180deg, #d6f0ee 0%, #a9dde3 12%, #7fc7d6 55%, #5fa9bd 100%)',
+}
+
+const acvariuSandStyle: React.CSSProperties = {
+  position: 'absolute', left: 0, right: 0, bottom: 0, height: ACVARIU_SAND_H,
+  background: 'linear-gradient(180deg, #e8cf8f 0%, #d4b56b 100%)',
+  borderTop: '1px solid rgba(255,255,255,.4)',
+}
+
+const acvariuBadgeStyle: React.CSSProperties = {
+  position: 'absolute', left: 6, top: 6,
+  padding: '0 8px', borderRadius: 9, border: '1px solid #5fa9bd',
+  background: 'rgba(255,255,255,.85)',
+  fontSize: 13, fontWeight: 700, lineHeight: '19px', color: '#215866',
+  zIndex: 2,
 }
 
 const pillBtnStyle: React.CSSProperties = {
