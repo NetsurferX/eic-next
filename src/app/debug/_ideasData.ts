@@ -33,6 +33,7 @@ export const SECTIONS: IdeaSection[] = [
       { href: "/debug/gamification/calendarul-vulpii", label: "🔥 Calendarul Vulpii" },
       { href: "/debug/gamification/cufarul-vulpii", label: "💰 Cufărul Vulpii" },
       { href: "/debug/gamification/provocarea-zilei", label: "🎯 Provocarea Zilei" },
+      { href: "/debug/gamification/satul-sunetelor", label: "🏡 Satul Sunetelor" },
     ],
   },
   {

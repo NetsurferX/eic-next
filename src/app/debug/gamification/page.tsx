@@ -58,6 +58,15 @@ const CONCEPTS = [
     desc: 'O mini-provocare unică pe zi ("găsește 5 cuvinte cu sunetul roșu azi"), diferită de lecția obișnuită, cu recompensă bonus la finalizare.',
     mechanic: 'Motiv suplimentar de revenire zilnică, separat de progresul liniar prin niveluri; se poate combina cu oricare mini-joc existent.',
   },
+  {
+    href: '/debug/gamification/satul-sunetelor',
+    emoji: '🏡',
+    title: 'Satul Sunetelor',
+    tagText: 'Progres vizual / sat',
+    tagColor: '#2f9e44',
+    desc: 'Fiecare lecție din LEVELS e o casă cu acoperișul în culoarea sunetului; lecțiile unui nivel sunt vecine de gard, iar două niveluri stau spate în spate pe o uliță. Lecția terminată își aprinde ferestrele, iar vulpița merge pe drumuri până la casa următoare.',
+    mechanic: 'Progresul devine un loc pe care îl construiești și îl străbați (citit read-only din progresul real, cu slider de simulare); complementar cu Harta Sunetelor, dar cu vecinătăți reale între lecții.',
+  },
 ]
 
 export default function GamificationIndex() {
