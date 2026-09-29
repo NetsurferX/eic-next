@@ -88,6 +88,7 @@ export const SECTIONS: IdeaSection[] = [
       { href: "/debug/live/harta-metrou", label: "Harta de metrou" },
       { href: "/debug/live/acvariu", label: "Acvariu" },
       { href: "/debug/live/turn-control", label: "Turn de control" },
+      { href: "/debug/live/filmul-cuvantului", label: "Filmul cuvântului" },
     ],
   },
   {
