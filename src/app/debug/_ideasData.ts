@@ -34,6 +34,8 @@ export const SECTIONS: IdeaSection[] = [
       { href: "/debug/gamification/cufarul-vulpii", label: "💰 Cufărul Vulpii" },
       { href: "/debug/gamification/provocarea-zilei", label: "🎯 Provocarea Zilei" },
       { href: "/debug/gamification/satul-sunetelor", label: "🏡 Satul Sunetelor" },
+      { href: "/debug/gamification/heraldica", label: "🛡️ Heraldica EiC" },
+      { href: "/debug/gamification/heraldica/stema", label: "🦊 Stema EiC" },
     ],
   },
   {
