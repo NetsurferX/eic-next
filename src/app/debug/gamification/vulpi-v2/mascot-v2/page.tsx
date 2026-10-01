@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { FOX_BY_ID, FOX_SPRITES, type FoxSpriteId } from './_foxSprites'
+import { FOX_BY_ID, FOX_SPRITES, type FoxSpriteId } from '../_foxSprites'
 
 // Previzualizare izolată a setului nou de vulpi. Nu modifică Mascot.tsx și
 // nu e înregistrată în _ideasData.ts.
