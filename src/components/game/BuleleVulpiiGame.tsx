@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { Mascot, type MascotState } from './Mascot'
+import { MascotV2, type MascotStateV2 } from './MascotV2'
 import { speakWord } from '@/lib/speak'
 import type { Lesson, LessonWord } from '@/lib/levels'
 
@@ -336,6 +336,7 @@ export function BuleleVulpiiGame({
   const [hintGroup, setHintGroup] = useState<Group | null>(null)
   const [scoreFlash, setScoreFlash] = useState(false)
   const [helpMessage, setHelpMessage] = useState<string | null>(null)
+  const [catching, setCatching] = useState(false) // vulpea deschide gura când primește balonul
   const [done, setDone] = useState<null | { rate: number; passed: boolean }>(null)
   const [overlay, setOverlay] = useState<null | 'pause' | 'exit'>(null)
   const [teethChomp, setTeethChomp] = useState(false)
@@ -486,6 +487,8 @@ export function BuleleVulpiiGame({
     setScore(scoreRef.current)
     correctRef.current += 1
     setBalloon(prev => (prev ? { ...prev, state: 'correct' } : prev))
+    setCatching(true)
+    setTimeout(() => setCatching(false), 450)
     setFourthVisible(false)
     flashScore()
     setTimeout(() => {
@@ -516,20 +519,24 @@ export function BuleleVulpiiGame({
   // bucurie la final dacă a trecut pragul, altfel doar respiră liniștit —
   // fără starea `talking` (păstrăm o singură vulpe, fără portret facial
   // suplimentar, ca înainte).
-  const mascotState: MascotState = done
+  const mascotState: MascotStateV2 = done
     ? (done.passed ? 'cheering' : 'idle')
-    : balloon?.state === 'correct'
-      ? 'clapping'
-      : balloon?.zone === 'pink' && balloon?.state === 'flying'
-        ? 'pointing'
-        : 'idle'
+    : overlay === 'pause'
+      ? 'sleeping'
+      : overlay === 'exit'
+        ? 'sitting'
+        : balloon?.state === 'correct'
+          ? (catching ? 'talking' : 'clapping')
+          : helpMessage || (balloon?.zone === 'pink' && balloon?.state === 'flying')
+            ? 'pointing'
+            : 'idle'
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit', position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 10, position: 'relative' }}>
-        <Mascot state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={56} />
+        <MascotV2 state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={72} />
         {helpMessage && (
-          <span style={{ position: 'absolute', left: 60, top: -6, background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
+          <span style={{ position: 'absolute', left: 78, top: -6, background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
             {helpMessage}
           </span>
         )}

@@ -321,7 +321,7 @@ export default function FilmulCuvantului() {
     if (!playing) return
     let raf = 0; last.current = performance.now()
     const loop = (now: number) => {
-      const dt = now - last.current; last.current = now
+      const dt = Math.max(0, now - last.current); last.current = now
       setT(x => { const nx = x + dt * speed; if (nx >= TOTAL) { setPlaying(false); return TOTAL } return nx })
       raf = requestAnimationFrame(loop)
     }
@@ -342,7 +342,7 @@ export default function FilmulCuvantului() {
   }
 
   const starts = useMemo(() => SCENES.reduce<number[]>((a, s, i) => [...a, i ? a[i - 1] + SCENES[i - 1].ms : 0], []), [])
-  const si = Math.min(SCENES.length - 1, starts.filter(s => t >= s).length - 1)
+  const si = Math.max(0, Math.min(SCENES.length - 1, starts.filter(s => t >= s).length - 1))
   const p = clamp((t - starts[si]) / SCENES[si].ms)
   const Scene = SCENES[si].C
   const btn: React.CSSProperties = { padding: '6px 12px', borderRadius: 8, border: '1.5px solid #2b3a55', background: '#fff', cursor: 'pointer', fontWeight: 600 }
