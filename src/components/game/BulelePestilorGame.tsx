@@ -568,7 +568,7 @@ export function BulelePestilorGame({
         <div style={{ position: 'absolute', left: 150, top: SKY_H + 2, width: 8, height: 40, background: '#8a6238' }} />
         {/* vulpea (singura de pe ecran) */}
         <div style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
-          <MascotV2 state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
+          <MascotV2 steady state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
         </div>
 
         {/* acvariul pe celule */}

@@ -9,7 +9,13 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 //    (glow, umbră, particule, luciu, chevroane, scântei) e cel din
 //    Mascot.tsx — folosește aceleași clase din globals.css. `face` e
 //    acceptat doar pentru compatibilitate de semnătură și ignorat
-//    (`talking` are acum poză de corp proprie, deci nu mai are portret). ──
+//    (`talking` are acum poză de corp proprie, deci nu mai are portret).
+//    Prop opt-in `steady` (implicit false → comportament neschimbat):
+//    vulpea pare una singură, nu un set de poze — poze preîncărcate,
+//    aliniate pe aceeași linie a solului / axă a corpului, schimbare
+//    fermă (fără fade → fără „fantomă”), timp minim de menținere a
+//    pozei și respirație continuă care nu se resetează la schimbarea
+//    stării. ──
 
 export type MascotStateV2 =
   | 'idle' | 'pointing' | 'clapping' | 'cheering' | 'talking'
@@ -66,6 +72,32 @@ const CSS_STATE: Record<MascotStateV2, string> = {
   talking: 'talking', waving: 'idle', sitting: 'idle', sleeping: 'idle',
 }
 
+// ── `steady`: aliniere per poză (în % din latura cadrului de 346 px), măsurată
+//    din masa opacă a fiecărui PNG față de `01_idle_side` (centru x=178,
+//    sol y=337). Pozele de salt/alergare (08, 09, 10, 11) rămân nealiniate:
+//    sunt mișcate oricum de animația CSS. ──
+const REF_CX = 178
+const REF_BOTTOM = 337
+const FRAME = 346
+const MEASURED: Record<string, { cx: number; bottom: number }> = {
+  [POSE.idleSide]: { cx: 178, bottom: 337 },
+  [POSE.blink]: { cx: 177, bottom: 335 },
+  [POSE.idleFront]: { cx: 175, bottom: 336 },
+  [POSE.sit]: { cx: 165, bottom: 336 },
+  [POSE.point]: { cx: 166, bottom: 332 },
+  [POSE.wave]: { cx: 170, bottom: 332 },
+  [POSE.clap]: { cx: 158, bottom: 333 },
+  [POSE.sleep]: { cx: 172, bottom: 279 },
+}
+function alignTransform(src: string): string {
+  const m = MEASURED[src]
+  if (!m) return 'none'
+  const dx = ((REF_CX - m.cx) / FRAME) * 100
+  const dy = ((REF_BOTTOM - m.bottom) / FRAME) * 100
+  return `translate(${dx.toFixed(2)}%, ${dy.toFixed(2)}%)`
+}
+const STEADY_HOLD_MS = 250
+
 export function MascotV2({
   state = 'idle',
   action,
@@ -73,6 +105,7 @@ export function MascotV2({
   message = null,
   size = 96,
   className = '',
+  steady = false,
 }: {
   state?: MascotStateV2
   action?: MascotActionV2
@@ -80,6 +113,8 @@ export function MascotV2({
   message?: string | null
   size?: number
   className?: string
+  /** opt-in: vulpe „unitară” — vezi comentariul de la începutul fișierului */
+  steady?: boolean
 }) {
   // ── clipire periodică — doar în idle „pur" (fără action), la intervale
   //    ușor aleatorii (2.6s–4.8s), ca vulpea să nu pară înghețată când
@@ -137,6 +172,7 @@ export function MascotV2({
   const [layers, setLayers] = useState<{ src: string; id: number }[]>([{ src: pose, id: 0 }])
   const nextId = useRef(1)
   useEffect(() => {
+    if (steady) return
     setLayers((prev) => {
       if (prev[prev.length - 1]?.src === pose) return prev
       const id = nextId.current++
@@ -146,14 +182,57 @@ export function MascotV2({
       // păstrăm cel mult ultimele 2 cadre — cel ieșit e curățat după fade
       return updated.slice(-2)
     })
-  }, [pose, action])
+  }, [pose, action, steady])
   useEffect(() => {
+    if (steady) return
     if (layers.length < 2) return
     const timer = window.setTimeout(() => {
       setLayers((prev) => (prev.length < 2 ? prev : prev.slice(-1)))
     }, 190)
     return () => window.clearTimeout(timer)
-  }, [layers])
+  }, [layers, steady])
+
+  // ── steady: (A) preîncărcare — toate pozele sunt în cache înainte de prima
+  //    folosire; (C) poza afișată rămâne cel puțin STEADY_HOLD_MS înainte să
+  //    fie înlocuită (clipitul și alergarea sunt scutite); (D) mișcarea
+  //    „de respirație” rulează continuu, indiferent de stare. ──
+  const [shown, setShown] = useState(pose)
+  const lastSwap = useRef(0)
+  useEffect(() => {
+    if (!steady) return
+    Object.values(POSE).forEach((src) => {
+      const im = new Image()
+      im.src = src
+      im.decode?.().catch(() => {})
+    })
+  }, [steady])
+  useEffect(() => {
+    if (!steady || shown === pose) return
+    const blinkInvolved = pose === POSE.blink || shown === POSE.blink
+    const exempt = blinkInvolved || action === 'walking'
+    const wait = exempt ? 0 : Math.max(0, STEADY_HOLD_MS - (Date.now() - lastSwap.current))
+    const t = window.setTimeout(() => {
+      if (!blinkInvolved) lastSwap.current = Date.now()
+      setShown(pose)
+    }, wait)
+    return () => window.clearTimeout(t)
+  }, [pose, shown, steady, action])
+
+  const [reduceMotion, setReduceMotion] = useState(false)
+  useEffect(() => {
+    setReduceMotion(!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  }, [])
+
+  const shownPose = steady ? shown : pose
+  // stările „de salt” / acțiunile păstrează animația CSS proprie; restul
+  // primesc respirația continuă pe stratul interior.
+  const calm = steady && state !== 'cheering' && !action
+  const anchorStyle: CSSProperties | undefined = calm ? { animation: 'none' } : undefined
+  const visualStyle: CSSProperties | undefined =
+    calm && !reduceMotion
+      ? { animation: 'mascot-idle-bob 2.6s ease-in-out infinite', transformOrigin: '50% 100%' }
+      : undefined
+  const shineTransform = steady ? alignTransform(shownPose) : undefined
 
   return (
     <div
@@ -190,9 +269,18 @@ export function MascotV2({
           <span className="mascot-dust-mote d3" />
         </div>
 
-        <div className="mascot-fox-anchor">
-          <div className="mascot-fox-visual">
-            {layers.map((layer, i) => {
+        <div className="mascot-fox-anchor" style={anchorStyle}>
+          <div className="mascot-fox-visual" style={visualStyle}>
+            {steady ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={shownPose}
+                alt=""
+                className="mascot-fox-img"
+                style={{ transform: alignTransform(shownPose), transition: 'none' }}
+                draggable={false}
+              />
+            ) : layers.map((layer, i) => {
               const isOutgoing = i === 0 && layers.length > 1
               return (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -225,8 +313,9 @@ export function MascotV2({
             <div
               className="mascot-shine"
               style={{
-                WebkitMaskImage: `url(${pose})`,
-                maskImage: `url(${pose})`,
+                WebkitMaskImage: `url(${shownPose})`,
+                maskImage: `url(${shownPose})`,
+                transform: shineTransform,
               }}
             />
           </div>
