@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import type { Lesson } from '@/lib/levels'
-import { BuleleVulpiiGame, type BuleleVulpiiLevel, type BuleleVulpiiResult } from './BuleleVulpiiGame'
+import type { BuleleVulpiiLevel, BuleleVulpiiResult } from './BuleleVulpiiGame'
+// Actualizare (2026-10-02): jocul montat e varianta cu pești. Revenire la baloane =
+// import { BuleleVulpiiGame } from './BuleleVulpiiGame' + <BuleleVulpiiGame> mai jos.
+import { BulelePestilorGame } from './BulelePestilorGame'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Overlay full-screen deschis din /learn imediat după ce o coloană e
@@ -90,7 +93,7 @@ export function BuleleVulpiiOverlay({
       {/* dock-ul FoxHelper stă deasupra overlay-ului — îl ascundem cât joacă */}
       <style>{`.fox-helper { display: none !important; }`}</style>
       <div className="bulele-overlay-card">
-        <p className="bulele-overlay-title">🎈 Bulele Vulpii</p>
+        <p className="bulele-overlay-title">🐟 Bulele Vulpii</p>
         <p className="bulele-overlay-sub">
           Ai terminat coloana {config.lesson.tabLabel.toLowerCase()} — hai să exersăm sunetul!
         </p>
@@ -98,7 +101,7 @@ export function BuleleVulpiiOverlay({
         {/* key={level} → fiecare schimbare de nivel primește propriul fade-in,
             în loc să apară brusc peste jocul anterior */}
         <div key={level} className="bulele-game-fade">
-          <BuleleVulpiiGame
+          <BulelePestilorGame
             key={`${config.lesson.id}-${level}`}
             lesson={config.lesson}
             distractorLessons={config.distractorLessons}
