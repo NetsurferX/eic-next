@@ -25,6 +25,7 @@ const AUTO_DELAY_KEY = 'eic-auto-delay-ms'
 const SOUND_INTRO_SEEN_KEY = 'eic-sound-intro-seen'
 const BEGINNER_NOTE_SEEN_KEY = 'eic-beginner-note-seen'
 const REVIEW_THRESHOLD = 3      // clicking one word this many times sends it to "Cuvinte de exersat"
+const LETTER_FOX_PROMPT = "Let's play!"   // mesajul vulpii la click pe litera din capul coloanei
 
 // Alege accentul efectiv al unui cuvânt: override-ul cuvântului > accentul
 // coloanei > 'en-US' implicit.
@@ -759,6 +760,24 @@ export default function LearnPage() {
     currentAudio.current?.pause()
   }, [])
 
+  // ── Click pe LITERA din capul coloanei (la fiecare coloană): vulpea
+  //    propune „Let's play!" și se aude sunetul izolat al literei (același
+  //    matchWord ca în OnboardingSoundIntro), apoi elevul studiază coloana
+  //    (selectColumn rulează separat, prin click-ul coloanei). Doar la CLICK,
+  //    nu la hover. Prima dată per lecție demo-ul OnboardingSoundIntro
+  //    acoperă deja sunetul, deci aici nu se dublează. ──
+  const letterSoundStopRef = useRef<(() => void) | null>(null)
+  const handleLetterClick = useCallback((l: Lesson, i: number) => {
+    if (!introDone || isPlayingRep || playingWord !== null) return
+    if (!colUnlocked[levelIndex][i]) return
+    if (!seenIntros.has(l.id)) return
+    triggerFox(LETTER_FOX_PROMPT, 'greeting')
+    letterSoundStopRef.current?.()
+    const { stop } = speakWord(l.matchWord ?? l.words[0].text, { accent: resolveAccent(l.words[0], l) })
+    letterSoundStopRef.current = stop
+  }, [introDone, isPlayingRep, playingWord, colUnlocked, levelIndex, seenIntros, triggerFox])
+  useEffect(() => () => { letterSoundStopRef.current?.() }, [])
+
   // ── Apasă pe UN cuvânt anume din listă → se aude doar el, o singură dată,
   //    fără să pornească repetiția întregii coloane și fără să afecteze
   //    stelele/progresul. Blocat cât timp o repetiție de coloană e deja în
@@ -822,7 +841,7 @@ export default function LearnPage() {
               onMouseEnter={() => hoverSelectColumn(i)}
               onMouseLeave={cancelHoverSelectColumn}
             >
-              <div className="lesson-col-head">
+              <div className="lesson-col-head" onClick={() => handleLetterClick(l, i)}>
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
                 <span className="lesson-number" aria-hidden="true">{GLOBAL_LESSON_NUMBER[l.id]}</span>
                 <div
