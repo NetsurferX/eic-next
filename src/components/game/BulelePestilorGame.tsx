@@ -134,6 +134,12 @@ const OFFGLIDE: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', i: 'ỉ', I: 'Ỉ
 const isVowelLike = (ch: string) => /[aeiouwy]/i.test(ch)
 
 function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: boolean): { node: ReactNode; len: number } {
+  // Peștele rămâne gol (fără literă/cuvânt) până utilizatorul răspunde corect.
+  // len rămâne corect ca să nu sară mărimea fontului la dezvăluire.
+  if (!solved) {
+    const hidden = level === 1 ? lesson.letter.replace(/\u200D/g, '') : word.text
+    return { node: null, len: Math.max(hidden.length, 1) }
+  }
   const tri = lesson.id === 'ou'
   if (level === 1) {
     const txt = lesson.letter
