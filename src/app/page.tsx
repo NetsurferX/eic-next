@@ -6,18 +6,78 @@
 //   „study" → /learn  (lecțiile / jocul)
 // Stilurile sunt locale (prefix .gw-) — nu ating globals.css.
 //
-// Rute, aria-label și structura DOM sunt neschimbate; s-a schimbat doar CSS-ul.
+// Placa „EiC" e blocată până se termină toate etapele din „study" (vezi mai jos).
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress } from '@/lib/levels'
+
+// Placa „EiC" rămâne blocată până când utilizatorul termină TOATE etapele
+// din „study" (/learn). Sursa adevărului: `allDone` din progresul salvat
+// (STORAGE_KEY) — același flag pe care /learn îl setează la ultimul nivel.
+// Blocarea e doar la nivelul butonului: ruta /eic în sine nu e atinsă.
 
 export default function Gateway() {
+  // null = încă necitit (prima randare / SSR) → tratat ca blocat, fără text
+  const [done, setDone] = useState<boolean | null>(null)
+  const [pct, setPct] = useState(0)
+  const [nudge, setNudge] = useState(false)
+
+  useEffect(() => {
+    let finished = false
+    let progress = 0
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<SavedProgress>
+        finished = saved.allDone === true
+        const earned = (saved.starsEarned ?? []).flat().reduce((a, b) => a + b, 0)
+        const max = LEVELS.reduce((a, l) => a + l.lessons.length, 0) * REPS_PER_LESSON
+        progress = finished ? 100 : Math.min(99, Math.round((earned / max) * 100))
+      }
+    } catch { /* ignore */ }
+    setDone(finished)
+    setPct(progress)
+  }, [])
+
+  const unlocked = done === true
+
   return (
     <main className="gw-page">
       <style>{CSS}</style>
 
-      <Link href="/eic" className="gw-tile gw-eic" aria-label="EiC — editorul">
-        <span className="gw-band">EiC</span>
-      </Link>
+      {unlocked ? (
+        <Link href="/eic" className="gw-tile gw-eic" aria-label="EiC — editorul">
+          <span className="gw-band">EiC</span>
+        </Link>
+      ) : (
+        <div className="gw-eic-wrap">
+          <button
+            type="button"
+            className={`gw-tile gw-eic gw-locked${nudge ? ' gw-nudge' : ''}`}
+            aria-disabled="true"
+            aria-label="EiC — blocat până termini toate etapele din study"
+            onClick={() => { setNudge(false); requestAnimationFrame(() => setNudge(true)) }}
+            onAnimationEnd={e => { if (e.animationName === 'gw-shake') setNudge(false) }}
+          >
+            <span className="gw-band">EiC</span>
+            <span className="gw-lock" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="11" width="14" height="9" rx="2.2" fill="currentColor" stroke="none" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+            </span>
+          </button>
+          {done === false && (
+            <p className="gw-hint">
+              Termină toate etapele din <Link href="/learn">study</Link> ca să deschizi EiC
+              <span className="gw-meter" aria-label={`Progres ${pct}%`}>
+                <span className="gw-meter-fill" style={{ width: `${pct}%` }} />
+              </span>
+            </p>
+          )}
+        </div>
+      )}
 
       <Link href="/learn" className="gw-tile gw-study" aria-label="study — lecțiile">
         <span className="gw-band">study</span>
@@ -156,6 +216,9 @@ const CSS = `
   to   { opacity: 1; transform: none; }
 }
 
+@media (max-width: 554px) {
+  .gw-eic-wrap { margin-bottom: 90px; }
+}
 @media (max-width: 560px) {
   .gw-page { gap: 52px; }
 }
@@ -163,5 +226,52 @@ const CSS = `
   .gw-tile, .gw-band { transition: none; animation: none; }
   .gw-tile::after { display: none; }
   .gw-tile:hover, .gw-study:hover { transform: none; }
+}
+
+/* ── EiC blocat (până se termină etapele din „study") ── */
+.gw-eic-wrap { position: relative; display: flex; }
+button.gw-tile { border: 0; padding: 0; font: inherit; cursor: not-allowed; }
+.gw-locked {
+  filter: grayscale(.85) brightness(.97);
+  --gw-accent: #8a9aa5;
+}
+.gw-locked .gw-band { color: #8a9aa5; }
+.gw-locked:hover, .gw-locked:active {
+  transform: none; filter: grayscale(.85) brightness(.97);
+}
+.gw-locked:hover .gw-band, .gw-locked:active .gw-band { transform: none; }
+.gw-locked::after { display: none; }
+.gw-lock {
+  position: absolute; top: 14px; right: 16px; z-index: 2;
+  display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 50%;
+  color: #5b6a74; background: rgba(255,255,255,.85);
+  box-shadow: 0 2px 6px rgba(0, 40, 70, .25);
+}
+.gw-nudge { animation: gw-shake .45s ease both; }
+.gw-hint {
+  /* scos din flux: placa rămâne pe aceeași orizontală cu „study" */
+  position: absolute; top: calc(100% + 28px); left: 50%;
+  width: 260px; transform: translateX(-50%);
+  margin: 0; text-align: center;
+  font-size: 14px; line-height: 1.4; color: #4a5b66;
+}
+.gw-hint a { color: var(--gw-red); font-weight: 700; text-decoration: none; }
+.gw-hint a:hover { text-decoration: underline; }
+.gw-meter {
+  display: block; margin: 10px auto 0; width: 160px; height: 8px;
+  border-radius: 99px; background: #d5e3ec; overflow: hidden;
+}
+.gw-meter-fill {
+  display: block; height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--gw-blue-light), var(--gw-blue));
+  transition: width .4s ease;
+}
+@keyframes gw-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px) rotate(-1deg); }
+  40% { transform: translateX(8px) rotate(1deg); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
 }
 `
