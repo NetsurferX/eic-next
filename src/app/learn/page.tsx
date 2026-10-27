@@ -2,7 +2,7 @@
 
 import { speakWord, warmUpVoices } from '@/lib/speak'
 import { playStarChime, playLevelFanfare } from '@/lib/sound'
-import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress, type Lesson, type LessonWord, type Accent } from '@/lib/levels'
+import { LEVELS as ALL_LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress, type Level, type Lesson, type LessonWord, type Accent } from '@/lib/levels'
 import { Cup, Confetti } from '@/components/game/Cup'
 import { Mascot } from '@/components/game/Mascot'
 import MascotReward, { useMascotReward } from '@/components/game/MascotReward'
@@ -31,6 +31,35 @@ const LETTER_FOX_PROMPT = "Let's play!"   // mesajul vulpii la click pe litera d
 // coloanei > 'en-US' implicit.
 const resolveAccent = (w: { accent?: Accent }, l: { accent?: Accent }): Accent =>
   w.accent ?? l.accent ?? 'en-US'
+
+// ── Pagina /learn arată doar WORDS_PER_COLUMN cuvinte per coloană (primele 4
+//   din levels.ts), cu o excepție: prima coloană (/a/) are setul ei propriu.
+//   Filtrul e LOCAL paginii — levels.ts (partajat cu landing, jocuri, debug)
+//   rămâne neatins. `LEVELS` de mai jos umbrește deliberat importul, ca tot
+//   restul fișierului să lucreze automat cu lista scurtă.
+//   bug/son: accent en-GB explicit, ca la coloana STRUT (dicționarul US le
+//   transcrie cu schwa → ar ieși negre, nu verzi). ──
+const WORDS_PER_COLUMN = 4
+const COLUMN_WORD_OVERRIDES: Record<string, LessonWord[]> = {
+  a: [
+    { text: 'farm', mark: 'a' },
+    { text: 'hard', mark: 'a' },
+    { text: 'bug',  mark: 'u', accent: 'en-GB' },
+    { text: 'son',  mark: 'o', accent: 'en-GB' },
+  ],
+}
+const LEVELS: Level[] = ALL_LEVELS.map(lvl => ({
+  ...lvl,
+  lessons: lvl.lessons.map(l => ({
+    ...l,
+    words: (COLUMN_WORD_OVERRIDES[l.id] ?? l.words).slice(0, WORDS_PER_COLUMN),
+  })),
+}))
+
+// ── Repetări automate: la deschiderea unei coloane, ascultarea pornește
+//   singură și se repetă de REPS_PER_LESSON ori (câte o stea per repetare). ──
+const REP_START_DELAY_MS = 900    // pauza dintre deschiderea coloanei și prima repetare
+const REP_GAP_MS = 3000           // pauza dintre repetări (lasă loc animației stelei/vulpii, ~2850ms)
 
 // Toate cuvintele din toate lecțiile, o singură dată — sursă pentru fetch-ul
 // batch către /api/words la montare, care înlocuiește MarkedWord (colora
@@ -350,7 +379,7 @@ export default function LearnPage() {
         if (saved.levelIndex !== undefined) setLevelIndex(saved.levelIndex)
         if (saved.unlockedLevels) setUnlockedLevels(saved.unlockedLevels)
         if (saved.colUnlocked) setColUnlocked(saved.colUnlocked)
-        if (saved.starsEarned) setStarsEarned(saved.starsEarned)
+        if (saved.starsEarned) setStarsEarned(saved.starsEarned.map(row => row.map(v => Math.min(v, REPS_PER_LESSON))))   // salvări vechi (5 stele/coloană) → plafonate la noul REPS_PER_LESSON
         if (saved.active !== undefined) setActive(saved.active)
         if (saved.allDone) setAllDone(saved.allDone)
       }
@@ -643,8 +672,13 @@ export default function LearnPage() {
 
   // ── Buton „Știu deja acest sunet" — sare direct la 5 stele, fără să mai
   //   redea audio, și avansează coloana la fel ca handleMainButton. ──
+  //   „Omite" (după prima repetare) folosește același handler: oprește
+  //   repetarea automată în curs (dacă e una) și trece direct la jocul
+  //   dintre coloane. ──
   const handleStudiedButton = useCallback(() => {
-    if (isPlayingRep || starsEarned[levelIndex][active] >= REPS_PER_LESSON) return
+    if (starsEarned[levelIndex][active] >= REPS_PER_LESSON || buleleVulpiiConfig) return
+    autoCancel.current = true
+    currentAudio.current?.pause()
 
     const newCount = REPS_PER_LESSON
     const updatedLevelStars = levelStars.map((v, idx) => (idx === active ? newCount : v))
@@ -689,7 +723,7 @@ export default function LearnPage() {
       distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
       nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
     })
-  }, [isPlayingRep, starsEarned, levelIndex, active, levelStars, level, lesson, isLastLevel, triggerFox])
+  }, [buleleVulpiiConfig, starsEarned, levelIndex, active, levelStars, level, lesson, isLastLevel, triggerFox])
 
   const selectColumn = useCallback((i: number) => {
     if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
@@ -799,17 +833,27 @@ export default function LearnPage() {
     })
   }, [isPlayingRep, playingWord, playWord, triggerFox])
 
-  let buttonLabel: string
-  if (isPlayingRep) buttonLabel = 'Repetă în glas'
-  else if (hasTrophy) buttonLabel = `Repetă (${(freePracticeCount % REPS_PER_LESSON) + 1}/${REPS_PER_LESSON})`
-  else buttonLabel = `Repetă (${earned + 1}/${REPS_PER_LESSON})`
+  // ── Repetări automate — fără buton. Când coloana activă e deblocată și
+  //   neterminată, iar intro-urile (vulpea mare, demo-ul de sunet) s-au
+  //   încheiat, pornește singură o repetare; la sfârșitul ei steaua se
+  //   acordă (handleMainButton) → `earned` crește → efectul rulează din nou
+  //   și pornește următoarea, până la REPS_PER_LESSON. Se oprește cât timp e
+  //   deschis jocul de baloane / overlay-ul de nivel / confirmarea de reset. ──
+  useEffect(() => {
+    if (!hydrated || !introHydrated || !beginnerNoteHydrated || !introDone) return
+    if (introLesson || isPlayingRep || buleleVulpiiConfig || showLevelOverlay || showResetConfirm) return
+    if (!colUnlocked[levelIndex]?.[active] || earned >= REPS_PER_LESSON) return
+    const t = setTimeout(() => { void handleMainButton() }, earned === 0 ? REP_START_DELAY_MS : REP_GAP_MS)
+    return () => clearTimeout(t)
+  }, [hydrated, introHydrated, beginnerNoteHydrated, introDone, introLesson, isPlayingRep, buleleVulpiiConfig,
+      showLevelOverlay, showResetConfirm, colUnlocked, levelIndex, active, earned, handleMainButton])
 
   // ── Mesajul implicit al vulpii — calculat live din starea lecției, nu
   //   ales dintr-o listă fixă de „tips" (vezi FoxHelper.tsx). ──
   const foxIdleHint = useMemo(() => {
     if (allDone) return 'Ai terminat tot parcursul — felicitări! 🎉'
     if (hasTrophy) return 'Coloana asta e gata — treci la următoarea!'
-    if (earned === 0) return 'Apasă „Repetă" și ascultă coloana cu voce tare.'
+    if (earned === 0) return 'Ascultă coloana și repetă fiecare cuvânt cu voce tare.'
     return `Mai ai nevoie de ${REPS_PER_LESSON - earned} stele ca să deblochezi următoarea coloană.`
   }, [allDone, hasTrophy, earned])
 
@@ -922,29 +966,20 @@ export default function LearnPage() {
                 })}
               </div>
 
-              {isActive && isUnlocked && (
+              {/* Omite: apare in locul fostului buton Repetă, abia după
+                  prima repetare; trece direct la jocul dintre coloane. */}
+              {isActive && isUnlocked && stars >= 1 && !trophyEarned && (
                 <div className="lesson-col-btn-wrap">
                   <button
                     className="lesson-col-btn"
-                    onClick={(e) => { e.stopPropagation(); handleMainButton() }}
-                    disabled={isPlayingRep}
+                    onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
                     style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
                   >
-                    {buttonLabel}
+                    Omite
                   </button>
                 </div>
               )}
 
-              {isActive && isUnlocked && !trophyEarned && (
-                <button
-                  type="button"
-                  className="lesson-col-studied-btn"
-                  onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
-                  disabled={isPlayingRep}
-                >
-                  Știu deja acest sunet
-                </button>
-              )}
             </div>
           )
         })}
@@ -989,7 +1024,7 @@ export default function LearnPage() {
         </div>
 
         <p className="lesson-subhead">
-          {allDone ? 'Repetă cuvintele cu voce tare' : 'Apasă „Repetă", ascultă coloana și repetă fiecare cuvânt cu voce tare'}
+          {allDone ? 'Repetă cuvintele cu voce tare' : 'Ascultă coloana de 3 ori și repetă fiecare cuvânt cu voce tare'}
         </p>
 
         {allDone && (
@@ -1154,7 +1189,7 @@ export default function LearnPage() {
           actions={[
             { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
             { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
-            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „Știu deja acest sunet" ca să sari peste exercițiu.', 'hint') },
+            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „Omite" (apare după prima repetare) ca să sari la joc.', 'hint') },
           ]}
         />
       )}

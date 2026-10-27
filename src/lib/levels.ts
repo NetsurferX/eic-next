@@ -421,7 +421,7 @@ export const LEVELS: Level[] = [
 ]
 
 export const STORAGE_KEY = 'eic-lesson-progress-v6'   // bumped — v5 saves are shaped for the old 3-level/4-column-per-level LEVELS array; Nivelurile 4-8 (variable column counts) need a fresh shape
-export const REPS_PER_LESSON = 5
+export const REPS_PER_LESSON = 3   // 3 repetări automate per coloană (era 5)
 
 export interface SavedProgress {
   levelIndex: number
