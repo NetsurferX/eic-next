@@ -10,7 +10,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress } from '@/lib/levels'
+import { STORAGE_KEY, type SavedProgress } from '@/lib/levels'
 
 // Placa „EiC" rămâne blocată până când utilizatorul termină TOATE etapele
 // din „study" (/learn). Sursa adevărului: `allDone` din progresul salvat
@@ -20,24 +20,18 @@ import { LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress } from '@/lib/
 export default function Gateway() {
   // null = încă necitit (prima randare / SSR) → tratat ca blocat, fără text
   const [done, setDone] = useState<boolean | null>(null)
-  const [pct, setPct] = useState(0)
   const [nudge, setNudge] = useState(false)
 
   useEffect(() => {
     let finished = false
-    let progress = 0
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
         const saved = JSON.parse(raw) as Partial<SavedProgress>
         finished = saved.allDone === true
-        const earned = (saved.starsEarned ?? []).flat().reduce((a, b) => a + b, 0)
-        const max = LEVELS.reduce((a, l) => a + l.lessons.length, 0) * REPS_PER_LESSON
-        progress = finished ? 100 : Math.min(99, Math.round((earned / max) * 100))
       }
     } catch { /* ignore */ }
     setDone(finished)
-    setPct(progress)
   }, [])
 
   const unlocked = done === true
@@ -54,11 +48,10 @@ export default function Gateway() {
         <div className="gw-eic-wrap">
           <button
             type="button"
-            className={`gw-tile gw-eic gw-locked${nudge ? ' gw-nudge' : ''}`}
+            className="gw-tile gw-eic gw-locked"
             aria-disabled="true"
             aria-label="EiC — blocat până termini toate etapele din study"
             onClick={() => { setNudge(false); requestAnimationFrame(() => setNudge(true)) }}
-            onAnimationEnd={e => { if (e.animationName === 'gw-shake') setNudge(false) }}
           >
             <span className="gw-band">EiC</span>
             <span className="gw-lock" aria-hidden="true">
@@ -68,22 +61,15 @@ export default function Gateway() {
               </svg>
             </span>
           </button>
-          {done === false && (
-            <span
-              className="gw-meter"
-              role="progressbar"
-              aria-label="Progres study"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={pct}
-            >
-              <span className="gw-meter-fill" style={{ width: `${pct}%` }} />
-            </span>
-          )}
         </div>
       )}
 
-      <Link href="/learn" className="gw-tile gw-study" aria-label="study — lecțiile">
+      <Link
+        href="/learn"
+        className={`gw-tile gw-study${nudge ? ' gw-nudge' : ''}`}
+        aria-label="study — lecțiile"
+        onAnimationEnd={e => { if (e.animationName === 'gw-shake') setNudge(false) }}
+      >
         <span className="gw-band">study</span>
       </Link>
     </main>
@@ -101,7 +87,7 @@ const CSS = `
   min-height: 100vh;
   display: flex; flex-wrap: wrap;
   align-items: center; justify-content: center;
-  gap: 72px;
+  gap: 28px;
   padding: 24px 24px 48px;
   background:
     radial-gradient(circle at 20% 15%, rgba(0, 162, 232, .10) 0, transparent 38%),
@@ -135,7 +121,7 @@ const CSS = `
   outline: none;
   animation: gw-pop .55s cubic-bezier(.2,.9,.3,1.2) both;
 }
-.gw-study { width: 210px; height: 202px; animation-delay: .09s; }
+.gw-study { animation-delay: .09s; }
 
 /* luciu curbat pe jumătatea de sus */
 .gw-tile::before {
@@ -220,12 +206,6 @@ const CSS = `
   to   { opacity: 1; transform: none; }
 }
 
-@media (max-width: 554px) {
-  .gw-eic-wrap { margin-bottom: 48px; }
-}
-@media (max-width: 560px) {
-  .gw-page { gap: 52px; }
-}
 @media (prefers-reduced-motion: reduce) {
   .gw-tile, .gw-band { transition: none; animation: none; }
   .gw-tile::after { display: none; }
@@ -254,17 +234,11 @@ button.gw-tile { border: 0; padding: 0; font: inherit; cursor: not-allowed; }
     inset 0 -3px 5px rgba(0,0,0,.18);
 }
 .gw-nudge { animation: gw-shake .45s ease both; }
-.gw-meter {
-  /* scos din flux: placa rămâne pe aceeași orizontală cu „study" */
-  position: absolute; top: calc(100% + 30px); left: 50%;
-  transform: translateX(-50%);
-  display: block; width: 160px; height: 8px;
-  border-radius: 99px; background: #d5e3ec; overflow: hidden;
-}
-.gw-meter-fill {
-  display: block; height: 100%; border-radius: 99px;
-  background: linear-gradient(90deg, var(--gw-blue-light), var(--gw-blue));
-  transition: width .4s ease;
+/* păstrăm gw-pop în listă: altfel, la scoaterea clasei, intrarea (opacity 0 → 1) se reia */
+.gw-study.gw-nudge {
+  animation:
+    gw-pop .55s cubic-bezier(.2,.9,.3,1.2) .09s both,
+    gw-shake .45s ease 0s both;
 }
 @keyframes gw-shake {
   0%, 100% { transform: translateX(0); }
