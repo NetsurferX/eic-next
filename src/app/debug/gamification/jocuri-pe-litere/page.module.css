@@ -1,0 +1,64 @@
+.wrap { min-height: 100vh; background: #fafaf7; padding: 40px 16px 90px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #2b2b2b; }
+.header { max-width: 980px; margin: 0 auto 32px; text-align: center; }
+.badge { display: inline-block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #a8752b; background: #fdf3e0; border: 1px solid #f0d9a8; border-radius: 999px; padding: 4px 12px; margin-bottom: 14px; font-weight: 600; }
+.header h1 { font-size: 28px; margin: 0 0 10px; }
+.header p { color: #666; font-size: 15px; max-width: 680px; margin: 0 auto; line-height: 1.5; }
+.grid { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.card { display: block; text-decoration: none; color: inherit; background: #fff; border: 1px solid #e8e4da; border-top-width: 5px; border-radius: 14px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: transform .15s, box-shadow .15s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+.cardTop { display: flex; align-items: center; gap: 10px; }
+.sym { min-width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 20px; padding: 0 6px; }
+.card h2 { font-size: 16px; margin: 0; }
+.tag { display: inline-block; margin: 8px 0 4px; font-size: 11px; font-weight: 700; color: #666; background: #f1efe8; border-radius: 999px; padding: 2px 9px; }
+.desc { margin: 0; font-size: 13px; color: #555; line-height: 1.45; }
+.footer { max-width: 980px; margin: 36px auto 0; font-size: 12px; color: #888; text-align: center; line-height: 1.6; }
+
+/* ── shell pagină joc ── */
+.shell { max-width: 760px; margin: 0 auto; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; }
+.bar a { color: #1c7ed6; text-decoration: none; }
+.title { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.title h1 { font-size: 22px; margin: 0; }
+.how { color: #666; font-size: 14px; margin: 0 0 14px; }
+.arena { background: #fff; border: 1px solid #e8e4da; border-radius: 16px; padding: 18px; min-height: 380px; position: relative; overflow: hidden; }
+.speak { border: 1px solid #ddd; background: #fff; border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: 14px; }
+
+/* ── elemente comune ── */
+.btn { border: none; border-radius: 12px; padding: 10px 18px; font-size: 16px; font-weight: 700; cursor: pointer; background: #2b2b2b; color: #fff; }
+.btn:disabled { opacity: .4; cursor: default; }
+.opt { border: 2px solid #e1ddd0; background: #fff; border-radius: 12px; padding: 12px 18px; cursor: pointer; font-size: 22px; min-width: 100px; }
+.opt:hover:not(:disabled) { background: #faf6ea; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 14px; }
+.center { text-align: center; }
+.stat { display: flex; justify-content: space-between; font-size: 13px; color: #777; margin-bottom: 10px; }
+.end { text-align: center; padding: 50px 10px; }
+.good { background: #e6f7ea !important; border-color: #51cf66 !important; }
+.badc { background: #fdeaea !important; border-color: #fa5252 !important; }
+.prompt { text-align: center; font-size: 15px; color: #555; margin: 6px 0 16px; }
+.big { text-align: center; font-size: 44px; font-weight: 800; margin: 14px 0; min-height: 60px; }
+
+/* ── mișcare ── */
+.sky { position: relative; height: 340px; background: linear-gradient(#e7f3ff, #fff); border-radius: 12px; overflow: hidden; }
+.bubble { position: absolute; bottom: -50px; border: 3px solid; background: #ffffffcc; border-radius: 999px; padding: 10px 16px; cursor: pointer; }
+.rise { animation: rise 6s linear forwards; }
+@keyframes rise { from { transform: translateY(0); } to { transform: translateY(-410px); } }
+.field { position: relative; height: 340px; background: linear-gradient(#fffbe8, #f4ecd0); border-radius: 12px; overflow: hidden; touch-action: none; }
+.faller { position: absolute; transform: translateX(-50%); background: #fff; border: 2px solid #ddd; border-radius: 10px; padding: 4px 10px; }
+.basket { position: absolute; bottom: 6px; transform: translateX(-50%); font-size: 46px; transition: left .08s; }
+.holes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 420px; margin: 0 auto; }
+.hole { height: 90px; border-radius: 50%/40%; background: #5a3d26; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+.pop { background: #fff; border-radius: 10px; padding: 4px 10px; animation: popin .18s ease-out; }
+@keyframes popin { from { transform: scale(.3); } to { transform: scale(1); } }
+.shake { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.block { height: 26px; border-radius: 4px; margin: 0 auto 2px; width: 120px; }
+.track { position: relative; height: 34px; background: #f1efe8; border-radius: 999px; margin: 10px 0; }
+.runner { position: absolute; top: 2px; font-size: 26px; transition: left .4s; }
+.chip { display: inline-block; background: #fff; border: 2px solid #ddd; border-radius: 10px; padding: 6px 12px; margin: 4px; cursor: grab; font-size: 20px; }
+.chipSel { border-color: #1c7ed6; background: #e7f3ff; }
+.bin { flex: 1; min-height: 120px; border: 3px dashed #ccc; border-radius: 14px; padding: 8px; text-align: center; font-weight: 700; }
+.tile { border: 2px solid #ddd; background: #fff; border-radius: 10px; width: 52px; height: 52px; font-size: 24px; font-weight: 700; cursor: pointer; }
+.tile:disabled { opacity: .25; }
+.stone { border: none; background: #8b8b8b; color: #fff; border-radius: 50%/45%; padding: 14px 22px; font-size: 20px; cursor: pointer; }
+.meter { height: 26px; background: linear-gradient(90deg,#fa5252 0 30%,#fcc419 30% 40%,#51cf66 40% 60%,#fcc419 60% 70%,#fa5252 70%); border-radius: 8px; position: relative; margin: 14px 0; }
+.needle { position: absolute; top: -5px; width: 5px; height: 36px; background: #222; border-radius: 3px; }

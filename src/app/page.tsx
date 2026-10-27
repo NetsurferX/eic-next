@@ -69,12 +69,16 @@ export default function Gateway() {
             </span>
           </button>
           {done === false && (
-            <p className="gw-hint">
-              Termină toate etapele din <Link href="/learn">study</Link> ca să deschizi EiC
-              <span className="gw-meter" aria-label={`Progres ${pct}%`}>
-                <span className="gw-meter-fill" style={{ width: `${pct}%` }} />
-              </span>
-            </p>
+            <span
+              className="gw-meter"
+              role="progressbar"
+              aria-label="Progres study"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={pct}
+            >
+              <span className="gw-meter-fill" style={{ width: `${pct}%` }} />
+            </span>
           )}
         </div>
       )}
@@ -88,10 +92,10 @@ export default function Gateway() {
 
 const CSS = `
 .gw-page {
-  --gw-blue: #00a2e8;
-  --gw-blue-light: #4cc9fa;
-  --gw-blue-dark: #0084c0;
-  --gw-edge: #005f8e;
+  --gw-blue: #0098ea;
+  --gw-blue-light: #5fd4ff;
+  --gw-blue-dark: #0068c9;
+  --gw-edge: #004d8a;
   --gw-red: #e53935;
 
   min-height: 100vh;
@@ -113,7 +117,8 @@ const CSS = `
   border-radius: 32px;
   text-decoration: none;
   background:
-    radial-gradient(120% 90% at 30% 0%, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 55%),
+    radial-gradient(120% 90% at 30% 0%, rgba(255,255,255,.32) 0%, rgba(255,255,255,0) 55%),
+    radial-gradient(90% 60% at 100% 100%, rgba(120, 90, 255, .28) 0%, rgba(120, 90, 255, 0) 70%),
     linear-gradient(160deg, var(--gw-blue-light) 0%, var(--gw-blue) 52%, var(--gw-blue-dark) 100%);
   /* grosimea plăcii + umbra de pe podea + lumină pe muchie */
   box-shadow:
@@ -162,12 +167,13 @@ const CSS = `
   width: 100%;
   padding: 16px 0 14px;
   text-align: center;
-  background: linear-gradient(#ffffff 0%, #f4f9fc 60%, #e6f0f7 100%);
-  border-top: 3px solid var(--gw-accent);
-  border-bottom: 3px solid var(--gw-accent);
+  background: linear-gradient(#e4f0f8 0%, #f8fcfe 45%, #dcebf5 100%);
+  border-top: 3px solid #fff;
+  border-bottom: 3px solid #fff;
   box-shadow:
-    inset 0 3px 6px rgba(0,0,0,.08),
-    0 4px 10px rgba(0, 60, 100, .22);
+    inset 0 3px 6px rgba(0,60,100,.10),
+    0 0 14px rgba(255, 255, 255, .75),
+    0 6px 14px rgba(0, 50, 100, .28);
   font-family: var(--font-serif);
   font-style: italic; font-weight: 700;
   font-size: 46px; line-height: 1;
@@ -175,8 +181,6 @@ const CSS = `
   text-shadow: 0 2px 0 rgba(0,0,0,.08), 0 1px 0 #fff;
   transition: transform .18s cubic-bezier(.3,.7,.4,1);
 }
-.gw-eic   { --gw-accent: var(--gw-blue); }
-.gw-study { --gw-accent: var(--gw-red); }
 .gw-eic .gw-band   { color: var(--gw-blue); }
 .gw-study .gw-band { color: var(--gw-red); }
 
@@ -217,7 +221,7 @@ const CSS = `
 }
 
 @media (max-width: 554px) {
-  .gw-eic-wrap { margin-bottom: 90px; }
+  .gw-eic-wrap { margin-bottom: 48px; }
 }
 @media (max-width: 560px) {
   .gw-page { gap: 52px; }
@@ -231,35 +235,30 @@ const CSS = `
 /* ── EiC blocat (până se termină etapele din „study") ── */
 .gw-eic-wrap { position: relative; display: flex; }
 button.gw-tile { border: 0; padding: 0; font: inherit; cursor: not-allowed; }
-.gw-locked {
-  filter: grayscale(.85) brightness(.97);
-  --gw-accent: #8a9aa5;
-}
-.gw-locked .gw-band { color: #8a9aa5; }
 .gw-locked:hover, .gw-locked:active {
-  transform: none; filter: grayscale(.85) brightness(.97);
+  transform: none; filter: none;
 }
 .gw-locked:hover .gw-band, .gw-locked:active .gw-band { transform: none; }
 .gw-locked::after { display: none; }
 .gw-lock {
   position: absolute; top: 14px; right: 16px; z-index: 2;
   display: grid; place-items: center;
-  width: 44px; height: 44px; border-radius: 50%;
-  color: #5b6a74; background: rgba(255,255,255,.85);
-  box-shadow: 0 2px 6px rgba(0, 40, 70, .25);
+  width: 48px; height: 48px; border-radius: 50%;
+  color: #3d4a53;
+  background:
+    radial-gradient(90% 90% at 30% 20%, rgba(255,255,255,.65) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(160deg, #d3dadf 0%, #9aa6ae 55%, #78858e 100%);
+  box-shadow:
+    0 3px 8px rgba(0, 40, 70, .35),
+    inset 0 0 0 2px rgba(255,255,255,.55),
+    inset 0 -3px 5px rgba(0,0,0,.18);
 }
 .gw-nudge { animation: gw-shake .45s ease both; }
-.gw-hint {
-  /* scos din flux: placa rămâne pe aceeași orizontală cu „study" */
-  position: absolute; top: calc(100% + 28px); left: 50%;
-  width: 260px; transform: translateX(-50%);
-  margin: 0; text-align: center;
-  font-size: 14px; line-height: 1.4; color: #4a5b66;
-}
-.gw-hint a { color: var(--gw-red); font-weight: 700; text-decoration: none; }
-.gw-hint a:hover { text-decoration: underline; }
 .gw-meter {
-  display: block; margin: 10px auto 0; width: 160px; height: 8px;
+  /* scos din flux: placa rămâne pe aceeași orizontală cu „study" */
+  position: absolute; top: calc(100% + 30px); left: 50%;
+  transform: translateX(-50%);
+  display: block; width: 160px; height: 8px;
   border-radius: 99px; background: #d5e3ec; overflow: hidden;
 }
 .gw-meter-fill {
