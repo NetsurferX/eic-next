@@ -401,6 +401,38 @@ export default function LearnPage() {
     } catch { /* ignore */ }
   }, [hydrated, levelIndex, unlockedLevels, colUnlocked, starsEarned, active, allDone])
 
+  // ── Reluare la revenire — exercițiul continuă singur de unde a rămas
+  //   (coloana activă + stelele sunt deja restaurate mai sus; efectul de
+  //   repetări automate pornește următoarea repetare). Un singur caz cere
+  //   reparat: dacă utilizatorul a plecat în timpul jocului de baloane,
+  //   avansul amânat (deblocarea coloanei/nivelului următor) s-a pierdut —
+  //   îl refacem aici, o singură dată, imediat după restaurare. ──
+  const resumedRef = useRef(false)
+  useEffect(() => {
+    if (!hydrated || resumedRef.current) return
+    resumedRef.current = true
+    if ((starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON) return
+    const lvl = LEVELS[levelIndex]
+    if (active + 1 < lvl.lessons.length) {
+      if (colUnlocked[levelIndex][active + 1]) return
+      setColUnlocked(prev => {
+        const copy = prev.map(row => [...row])
+        copy[levelIndex][active + 1] = true
+        return copy
+      })
+      setActive(active + 1)
+      return
+    }
+    // ultima coloană a nivelului, terminată, dar nivelul următor încă blocat
+    const levelFinished = starsEarned[levelIndex].every(v => v >= REPS_PER_LESSON)
+    const isLast = levelIndex === LEVELS.length - 1
+    if (levelFinished && (isLast ? !allDone : !unlockedLevels[levelIndex + 1])) {
+      if (isLast) setAllDone(true)
+      setShowLevelOverlay(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated])
+
   // ── Salut personalizat, o singură dată la prima vizită, apoi „Bine ai revenit" ──
   useEffect(() => {
     const seenBefore = (() => {
