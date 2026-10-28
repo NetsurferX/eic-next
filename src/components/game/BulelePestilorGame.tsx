@@ -17,10 +17,10 @@ import { tricolorLetterStyle, TRICOLOR_BANDS, TRICOLOR_UNDERLINE_COLOR } from '@
 //  • baloanele devin PEȘTI care înoată de la stânga la dreapta; unul care
 //    ajunge la capăt fără apăsare corectă SCAPĂ (−1);
 //  • vulpea stă pe un ponton și PESCUIEȘTE: la apăsare corectă undița
-//    aruncă, peștele se colorează, e tras sus și zboară într-o celulă;
-//  • acvariul e o grilă de celule (câte una per pește din coadă): un pește
-//    prins umple celula lui, în culoarea sunetului; celula rămâne goală
-//    dacă peștele a scăpat. Dinții dispar (nu mai au rol).
+//    aruncă, peștele se colorează, e tras sus și cade cu capul în jos într-un TAZ;
+//  • tazul (în locul acvariului pe celule) arată doar COZILE peștilor prinși,
+//    în culoarea sunetului, iar pe taz scrie câți pești s-au prins. Peștele
+//    scăpat nu pune coadă. Dinții dispar (nu mai au rol).
 // ─────────────────────────────────────────────────────────────────────────
 
 export type BulelePestilorLevel = 1 | 2
@@ -94,6 +94,8 @@ const FLOAT = { x: FOX_LEFT + 146, y: SKY_H + 3 }     // pluta, la suprafața ap
 const MOUTH = 0.42 * FISH_W                            // distanța centru → gură
 const HANG = -35 * Math.PI / 180                       // înclinarea peștelui când e tras în sus
 const NEUTRAL = '#f4f1ea'
+// Tazul cu pești (sus-dreapta): w/h = dimensiunea desenului; rim = y-ul buzei tazului
+const BUCKET = { w: 104, h: 96, rim: 30, top: 4, right: 8 }
 
 type Zone = 'blue' | 'pink'
 type FState = 'swimming' | 'hooked' | 'miss'
@@ -227,6 +229,12 @@ export function BulelePestilorGame({
   const [pull, setPull] = useState(false)
   const [, setNodesVer] = useState(0)
   const [cells, setCells] = useState<Cell[]>([])
+  // Telefon (scena sub 520px lățime): scenă mai joasă, ca scena + butoanele de răspuns + scorul să încapă
+  // pe ecran fără scroll (și în overlay-ul din /learn), iar butoanele — mai mari, pentru deget.
+  const [stageH, setStageH] = useState(STAGE_H)
+  const [compact, setCompact] = useState(false)
+  const caughtCount = cells.filter(c => c.filled).length
+  const bucketId = useId().replace(/:/g, '')
   const [score, setScore] = useState(0)
   const [hearts, setHearts] = useState(10)
   const [fourthVisible, setFourthVisible] = useState(false)
@@ -237,10 +245,10 @@ export function BulelePestilorGame({
   const [done, setDone] = useState<null | { rate: number; passed: boolean }>(null)
   const [paused, setPaused] = useState(false)
   const [confirmExit, setConfirmExit] = useState(false)
-  const [cellPx, setCellPx] = useState(44)
 
   const stageRef = useRef<HTMLDivElement>(null)
-  const cellRefs = useRef<(HTMLDivElement | null)[]>([])
+  const bucketRef = useRef<HTMLDivElement | null>(null)
+  const stageHRef = useRef(STAGE_H)
   const queueRef = useRef<QueueItem[]>([])
   const queuePosRef = useRef(0)
   const scoreRef = useRef(0)
@@ -272,7 +280,7 @@ export function BulelePestilorGame({
     setFourthVisible(item.group.kind === 'next')
     setFish({
       id: fishSeq++, qi: pos, group: item.group, word: pickWord(item.group.lesson),
-      y: SKY_H + 46 + Math.random() * (STAGE_H - SKY_H - SAND_H - 92),
+      y: SKY_H + 46 + Math.random() * (stageHRef.current - SKY_H - SAND_H - 92),
       phase: Math.random() * Math.PI * 2, progress: 0, zone: 'blue', state: 'swimming',
     })
     speakWord(ttsWordFor(item.group.lesson))
@@ -347,7 +355,14 @@ export function BulelePestilorGame({
   }, [lesson.id, nextLesson?.id])
 
   useEffect(() => {
-    const upd = () => setCellPx((stageRef.current?.clientWidth ?? 680) < 520 ? 34 : 44)
+    const upd = () => {
+      const w = stageRef.current?.clientWidth ?? 680
+      const small = w < 520
+      const h = small ? Math.max(300, Math.min(STAGE_H, window.innerHeight - 340)) : STAGE_H
+      stageHRef.current = h
+      setStageH(h)
+      setCompact(small)
+    }
     upd()
     window.addEventListener('resize', upd)
     return () => window.removeEventListener('resize', upd)
@@ -415,20 +430,24 @@ export function BulelePestilorGame({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fish])
 
-  // ── tragerea peștelui: undița aruncă, peștele e ridicat, zboară în celulă ──
+  // ── tragerea peștelui: undița aruncă, peștele e ridicat, cade cu capul în taz ──
   function startPull(f: LiveFish) {
     const stage = stageRef.current
-    const cellEl = cellRefs.current[f.qi]
-    if (!stage || !cellEl) { finishPull(f); return }
+    const bucketEl = bucketRef.current
+    if (!stage || !bucketEl) { finishPull(f); return }
     const W = stage.clientWidth
     const p0 = progressRef.current
     const start = { x: fishX(p0, W), y: fishY(f, p0) }
     const sr = stage.getBoundingClientRect()
-    const cr = cellEl.getBoundingClientRect()
-    const target = { x: cr.left - sr.left + cr.width / 2, y: cr.top - sr.top + cr.height / 2 }
+    const cr = bucketEl.getBoundingClientRect()
+    const cx0 = cr.left - sr.left + cr.width / 2
+    const rimY = cr.top - sr.top + BUCKET.rim
+    const above  = { x: cx0, y: rimY - 10 }   // deasupra buzei tazului, cu capul în jos
+    const inside = { x: cx0, y: rimY + 24 }   // înăuntru (acoperit de peretele tazului)
+    const DROP = Math.PI / 2                  // cap în jos
     // peștele e tras de GURĂ: stă înclinat cu botul în sus, atârnat sub vârful undiței
     const up = { x: TIP.x - Math.cos(HANG) * MOUTH, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
-    const endScale = (cellPx - 6) / FISH_W
+    const endScale = 0.4
     const t0 = performance.now()
     pullingRef.current = true
     setPull(true)
@@ -444,16 +463,24 @@ export function BulelePestilorGame({
         const e = ease((t - 0.3) / 0.3)
         fx = lerp(start.x, up.x, e); fy = lerp(start.y, up.y, e); rot = lerp(0, HANG, e)
         m = mouthOf(fx, fy, rot); lx = m.x; ly = m.y; taut = true; bend = lerp(0.3, 1, e)
-      } else {                              // se desprinde și zboară în celulă; lanseta revine elastic
+      } else {                              // se desprinde, zboară deasupra tazului și cade în el; lanseta revine elastic
         line = false
-        const e = ease((t - 0.6) / 0.4)
-        const cx = (up.x + target.x) / 2, cy = Math.min(up.y, target.y) - 36
-        const a = 1 - e
-        fx = a * a * up.x + 2 * a * e * cx + e * e * target.x
-        fy = a * a * up.y + 2 * a * e * cy + e * e * target.y
-        rot = lerp(HANG, 0, e)
-        scale = lerp(1, endScale, e)
-        bend = 1 - e
+        const k = (t - 0.6) / 0.4
+        bend = 1 - ease(k)
+        if (k < 0.65) {                     // arc spre buza tazului, întorcându-se cu capul în jos
+          const e = ease(k / 0.65)
+          const cx = (up.x + above.x) / 2, cy = Math.min(up.y, above.y) - 30
+          const a = 1 - e
+          fx = a * a * up.x + 2 * a * e * cx + e * e * above.x
+          fy = a * a * up.y + 2 * a * e * cy + e * e * above.y
+          rot = lerp(HANG, DROP, e)
+          scale = lerp(1, endScale, e)
+        } else {                            // cade în taz; de aici peretele tazului îl acoperă (se văd doar cozile)
+          const e = ease((k - 0.65) / 0.35)
+          fx = above.x; fy = lerp(above.y, inside.y, e)
+          rot = DROP; scale = endScale
+          if (pullFishRef.current) pullFishRef.current.style.zIndex = '1'
+        }
       }
       // totul direct pe DOM, fără setState pe frame
       const pf = pullFishRef.current
@@ -530,6 +557,8 @@ export function BulelePestilorGame({
     }
   }
 
+  const pb: React.CSSProperties = compact ? { ...pillBtn, padding: '10px 16px', fontSize: 14 } : pillBtn
+  const ansSize = compact ? 64 : 52
   const visibleGroups = fourthVisible && nextGroup
     ? [currentGroup, ...distractorGroups, nextGroup]
     : [currentGroup, ...distractorGroups]
@@ -550,19 +579,19 @@ export function BulelePestilorGame({
     <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, color: '#a03060' }}>💗 {hearts}</span>
-        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={pillBtn}>Ajută-mă</button>
+        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={pb}>Ajută-mă</button>
         {helpMessage && (
           <span style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
             {helpMessage}
           </span>
         )}
         <div style={{ marginLeft: 'auto' }}>
-          <button onClick={togglePause} disabled={!!done} style={pillBtn}>{paused ? '▶ Continuă' : '⏸ Pauză'}</button>
-          {onExit && <button onClick={() => { if (!pausedRef.current) togglePause(); setConfirmExit(true) }} aria-label="Ieși din joc" style={{ ...pillBtn, marginLeft: 6 }}>✕</button>}
+          <button onClick={togglePause} disabled={!!done} style={pb}>{paused ? '▶ Continuă' : '⏸ Pauză'}</button>
+          {onExit && <button onClick={() => { if (!pausedRef.current) togglePause(); setConfirmExit(true) }} aria-label="Ieși din joc" style={{ ...pb, marginLeft: 6 }}>✕</button>}
         </div>
       </div>
 
-      <div ref={stageRef} style={{ position: 'relative', height: STAGE_H, borderRadius: 14, overflow: 'hidden', background: '#f4f9fc' }}>
+      <div ref={stageRef} style={{ position: 'relative', height: stageH, borderRadius: 14, overflow: 'hidden', background: '#f4f9fc' }}>
         {/* apa */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, bottom: 0, background: waterBg, transition: 'background 400ms' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, height: 3, background: 'rgba(255,255,255,.7)' }} />
@@ -577,34 +606,49 @@ export function BulelePestilorGame({
           <MascotV2 steady state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
         </div>
 
-        {/* acvariul pe celule */}
-        <div style={aquariumStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(5, ${cellPx}px)`, gap: 3 }}>
+        {/* tazul cu pești: se văd doar cozile; pe taz scrie câți pești s-au prins */}
+        <div
+          ref={bucketRef}
+          style={{ position: 'absolute', right: BUCKET.right, top: BUCKET.top, width: BUCKET.w, height: BUCKET.h, zIndex: 2, pointerEvents: 'none' }}
+          aria-label={`${caughtCount} pești prinși`}
+        >
+          <svg width={BUCKET.w} height={BUCKET.h} viewBox={`0 0 ${BUCKET.w} ${BUCKET.h}`} style={{ overflow: 'visible', display: 'block' }}>
+            <defs>
+              <linearGradient id={`${bucketId}-tri`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={TRICOLOR_BANDS[0]} /><stop offset="33%" stopColor={TRICOLOR_BANDS[0]} />
+                <stop offset="33%" stopColor={TRICOLOR_BANDS[1]} /><stop offset="66%" stopColor={TRICOLOR_BANDS[1]} />
+                <stop offset="66%" stopColor={TRICOLOR_BANDS[2]} /><stop offset="100%" stopColor={TRICOLOR_BANDS[2]} />
+              </linearGradient>
+            </defs>
+            {/* cozile (poziție/înclinare fixe per pește: nu sar când se adaugă altele) */}
             {cells.map((c, i) => {
-              const tri = c.lesson?.id === 'ou'
-              const lb = c.lesson ? buildLabel(c.lesson, 1, { text: '', mark: '' }, true) : null
+              if (!c.filled || !c.lesson) return null
+              const x = 22 + ((i * 37) % 61)
+              const ang = ((i * 53) % 51) - 25
+              const sc = 0.9 + ((i * 17) % 5) / 20
               return (
-                <div
-                  key={i}
-                  ref={el => { cellRefs.current[i] = el }}
-                  style={{
-                    width: cellPx, height: cellPx, borderRadius: 6, boxSizing: 'border-box',
-                    background: c.filled ? 'linear-gradient(#d6f0ee,#8fcfdd)' : 'rgba(255,255,255,.35)',
-                    border: c.filled && c.lesson ? `2px solid ${c.lesson.color}` : '1.5px dashed rgba(33,88,102,.35)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
-                  }}
-                >
-                  {c.filled && c.lesson && lb && (
-                    <div className="pf-cellfish">
-                      <FishSvg body={c.lesson.color} tricolor={tri} label={lb.node} len={lb.len} width={cellPx - 6} wag={false} />
-                    </div>
-                  )}
-                  {c.filled && c.bonus && <span style={{ position: 'absolute', top: -7, right: -5, fontSize: 11 }}>✨</span>}
-                </div>
+                <g key={i} transform={`translate(${x} ${BUCKET.rim + 6}) rotate(${ang}) scale(${sc})`}>
+                  <path
+                    className="pf-tailpop"
+                    d="M-3 4 L-10 -22 Q0 -15 10 -22 L3 4 Z"
+                    fill={c.lesson.id === 'ou' ? `url(#${bucketId}-tri)` : c.lesson.color}
+                    stroke="#1a1006" strokeWidth="2" strokeLinejoin="round"
+                  />
+                </g>
               )
             })}
-          </div>
+            {/* corpul tazului (acoperă corpurile peștilor) */}
+            <path d={`M8 ${BUCKET.rim} L96 ${BUCKET.rim} L88 90 Q87 95 82 95 L22 95 Q17 95 16 90 Z`} fill="#8fa3b8" stroke="#34495e" strokeWidth="2.5" strokeLinejoin="round" />
+            <path d={`M10 ${BUCKET.rim + 12} L94 ${BUCKET.rim + 12}`} stroke="rgba(255,255,255,.35)" strokeWidth="2" />
+            <rect x="3" y={BUCKET.rim - 4} width="98" height="9" rx="4.5" fill="#6f8499" stroke="#34495e" strokeWidth="2.5" />
+            <text
+              x="52" y="72" textAnchor="middle" fontSize="30" fontWeight="800" fill="#fff"
+              stroke="#34495e" strokeWidth="4" paintOrder="stroke"
+              style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive, sans-serif' }}
+            >
+              {caughtCount}
+            </text>
+          </svg>
         </div>
 
         {/* undița: lansetă curbată, mulinetă, fir cu buclă moale, plută cu ondulații, cârlig cu momeală */}
@@ -612,7 +656,7 @@ export function BulelePestilorGame({
           const rg = rodGeom(0)
           const tip = rg.tip
           return (
-            <svg width="100%" height={STAGE_H} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3 }} aria-hidden="true">
+            <svg width="100%" height={stageH} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3 }} aria-hidden="true">
               <line x1={ROD_BASE.x - 4} y1={ROD_BASE.y + 2} x2={ROD_BASE.x + 10} y2={ROD_BASE.y - 3} stroke="#3d2a18" strokeWidth="7" strokeLinecap="round" />
               <circle cx={ROD_BASE.x + 7} cy={ROD_BASE.y + 6} r="4.5" fill="#9aa3ab" stroke="#4a5158" strokeWidth="1.3" />
               <path ref={rodARef} d={rg.d} fill="none" stroke="#6b4a2b" strokeWidth="4" strokeLinecap="round" />
@@ -684,16 +728,16 @@ export function BulelePestilorGame({
               <>
                 <div style={{ fontSize: 16, fontWeight: 700 }}>Ieși din joc?</div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={{ ...pillBtn, background: '#1a1917', color: '#fff', borderColor: '#1a1917' }} onClick={() => { setConfirmExit(false); togglePause() }}>Rămâi în joc</button>
-                  <button style={pillBtn} onClick={() => { window.speechSynthesis?.cancel(); onExit?.() }}>Ieși</button>
+                  <button style={{ ...pb, background: '#1a1917', color: '#fff', borderColor: '#1a1917' }} onClick={() => { setConfirmExit(false); togglePause() }}>Rămâi în joc</button>
+                  <button style={pb} onClick={() => { window.speechSynthesis?.cancel(); onExit?.() }}>Ieși</button>
                 </div>
               </>
             ) : (
               <>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>⏸ Pauză</div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={{ ...pillBtn, background: '#1a1917', color: '#fff', borderColor: '#1a1917' }} onClick={togglePause}>▶ Continuă</button>
-                  <button style={pillBtn} onClick={start}>↻ Reia nivelul</button>
+                  <button style={{ ...pb, background: '#1a1917', color: '#fff', borderColor: '#1a1917' }} onClick={togglePause}>▶ Continuă</button>
+                  <button style={pb} onClick={start}>↻ Reia nivelul</button>
                 </div>
               </>
             )}
@@ -704,12 +748,12 @@ export function BulelePestilorGame({
             <div style={{ fontSize: 15, fontWeight: 700 }}>
               {done.passed ? '🎉 Reușit!' : 'Mai încearcă'} — {Math.round(done.rate * 100)}%
             </div>
-            <button onClick={start} style={pillBtn}>Reia</button>
+            <button onClick={start} style={pb}>Reia</button>
           </div>
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: compact ? 10 : 14, marginTop: 16 }}>
         {visibleGroups.map(g => {
           const hinted = hintGroup?.lesson.id === g.lesson.id
           return (
@@ -717,14 +761,14 @@ export function BulelePestilorGame({
               key={g.lesson.id}
               onClick={() => handlePress(g)}
               style={{
-                width: 52, height: 52, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation',
                 background: g.lesson.color,
                 boxShadow: hinted ? '0 0 0 5px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.15)',
                 transition: 'box-shadow 200ms',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <span style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: g.lesson.color }}>
+              <span style={{ width: compact ? 38 : 30, height: compact ? 38 : 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: g.lesson.color }}>
                 {g.lesson.letter}
               </span>
             </button>
@@ -734,7 +778,7 @@ export function BulelePestilorGame({
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, fontSize: 13, color: '#555' }}>
         <span style={festiveScore} className={scoreFlash ? 'pf-score-flash' : undefined}>🎉 Scor: {score}</span>
-        <span>{cells.filter(c => c.filled).length} / {queueLen} pești</span>
+        <span>{caughtCount} / {queueLen} pești</span>
       </div>
 
       <style>{`
@@ -742,7 +786,8 @@ export function BulelePestilorGame({
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
         @keyframes pf-pop { 0% { transform: scale(.3); opacity: 0 } 70% { transform: scale(1.2); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
-        .pf-cellfish { animation: pf-pop 350ms ease-out; }
+        @keyframes pf-tailpop { 0% { transform: translateY(14px); opacity: 0 } 60% { transform: translateY(-3px); opacity: 1 } 100% { transform: translateY(0); opacity: 1 } }
+        .pf-tailpop { animation: pf-tailpop 400ms ease-out; }
         @keyframes pf-sway { 0%,100% { transform: rotate(-1.2deg) } 50% { transform: rotate(1.2deg) } }
         .pf-sway { animation: pf-sway 3.2s ease-in-out infinite; }
         @keyframes pf-ripple { 0% { transform: scale(.5); opacity: .9 } 100% { transform: scale(2); opacity: 0 } }
@@ -753,7 +798,7 @@ export function BulelePestilorGame({
         @keyframes pf-score-flash { 0% { transform: scale(1) } 40% { transform: scale(1.35) rotate(-2deg) } 100% { transform: scale(1) } }
         .pf-score-flash { animation: pf-score-flash 400ms ease-out; display: inline-block; }
         @keyframes pf-bubble { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: .8 } 100% { transform: translateY(-150px) scale(1); opacity: 0 } }
-        .pf-bubbles { position: absolute; left: 0; right: 0; bottom: 0; height: ${STAGE_H - SKY_H}px; pointer-events: none; }
+        .pf-bubbles { position: absolute; left: 0; right: 0; bottom: 0; height: ${stageH - SKY_H}px; pointer-events: none; }
         .pf-bubbles span { position: absolute; bottom: ${SAND_H}px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.7); animation: pf-bubble 3.6s linear infinite; }
         .pf-bubbles span:nth-child(1) { left: 22%; animation-delay: 0s; }
         .pf-bubbles span:nth-child(2) { left: 52%; width: 4px; height: 4px; animation-delay: 1.2s; }
@@ -771,13 +816,6 @@ const pillBtn: React.CSSProperties = {
 const overlayStyle: React.CSSProperties = {
   position: 'absolute', inset: 0, zIndex: 6, background: 'rgba(255,255,255,.93)',
   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12,
-}
-const aquariumStyle: React.CSSProperties = {
-  position: 'absolute', right: 8, top: 10, padding: 6, borderRadius: 12,
-  background: 'linear-gradient(180deg,#e3f5f3,#b6e0e8)',
-  border: '3px solid rgba(255,255,255,.85)',
-  boxShadow: 'inset 0 0 12px rgba(20,60,80,.3), 0 3px 4px rgba(0,0,0,.15)',
-  zIndex: 2,
 }
 const festiveScore: React.CSSProperties = {
   fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive, sans-serif',

@@ -284,6 +284,7 @@ export default function LearnPage() {
   const starRefs = useRef<Record<string, HTMLSpanElement | null>>({})
   const cupRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const bigCupRef = useRef<HTMLDivElement | null>(null)
+  const colRefs = useRef<Record<string, HTMLDivElement | null>>({})   // coloanele din grilă — pentru derularea automată pe telefon
   // Coloana a cărei cupă e „golită" vizual chiar acum de vulpe, cât timp o
   // duce/o varsă în cupa mare — vezi .fill-cup.is-emptying în globals.css.
   // Progresul real (React state) rămâne 100%; doar acest flag temporar
@@ -880,6 +881,28 @@ export default function LearnPage() {
   }, [hydrated, introHydrated, beginnerNoteHydrated, introDone, introLesson, isPlayingRep, buleleVulpiiConfig,
       showLevelOverlay, showResetConfirm, colUnlocked, levelIndex, active, earned, handleMainButton])
 
+  // ── Telefon: o singură coloană pe rând (vezi @media max-width:720px din
+  //   globals.css), deci coloana activă poate fi în afara ecranului. La
+  //   schimbarea ei (avans automat, atingere, reluare după salvare) o centrăm
+  //   pe verticala ecranului. Două treceri: a doua, după ce layout-ul se așază
+  //   (coloana activă se extinde cu stele/buton, animația de reveal). Dacă
+  //   coloana e mai înaltă decât ecranul, îi aliniem capul sus. Desktop: nu face nimic. ──
+  useEffect(() => {
+    if (!hydrated) return
+    if (typeof window === 'undefined' || !window.matchMedia('(max-width: 720px)').matches) return
+    const centerActive = () => {
+      const el = colRefs.current[level.lessons[active]?.id]
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const vh = window.visualViewport?.height ?? window.innerHeight
+      const top = r.height >= vh - 24 ? 12 : (vh - r.height) / 2
+      window.scrollTo({ top: Math.max(0, window.scrollY + r.top - top), behavior: 'smooth' })
+    }
+    const t1 = setTimeout(centerActive, 150)
+    const t2 = setTimeout(centerActive, 800)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [hydrated, active, level])
+
   // ── Mesajul implicit al vulpii — calculat live din starea lecției, nu
   //   ales dintr-o listă fixă de „tips" (vezi FoxHelper.tsx). ──
   const foxIdleHint = useMemo(() => {
@@ -911,6 +934,7 @@ export default function LearnPage() {
           return (
             <div
               key={l.id}
+              ref={(el) => { colRefs.current[l.id] = el }}
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectColumn(i)}

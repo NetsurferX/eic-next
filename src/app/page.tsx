@@ -70,7 +70,7 @@ export default function Gateway() {
         aria-label="study — lecțiile"
         onAnimationEnd={e => { if (e.animationName === 'gw-shake') setNudge(false) }}
       >
-        <span className="gw-band">study</span>
+        <span className="gw-band">Play</span>
       </Link>
     </main>
   )
@@ -89,10 +89,7 @@ const CSS = `
   align-items: center; justify-content: center;
   gap: 28px;
   padding: 24px 24px 48px;
-  background:
-    radial-gradient(circle at 20% 15%, rgba(0, 162, 232, .10) 0, transparent 38%),
-    radial-gradient(circle at 82% 85%, rgba(229, 57, 53, .08) 0, transparent 36%),
-    radial-gradient(ellipse at 50% 35%, #ffffff 0%, #eaf4fa 100%);
+  background: #ffffff;
 }
 
 .gw-tile {
@@ -167,8 +164,23 @@ const CSS = `
   text-shadow: 0 2px 0 rgba(0,0,0,.08), 0 1px 0 #fff;
   transition: transform .18s cubic-bezier(.3,.7,.4,1);
 }
-.gw-eic .gw-band   { color: var(--gw-blue); }
-.gw-study .gw-band { color: var(--gw-red); }
+/* Play — placă verde (suprascrie doar variabilele locale ale plăcii) */
+.gw-study {
+  --gw-blue: #2fb344;
+  --gw-blue-light: #7be08a;
+  --gw-blue-dark: #1d8a31;
+  --gw-edge: #146b24;
+}
+.gw-study .gw-band { color: #1fa037; }
+
+/* EiC — placă galbenă (suprascrie doar variabilele locale ale plăcii) */
+.gw-eic {
+  --gw-blue: #ffc400;
+  --gw-blue-light: #ffe566;
+  --gw-blue-dark: #f5a300;
+  --gw-edge: #b87400;
+}
+.gw-eic .gw-band { color: #0098ea; }
 
 /* hover — placa se ridică și se înclină ușor */
 .gw-tile:hover {

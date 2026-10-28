@@ -2258,6 +2258,14 @@ button, textarea, input { font-family: var(--font-sans); }
   .lesson-col, .lesson-col::before { transition: none; }
 }
 
+/* ── Telefon: o singură coloană pe rând, deci scale(1.07) + outline împingeau
+   coloana activă dincolo de marginile ecranului. Pe telefon e doar puțin mai
+   mare (1.02); conturul dublu și halo-ul o disting în continuare. ── */
+@media (max-width: 720px) {
+  .lesson-col.is-active { transform: scale(1.02); outline-offset: 2px; }
+  .lesson-col.is-active.is-unlocked:hover { transform: scale(1.02); }
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    Mascota EiC — vulpița prietenoasă care participă la joc: indică butonul
    de apăsat, aplaudă la fiecare stea și sare de bucurie când se termină o
