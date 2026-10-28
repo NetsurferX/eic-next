@@ -9,7 +9,7 @@
 // Placa „EiC" e blocată până se termină toate etapele din „study" (vezi mai jos).
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { STORAGE_KEY, type SavedProgress } from '@/lib/levels'
 
 // Placa „EiC" rămâne blocată până când utilizatorul termină TOATE etapele
@@ -17,10 +17,32 @@ import { STORAGE_KEY, type SavedProgress } from '@/lib/levels'
 // (STORAGE_KEY) — același flag pe care /learn îl setează la ultimul nivel.
 // Blocarea e doar la nivelul butonului: ruta /eic în sine nu e atinsă.
 
+// Replica vulpii când utilizatorul apasă placa „EiC" încă blocată; în
+// același timp, placa „Play" îl ademenește (clasa .gw-lure).
+const FOX_SAYS = 'Hai să ne jucăm! 😉'
+
 export default function Gateway() {
   // null = încă necitit (prima randare / SSR) → tratat ca blocat, fără text
   const [done, setDone] = useState<boolean | null>(null)
   const [nudge, setNudge] = useState(false)
+  // vulpea: null = ascunsă; `n` crește la fiecare click, ca bula să
+  // repornească animația chiar dacă replica e aceeași
+  const [taunt, setTaunt] = useState<{ n: number } | null>(null)
+  const tauntCount = useRef(0)
+  const tauntTimer = useRef<number | null>(null)
+
+  useEffect(() => () => {
+    if (tauntTimer.current !== null) window.clearTimeout(tauntTimer.current)
+  }, [])
+
+  function onLockedClick() {
+    setNudge(false)
+    requestAnimationFrame(() => setNudge(true))
+    const n = tauntCount.current++
+    setTaunt({ n })
+    if (tauntTimer.current !== null) window.clearTimeout(tauntTimer.current)
+    tauntTimer.current = window.setTimeout(() => setTaunt(null), 4500)
+  }
 
   useEffect(() => {
     let finished = false
@@ -51,7 +73,7 @@ export default function Gateway() {
             className="gw-tile gw-eic gw-locked"
             aria-disabled="true"
             aria-label="EiC — blocat până termini toate etapele din study"
-            onClick={() => { setNudge(false); requestAnimationFrame(() => setNudge(true)) }}
+            onClick={onLockedClick}
           >
             <span className="gw-band">EiC</span>
             <span className="gw-lock" aria-hidden="true">
@@ -61,12 +83,24 @@ export default function Gateway() {
               </svg>
             </span>
           </button>
+
+          {taunt && (
+            <div className="gw-fox" aria-hidden="true">
+              <div key={taunt.n} className="mascot-bubble">{FOX_SAYS}</div>
+              {/* o singură imagine: doar face-wink.png */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/mascot/face-wink.png" alt="" className="gw-fox-img" draggable={false} />
+            </div>
+          )}
+          <span className="gw-sr" role="status">
+            {taunt ? FOX_SAYS : ''}
+          </span>
         </div>
       )}
 
       <Link
         href="/learn"
-        className={`gw-tile gw-study${nudge ? ' gw-nudge' : ''}`}
+        className={`gw-tile gw-study${nudge ? ' gw-nudge' : ''}${taunt ? ' gw-lure' : ''}`}
         aria-label="study — lecțiile"
         onAnimationEnd={e => { if (e.animationName === 'gw-shake') setNudge(false) }}
       >
@@ -246,11 +280,52 @@ button.gw-tile { border: 0; padding: 0; font: inherit; cursor: not-allowed; }
     inset 0 -3px 5px rgba(0,0,0,.18);
 }
 .gw-nudge { animation: gw-shake .45s ease both; }
+
+/* vulpea — stă în colțul de jos-dreapta al plăcii EiC blocate, cu portretul
+   „wink" lângă cap și bula „Hai să ne jucăm!"; nu prinde click-uri */
+.gw-fox {
+  position: absolute; right: -58px; bottom: -40px; z-index: 5;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .18));
+}
+.gw-fox .mascot-bubble { max-width: 210px; font-size: 13.5px; right: 10px; white-space: nowrap; }
+.gw-fox-img {
+  display: block; width: 96px; height: auto;
+  filter: drop-shadow(0 3px 6px rgba(20, 10, 0, .3));
+  animation: gw-fox-breathe 1.4s ease-in-out infinite;
+}
+@keyframes gw-fox-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) { .gw-fox-img { animation: none; } }
+.gw-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
 /* păstrăm gw-pop în listă: altfel, la scoaterea clasei, intrarea (opacity 0 → 1) se reia */
 .gw-study.gw-nudge {
   animation:
     gw-pop .55s cubic-bezier(.2,.9,.3,1.2) .09s both,
     gw-shake .45s ease 0s both;
+}
+/* Play ademenește cât timp vorbește vulpea: dunga de lumină traversează
+   placa în buclă, iar eticheta pulsează */
+.gw-lure::after {
+  opacity: 1;
+  animation: gw-lure-sweep 1.1s ease-in-out infinite;
+}
+.gw-lure .gw-band { animation: gw-lure-band .8s ease-in-out infinite; }
+@keyframes gw-lure-sweep {
+  0%   { transform: translateX(0) skewX(-12deg); }
+  70%, 100% { transform: translateX(520%) skewX(-12deg); }
+}
+@keyframes gw-lure-band {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gw-lure::after, .gw-lure .gw-band { animation: none; }
 }
 @keyframes gw-shake {
   0%, 100% { transform: translateX(0); }
