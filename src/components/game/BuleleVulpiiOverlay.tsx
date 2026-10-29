@@ -88,12 +88,12 @@ export function BuleleVulpiiOverlay({
       className={`bulele-overlay${closing ? ' bulele-overlay-closing' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label="Bulele Vulpii"
+      aria-label="Vulpea la pescuit"
     >
       {/* dock-ul FoxHelper stă deasupra overlay-ului — îl ascundem cât joacă */}
       <style>{`.fox-helper { display: none !important; }`}</style>
       <div className="bulele-overlay-card">
-        <p className="bulele-overlay-title">🐟 Bulele Vulpii</p>
+        <p className="bulele-overlay-title">🐟 Vulpea la pescuit</p>
         <p className="bulele-overlay-sub">
           Ai terminat coloana {config.lesson.tabLabel.toLowerCase()} — hai să exersăm sunetul!
         </p>

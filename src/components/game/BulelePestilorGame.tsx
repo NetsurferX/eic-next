@@ -9,7 +9,7 @@ import type { Lesson, LessonWord } from '@/lib/levels'
 import { tricolorLetterStyle, TRICOLOR_BANDS, TRICOLOR_UNDERLINE_COLOR } from '@/lib/tricolorStyle'
 
 // ─────────────────────────────────────────────────────────────────────────
-// Bulele Vulpii — varianta „PEȘTI” (componentă NOUĂ, paralelă cu BuleleVulpiiGame).
+// Vulpea la pescuit (fost „Bulele Vulpii — pești”) — componentă NOUĂ, paralelă cu BuleleVulpiiGame.
 // Același API ca BuleleVulpiiGame (lesson/distractorLessons/nextLesson/level/
 // onFinish/onExit). Nefolosită în /learn. Nu modifică BuleleVulpiiGame.tsx, Mascot*.tsx, levels.ts sau altceva.
 // Aceeași logică de joc (coadă 60/35/5, zona roz = indiciu, ajutor ×10,
@@ -79,6 +79,11 @@ function buildQueue(current: Group, distractors: Group[], next: Group | null): Q
 
 // ── geometrie ──
 const STAGE_H = 380
+// Telefon (scena sub 520px lățime): înălțimea rezervată pentru tot ce e în afara scenei
+// (padding overlay + titlu + bara de sus + butoanele de răspuns + numărătoarea de final),
+// ca totul să încapă pe ecran FĂRĂ scroll. Ajustabil aici.
+const PHONE_RESERVED = 230
+const PHONE_MIN_STAGE = 250
 const SKY_H = 130            // zona de sus: ponton + vulpe + acvariu
 const SAND_H = 16
 // Ritm (mai lent decât prima variantă: 6000 / 1300 / 250) — ajustabil aici.
@@ -232,8 +237,8 @@ export function BulelePestilorGame({
   const [pull, setPull] = useState(false)
   const [, setNodesVer] = useState(0)
   const [cells, setCells] = useState<Cell[]>([])
-  // Telefon (scena sub 520px lățime): scenă mai joasă, ca scena + butoanele de răspuns + scorul să încapă
-  // pe ecran fără scroll (și în overlay-ul din /learn), iar butoanele — mai mari, pentru deget.
+  // Telefon (scena sub 520px lățime): scenă calculată din înălțimea ecranului, scorul urcă în bara de sus
+  // (nu mai există rând separat jos), ca totul să încapă fără scroll (și în overlay-ul din /learn).
   const [stageH, setStageH] = useState(STAGE_H)
   const [compact, setCompact] = useState(false)
   const caughtCount = cells.filter(c => c.filled).length
@@ -361,7 +366,7 @@ export function BulelePestilorGame({
     const upd = () => {
       const w = stageRef.current?.clientWidth ?? 680
       const small = w < 520
-      const h = small ? Math.max(300, Math.min(STAGE_H, window.innerHeight - 340)) : STAGE_H
+      const h = small ? Math.max(PHONE_MIN_STAGE, Math.min(STAGE_H, window.innerHeight - PHONE_RESERVED)) : STAGE_H
       stageHRef.current = h
       setStageH(h)
       setCompact(small)
@@ -561,6 +566,7 @@ export function BulelePestilorGame({
   }
 
   const pb: React.CSSProperties = compact ? { ...pillBtn, padding: '10px 16px', fontSize: 14 } : pillBtn
+  const pbBar: React.CSSProperties = compact ? { ...pillBtn, padding: '8px 12px', fontSize: 13 } : pillBtn
   const ansSize = compact ? 64 : 52
   const visibleGroups = fourthVisible && nextGroup
     ? [currentGroup, ...distractorGroups, nextGroup]
@@ -580,21 +586,32 @@ export function BulelePestilorGame({
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 13, color: '#a03060' }}>💗 {hearts}</span>
-        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={pb}>Ajută-mă</button>
-        {helpMessage && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 10, marginBottom: compact ? 6 : 10, flexWrap: compact ? 'nowrap' : 'wrap' }}>
+        <span style={{ fontSize: 13, color: '#a03060', whiteSpace: 'nowrap' }}>💗 {hearts}</span>
+        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={{ ...pbBar, whiteSpace: 'nowrap' }}>Ajută-mă</button>
+        {helpMessage && !compact && (
           <span style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
             {helpMessage}
           </span>
         )}
-        <div style={{ marginLeft: 'auto' }}>
-          <button onClick={togglePause} disabled={!!done} style={pb}>{paused ? '▶ Continuă' : '⏸ Pauză'}</button>
-          {onExit && <button onClick={() => { if (!pausedRef.current) togglePause(); setConfirmExit(true) }} aria-label="Ieși din joc" style={{ ...pb, marginLeft: 6 }}>✕</button>}
+        {compact && (
+          <span style={{ ...festiveScore, fontSize: 17, whiteSpace: 'nowrap' }} className={scoreFlash ? 'pf-score-flash' : undefined}>
+            🎉 {score}
+          </span>
+        )}
+        <div style={{ marginLeft: 'auto', display: 'flex', whiteSpace: 'nowrap' }}>
+          <button onClick={togglePause} disabled={!!done} aria-label={paused ? 'Continuă' : 'Pauză'} style={pbBar}>{compact ? (paused ? '▶' : '⏸') : (paused ? '▶ Continuă' : '⏸ Pauză')}</button>
+          {onExit && <button onClick={() => { if (!pausedRef.current) togglePause(); setConfirmExit(true) }} aria-label="Ieși din joc" style={{ ...pbBar, marginLeft: 6 }}>✕</button>}
         </div>
       </div>
 
       <div ref={stageRef} style={{ position: 'relative', height: stageH, borderRadius: 14, overflow: 'hidden', background: '#f4f9fc' }}>
+        {/* indiciul „Ajută-mă” pe telefon: peste scenă, ca să nu lărgească bara de sus */}
+        {helpMessage && compact && (
+          <div style={{ position: 'absolute', left: '50%', top: 8, transform: 'translateX(-50%)', zIndex: 5, background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 10px', fontSize: 15, fontWeight: 700 }}>
+            {helpMessage}
+          </div>
+        )}
         {/* apa */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, bottom: 0, background: waterBg, transition: 'background 400ms' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, height: 3, background: 'rgba(255,255,255,.7)' }} />
@@ -757,7 +774,7 @@ export function BulelePestilorGame({
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: compact ? 10 : 14, marginTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: compact ? 10 : 14, marginTop: compact ? 8 : 16 }}>
         {visibleGroups.map(g => {
           const hinted = hintGroup?.lesson.id === g.lesson.id
           return (
@@ -780,10 +797,12 @@ export function BulelePestilorGame({
         })}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, fontSize: 13, color: '#555' }}>
-        <span style={festiveScore} className={scoreFlash ? 'pf-score-flash' : undefined}>🎉 Scor: {score}</span>
-        <span>{caughtCount} / {queueLen} pești</span>
-      </div>
+      {!compact && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, fontSize: 13, color: '#555' }}>
+          <span style={festiveScore} className={scoreFlash ? 'pf-score-flash' : undefined}>🎉 Scor: {score}</span>
+          <span>{caughtCount} / {queueLen} pești</span>
+        </div>
+      )}
 
       <style>{`
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }

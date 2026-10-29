@@ -3073,3 +3073,16 @@ button, textarea, input { font-family: var(--font-sans); }
   margin-top: .5rem;
 }
 .pingpong-misses { font-size: 13px; color: var(--color-text-secondary); opacity: .75; }
+
+/* ── Vulpea la pescuit pe telefon: overlay-ul jocului încape pe ecran fără scroll ──
+   (doar adăugat; scena și bara se calculează în BulelePestilorGame.tsx) */
+@media (max-width: 720px) {
+  .bulele-overlay { padding: .5rem; }
+  .bulele-overlay-card {
+    padding: .6rem .6rem .7rem;
+    max-height: calc(100dvh - 1rem);
+  }
+  .bulele-overlay-title { font-size: 1.1rem; margin: 0 0 .4rem; }
+  .bulele-overlay-sub { display: none; }
+  .bulele-overlay-actions { margin-top: .4rem; }
+}

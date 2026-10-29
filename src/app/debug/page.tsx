@@ -1,137 +1,61 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+'use client'
 
-export const metadata: Metadata = {
-  title: "EiC · Harta site-ului",
-  description:
-    "Index central: toate paginile aplicației EiC, grupate pe secțiuni, cu link direct către fiecare.",
-};
+import { useState } from 'react'
+import Link from 'next/link'
+import { LEVELS, type Lesson } from '@/lib/levels'
+import { BulelePestilorGame, type BulelePestilorLevel } from '@/components/game/BulelePestilorGame'
 
-type PageLink = {
-  href: string;
-  label: string;
-  note?: string;
-};
+const FLAT: { lesson: Lesson; levelName: string }[] = LEVELS.flatMap(lvl =>
+  lvl.lessons.map(lesson => ({ lesson, levelName: lvl.name }))
+)
 
-type PageSection = {
-  title: string;
-  intro?: string;
-  links: PageLink[];
-};
+export default function BulelePestilorPage() {
+  const [idx, setIdx] = useState(0)
+  const [level, setLevel] = useState<BulelePestilorLevel>(1)
+  const [nonce, setNonce] = useState(0)
 
-const SECTIONS: PageSection[] = [
-  {
-    title: "Aplicație (producție)",
-    links: [
-      { href: "/", label: "/", note: "Ecranul principal — lecția curentă" },
-      { href: "/learn", label: "/learn", note: "Fluxul de învățare" },
-      { href: "/eic2", label: "/eic2", note: "Modul recapitulare ping-pong" },
-      { href: "/landing", label: "/landing", note: "Pagină de prezentare" },
-      { href: "/culise", label: "/culise", note: "Pagină culise / behind the scenes" },
-    ],
-  },
-  {
-    title: "Unelte dezvoltator",
-    links: [
-      { href: "/debug/graph", label: "/debug/graph", note: "Graful live al modulelor (D3)" },
-    ],
-  },
-  {
-    title: "Concepte jocuri — /debug/games",
-    intro: "Wireframe-uri de joc pentru elevi, date demo auto-conținute.",
-    links: [
-      { href: "/debug/games", label: "/debug/games", note: "index" },
-      { href: "/debug/games/color-hunt", label: "→ color-hunt" },
-      { href: "/debug/games/memory-perechi", label: "→ memory-perechi" },
-      { href: "/debug/games/cursa-vulpii", label: "→ cursa-vulpii" },
-      { href: "/debug/games/dictare-colorata", label: "→ dictare-colorata" },
-    ],
-  },
-  {
-    title: "Concepte jocuri (variantă) — /debug/game-concepts",
-    links: [
-      { href: "/debug/game-concepts", label: "/debug/game-concepts", note: "index" },
-      { href: "/debug/game-concepts/sound-hunt", label: "→ sound-hunt" },
-      { href: "/debug/game-concepts/syllable-tower", label: "→ syllable-tower" },
-      { href: "/debug/game-concepts/vowel-race", label: "→ vowel-race" },
-      { href: "/debug/game-concepts/color-memory", label: "→ color-memory" },
-    ],
-  },
-  {
-    title: "Gamification — meta-progres — /debug/gamification",
-    intro: "5 concepte de progres pe termen lung (hărți, insigne, streak, monedă, misiune zilnică).",
-    links: [
-      { href: "/debug/gamification", label: "/debug/gamification", note: "index" },
-      { href: "/debug/gamification/harta-sunetelor", label: "→ harta-sunetelor" },
-      { href: "/debug/gamification/insigne", label: "→ insigne" },
-      { href: "/debug/gamification/calendarul-vulpii", label: "→ calendarul-vulpii" },
-      { href: "/debug/gamification/cufarul-vulpii", label: "→ cufarul-vulpii" },
-      { href: "/debug/gamification/provocarea-zilei", label: "→ provocarea-zilei" },
-    ],
-  },
-  {
-    title: "Vizualizări live pipeline — /debug/live",
-    intro: "Abonați read-only la PIPELINE_TRACE_CHANNEL.",
-    links: [
-      { href: "/debug/live", label: "/debug/live", note: "index" },
-      { href: "/debug/live/monitor-cardiac", label: "→ monitor-cardiac" },
-      { href: "/debug/live/harta-metrou", label: "→ harta-metrou" },
-      { href: "/debug/live/acvariu", label: "→ acvariu" },
-      { href: "/debug/live/turn-control", label: "→ turn-control" },
-    ],
-  },
-  {
-    title: "Observator — familiarizare cu propriul cod — /debug/observator",
-    intro: "3 concepte pentru dezvoltator, nu pentru elevi.",
-    links: [
-      { href: "/debug/observator", label: "/debug/observator", note: "index" },
-      { href: "/debug/observator/sala-control", label: "→ sala-control" },
-      { href: "/debug/observator/harta-cadastrala", label: "→ harta-cadastrala" },
-      { href: "/debug/observator/tura-de-garda", label: "→ tura-de-garda" },
-    ],
-  },
-];
+  const current = FLAT[idx]
+  const distractors = FLAT.slice(Math.max(0, idx - 2), idx).map(f => f.lesson).reverse()
+  const next = FLAT[idx + 1]?.lesson ?? null
 
-export default function DebugIndex() {
   return (
-    <main className="eic-home" style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1rem" }}>
-      <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", marginBottom: "0.25rem" }}>
-        Harta site-ului EiC
-      </h1>
-      <p style={{ marginBottom: "1.5rem", opacity: 0.7, fontSize: "0.9rem", maxWidth: 680 }}>
-        Index nou, adăugat pentru navigare rapidă între toate paginile existente. Nu modifică
-        niciun fișier existent — doar adaugă acest punct central de acces.
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 60px' }}>
+      <Link href="/debug/gamification" style={{ fontSize: 13, color: '#666' }}>← Gamification</Link>
+      <h1 style={{ fontSize: 22, margin: '12px 0 4px', textAlign: 'center' }}>🐟 Vulpea la pescuit</h1>
+      <p style={{ fontSize: 13, color: '#777', textAlign: 'center', margin: '0 0 16px' }}>
+        Propunere izolată. Baloanele devin pești, vulpea pescuiește, iar acvariul are o celulă pentru fiecare pește.
       </p>
 
-      {SECTIONS.map((section) => (
-        <section key={section.title} style={{ marginBottom: "1.75rem" }}>
-          <h2 style={{ fontSize: "1.05rem", marginBottom: "0.25rem" }}>{section.title}</h2>
-          {section.intro && (
-            <p style={{ fontSize: "0.82rem", opacity: 0.65, marginBottom: "0.5rem", maxWidth: 620 }}>
-              {section.intro}
-            </p>
-          )}
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: "0.35rem" }}>
-            {section.links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  style={{
-                    fontSize: "0.9rem",
-                    textDecoration: "none",
-                    borderBottom: "1px solid transparent",
-                  }}
-                >
-                  <code>{link.label}</code>
-                </Link>
-                {link.note && (
-                  <span style={{ fontSize: "0.8rem", opacity: 0.55 }}> — {link.note}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </main>
-  );
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+        <select value={idx} onChange={e => { setIdx(Number(e.target.value)); setNonce(n => n + 1) }}>
+          {FLAT.map((f, i) => (
+            <option key={f.lesson.id} value={i}>{f.levelName} · {f.lesson.tabLabel} ({f.lesson.letter})</option>
+          ))}
+        </select>
+        {([1, 2] as BulelePestilorLevel[]).map(lv => (
+          <button
+            key={lv}
+            onClick={() => { setLevel(lv); setNonce(n => n + 1) }}
+            style={lv === level ? { ...pillBtn, background: '#1a1917', color: '#fff', borderColor: '#1a1917' } : pillBtn}
+          >
+            Nivel {lv} {lv === 1 ? '· literă' : '· cuvânt'}
+          </button>
+        ))}
+      </div>
+
+      <BulelePestilorGame
+        key={`${current.lesson.id}-${level}-${nonce}`}
+        lesson={current.lesson}
+        distractorLessons={distractors}
+        nextLesson={next}
+        level={level}
+      />
+    </div>
+  )
+}
+
+
+const pillBtn: React.CSSProperties = {
+  border: '1px solid #e8e6e1', background: '#f8f7f4', borderRadius: 999,
+  padding: '6px 14px', fontSize: 12.5, cursor: 'pointer',
 }
