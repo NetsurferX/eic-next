@@ -56,10 +56,10 @@ function ttsWordFor(lesson: Lesson): string {
   return lesson.matchWord ?? lesson.words[0]?.text ?? lesson.letter
 }
 
-const TOTAL = 10
+const TOTAL = 5
 function buildQueue(current: Group, distractors: Group[], next: Group | null): QueueItem[] {
   const nextCount = next ? 1 : 0
-  let currentCount = 6
+  let currentCount = 3
   let distractorTotal = TOTAL - currentCount - nextCount
   if (distractors.length === 0) { currentCount += distractorTotal; distractorTotal = 0 }
   const items: QueueItem[] = []
