@@ -95,7 +95,10 @@ const MOUTH = 0.42 * FISH_W                            // distanța centru → g
 const HANG = -35 * Math.PI / 180                       // înclinarea peștelui când e tras în sus
 const NEUTRAL = '#f4f1ea'
 // Tazul cu pești (sus-dreapta): w/h = dimensiunea desenului; rim = y-ul buzei tazului
-const BUCKET = { w: 104, h: 96, rim: 30, top: 4, right: 8 }
+// tazul e desenat în coordonate 104x96 (BUCKET_VB) și afișat la 60% lățime / 70% înălțime (BUCKET)
+const BUCKET_VB = { w: 104, h: 112, rim: 30 }   // h=112 → la scara 0.6 iese 70% din înălțimea inițială (96)
+const BUCKET_SCALE = 0.6
+const BUCKET = { w: BUCKET_VB.w * BUCKET_SCALE, h: BUCKET_VB.h * BUCKET_SCALE, rim: BUCKET_VB.rim * BUCKET_SCALE, top: 4, right: 8 }
 
 type Zone = 'blue' | 'pink'
 type FState = 'swimming' | 'hooked' | 'miss'
@@ -442,12 +445,12 @@ export function BulelePestilorGame({
     const cr = bucketEl.getBoundingClientRect()
     const cx0 = cr.left - sr.left + cr.width / 2
     const rimY = cr.top - sr.top + BUCKET.rim
-    const above  = { x: cx0, y: rimY - 10 }   // deasupra buzei tazului, cu capul în jos
-    const inside = { x: cx0, y: rimY + 24 }   // înăuntru (acoperit de peretele tazului)
+    const above  = { x: cx0, y: rimY - 8 }   // deasupra buzei tazului, cu capul în jos
+    const inside = { x: cx0, y: rimY + 16 }   // înăuntru (acoperit de peretele tazului)
     const DROP = Math.PI / 2                  // cap în jos
     // peștele e tras de GURĂ: stă înclinat cu botul în sus, atârnat sub vârful undiței
     const up = { x: TIP.x - Math.cos(HANG) * MOUTH, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
-    const endScale = 0.4
+    const endScale = 0.3
     const t0 = performance.now()
     pullingRef.current = true
     setPull(true)
@@ -612,7 +615,7 @@ export function BulelePestilorGame({
           style={{ position: 'absolute', right: BUCKET.right, top: BUCKET.top, width: BUCKET.w, height: BUCKET.h, zIndex: 2, pointerEvents: 'none' }}
           aria-label={`${caughtCount} pești prinși`}
         >
-          <svg width={BUCKET.w} height={BUCKET.h} viewBox={`0 0 ${BUCKET.w} ${BUCKET.h}`} style={{ overflow: 'visible', display: 'block' }}>
+          <svg width={BUCKET.w} height={BUCKET.h} viewBox={`0 0 ${BUCKET_VB.w} ${BUCKET_VB.h}`} style={{ overflow: 'visible', display: 'block' }}>
             <defs>
               <linearGradient id={`${bucketId}-tri`} x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor={TRICOLOR_BANDS[0]} /><stop offset="33%" stopColor={TRICOLOR_BANDS[0]} />
@@ -623,11 +626,12 @@ export function BulelePestilorGame({
             {/* cozile (poziție/înclinare fixe per pește: nu sar când se adaugă altele) */}
             {cells.map((c, i) => {
               if (!c.filled || !c.lesson) return null
+              if (cells.slice(i + 1).filter(k => k.filled && k.lesson).length >= 6) return null   // doar ultimele 6 cozi
               const x = 22 + ((i * 37) % 61)
               const ang = ((i * 53) % 51) - 25
-              const sc = 0.9 + ((i * 17) % 5) / 20
+              const sc = (0.9 + ((i * 17) % 5) / 20) * 1.3   // cozi la 130%
               return (
-                <g key={i} transform={`translate(${x} ${BUCKET.rim + 6}) rotate(${ang}) scale(${sc})`}>
+                <g key={i} transform={`translate(${x} ${BUCKET_VB.rim + 6}) rotate(${ang}) scale(${sc})`}>
                   <path
                     className="pf-tailpop"
                     d="M-3 4 L-10 -22 Q0 -15 10 -22 L3 4 Z"
@@ -638,12 +642,12 @@ export function BulelePestilorGame({
               )
             })}
             {/* corpul tazului (acoperă corpurile peștilor) */}
-            <path d={`M8 ${BUCKET.rim} L96 ${BUCKET.rim} L88 90 Q87 95 82 95 L22 95 Q17 95 16 90 Z`} fill="#8fa3b8" stroke="#34495e" strokeWidth="2.5" strokeLinejoin="round" />
-            <path d={`M10 ${BUCKET.rim + 12} L94 ${BUCKET.rim + 12}`} stroke="rgba(255,255,255,.35)" strokeWidth="2" />
-            <rect x="3" y={BUCKET.rim - 4} width="98" height="9" rx="4.5" fill="#6f8499" stroke="#34495e" strokeWidth="2.5" />
+            <path d={`M8 ${BUCKET_VB.rim} L96 ${BUCKET_VB.rim} L88 106 Q87 111 82 111 L22 111 Q17 111 16 106 Z`} fill="#8fa3b8" stroke="#34495e" strokeWidth="2.5" strokeLinejoin="round" />
+            <path d={`M10 ${BUCKET_VB.rim + 12} L94 ${BUCKET_VB.rim + 12}`} stroke="rgba(255,255,255,.35)" strokeWidth="2" />
+            <rect x="3" y={BUCKET_VB.rim - 4} width="98" height="9" rx="4.5" fill="#6f8499" stroke="#34495e" strokeWidth="2.5" />
             <text
-              x="52" y="72" textAnchor="middle" fontSize="30" fontWeight="800" fill="#fff"
-              stroke="#34495e" strokeWidth="4" paintOrder="stroke"
+              x="52" y="86" textAnchor="middle" fontSize="40" fontWeight="800" fill="#fff"
+              stroke="#34495e" strokeWidth="5" paintOrder="stroke"
               style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive, sans-serif' }}
             >
               {caughtCount}
