@@ -31,7 +31,7 @@ export default function Gateway() {
   useEffect(() => {
     if (!disappeared) return
     setVibrate(true)
-    const t = setTimeout(() => router.push('/learn'), 2000)
+    const t = setTimeout(() => router.push('/learn'), 3000)
     return () => clearTimeout(t)
   }, [disappeared, router])
 
@@ -147,7 +147,7 @@ const CSS = `
 .gw-in { animation: none; }
 
 .gw-vibrate {
-  animation: gw-vibrate .12s linear infinite;
+  animation: gw-vibrate .35s linear infinite;
   animation-delay: 0s;
 }
 
