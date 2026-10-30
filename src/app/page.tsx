@@ -110,7 +110,7 @@ const CSS = `
   min-height: 100vh;
   display: flex; flex-wrap: wrap;
   align-items: center; justify-content: center;
-  gap: 180px;
+  gap: 170px;
   padding: 24px 24px 48px;
   background: #ffffff;
   overflow-x: hidden;
