@@ -27,7 +27,7 @@ export default function Gateway() {
     setTimeout(() => setDisappeared(true), 3000)
   }
 
-  // După ce EiC a dispărut: Play vibrează 2s, apoi intră automat în /learn
+  // După ce EiC a dispărut: Play vibrează 3s, apoi intră automat în /learn
   useEffect(() => {
     if (!disappeared) return
     setVibrate(true)
@@ -107,20 +107,43 @@ const CSS = `
   --gw-edge: #004d8a;
   --gw-red: #e53935;
 
+  /* DESKTOP: centrat, 240px între butoane */
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex; flex-wrap: wrap;
   align-items: center; justify-content: center;
-  gap: 160px;
+  gap: 240px;
   padding: 24px 24px 48px;
   background: #ffffff;
   overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* TELEFON (vertical sau orizontal): fără scroll, butoanele la distanță maximă */
+@media (max-width: 900px), (max-height: 500px) {
+  .gw-page {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0;
+    padding: 28px 28px 52px;
+    overflow: hidden;
+  }
+}
+@media (max-width: 900px) and (orientation: portrait) {
+  .gw-page { flex-direction: column; }
 }
 
 .gw-tile {
   position: relative;
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
-  width: 225px; height: 218px;
+  width: min(225px, 38vmin);
+  aspect-ratio: 225 / 218;
+  flex-shrink: 0;
   border-radius: 32px;
   text-decoration: none;
   background:
@@ -183,8 +206,8 @@ const CSS = `
 
 .gw-band {
   position: relative; z-index: 1;
-  width: calc(100% - 44px);
-  padding: 16px 0 14px;
+  width: 80%;
+  padding: .35em 0 .3em;
   text-align: center;
   background: linear-gradient(#e4f0f8 0%, #f8fcfe 45%, #dcebf5 100%);
   border: 3px solid #fff;
@@ -195,7 +218,7 @@ const CSS = `
     0 6px 14px rgba(0, 50, 100, .28);
   font-family: var(--font-serif);
   font-style: italic; font-weight: 700;
-  font-size: 46px; line-height: 1;
+  font-size: min(46px, 7.4vmin); line-height: 1;
   letter-spacing: .01em;
   text-shadow: 0 2px 0 rgba(0,0,0,.08), 0 1px 0 #fff;
   transition: transform .18s cubic-bezier(.3,.7,.4,1);
@@ -263,7 +286,7 @@ button.gw-tile { border: 0; padding: 0; font: inherit; cursor: pointer; }
 .gw-lock {
   position: absolute; top: 14px; right: 16px; z-index: 2;
   display: grid; place-items: center;
-  width: 48px; height: 48px; border-radius: 50%;
+  width: 21%; aspect-ratio: 1; border-radius: 50%;
   color: #3d4a53;
   background:
     radial-gradient(90% 90% at 30% 20%, rgba(255,255,255,.65) 0%, rgba(255,255,255,0) 60%),
@@ -274,6 +297,7 @@ button.gw-tile { border: 0; padding: 0; font: inherit; cursor: pointer; }
     inset 0 -3px 5px rgba(0,0,0,.18);
   transition: opacity .3s ease;
 }
+.gw-lock svg { width: 62%; height: 62%; }
 
 /* ========================================================
    EFECT SPECIAL VIZUAL DE DISPARIȚIE (DUREAZĂ 3 SECUNDE)
