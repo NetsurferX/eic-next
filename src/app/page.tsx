@@ -5,44 +5,35 @@
 //   „EiC"   → /eic    (editorul, fostă pagină principală)
 //   „study" → /learn  (lecțiile / jocul)
 // Stilurile sunt locale (prefix .gw-) — nu ating globals.css.
-//
-// Placa „EiC" e blocată până se termină toate etapele din „study" (vezi mai jos).
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { STORAGE_KEY, type SavedProgress } from '@/lib/levels'
 
-// Placa „EiC" rămâne blocată până când utilizatorul termină TOATE etapele
-// din „study" (/learn). Sursa adevărului: `allDone` din progresul salvat
-// (STORAGE_KEY) — același flag pe care /learn îl setează la ultimul nivel.
-// Blocarea e doar la nivelul butonului: ruta /eic în sine nu e atinsă.
-
-// Replica vulpii când utilizatorul apasă placa „EiC" încă blocată; în
-// același timp, placa „Play" îl ademenește (clasa .gw-lure).
-const FOX_SAYS = 'Hai să ne jucăm! 😉'
-
 export default function Gateway() {
-  // null = încă necitit (prima randare / SSR) → tratat ca blocat, fără text
+  const router = useRouter()
   const [done, setDone] = useState<boolean | null>(null)
-  const [nudge, setNudge] = useState(false)
-  // vulpea: null = ascunsă; `n` crește la fiecare click, ca bula să
-  // repornească animația chiar dacă replica e aceeași
-  const [taunt, setTaunt] = useState<{ n: number } | null>(null)
-  const tauntCount = useRef(0)
-  const tauntTimer = useRef<number | null>(null)
+  const [fading, setFading] = useState(false)
+  const [disappeared, setDisappeared] = useState(false)
+  const [playIn, setPlayIn] = useState(false)      // gw-pop s-a terminat
+  const [vibrate, setVibrate] = useState(false)    // Play vibrează înainte de redirect
 
-  useEffect(() => () => {
-    if (tauntTimer.current !== null) window.clearTimeout(tauntTimer.current)
-  }, [])
-
-  function onLockedClick() {
-    setNudge(false)
-    requestAnimationFrame(() => setNudge(true))
-    const n = tauntCount.current++
-    setTaunt({ n })
-    if (tauntTimer.current !== null) window.clearTimeout(tauntTimer.current)
-    tauntTimer.current = window.setTimeout(() => setTaunt(null), 4500)
+  // Declanșat când utilizatorul apasă butonul EiC
+  function handleEiCPress(e: React.MouseEvent) {
+    e.preventDefault()
+    if (fading || disappeared) return
+    setFading(true)
+    setTimeout(() => setDisappeared(true), 3000)
   }
+
+  // După ce EiC a dispărut: Play vibrează 2s, apoi intră automat în /learn
+  useEffect(() => {
+    if (!disappeared) return
+    setVibrate(true)
+    const t = setTimeout(() => router.push('/learn'), 2000)
+    return () => clearTimeout(t)
+  }, [disappeared, router])
 
   useEffect(() => {
     let finished = false
@@ -62,18 +53,27 @@ export default function Gateway() {
     <main className="gw-page">
       <style>{CSS}</style>
 
-      {unlocked ? (
-        <Link href="/eic" className="gw-tile gw-eic" aria-label="EiC — editorul">
+      {/* Când cele 3 secunde s-au scurs, păstrăm spațiul gol fără să sară layout-ul */}
+      {disappeared ? (
+        <div className="gw-tile gw-eic" style={{ visibility: 'hidden', pointerEvents: 'none' }} />
+      ) : unlocked ? (
+        <Link
+          href="/eic"
+          className={`gw-tile gw-eic${fading ? ' gw-special-vanish' : ''}`}
+          aria-label="EiC — editorul"
+          onClick={handleEiCPress}
+        >
           <span className="gw-band">EiC</span>
+          {fading && <span className="gw-fx-burst" aria-hidden="true" />}
         </Link>
       ) : (
         <div className="gw-eic-wrap">
           <button
             type="button"
-            className="gw-tile gw-eic gw-locked"
+            className={`gw-tile gw-eic gw-locked${fading ? ' gw-special-vanish' : ''}`}
             aria-disabled="true"
             aria-label="EiC — blocat până termini toate etapele din study"
-            onClick={onLockedClick}
+            onClick={handleEiCPress}
           >
             <span className="gw-band">EiC</span>
             <span className="gw-lock" aria-hidden="true">
@@ -82,27 +82,16 @@ export default function Gateway() {
                 <path d="M8 11V8a4 4 0 0 1 8 0v3" />
               </svg>
             </span>
+            {fading && <span className="gw-fx-burst" aria-hidden="true" />}
           </button>
-
-          {taunt && (
-            <div className="gw-fox" aria-hidden="true">
-              <div key={taunt.n} className="mascot-bubble">{FOX_SAYS}</div>
-              {/* o singură imagine: doar face-wink.png */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/mascot/face-wink.png" alt="" className="gw-fox-img" draggable={false} />
-            </div>
-          )}
-          <span className="gw-sr" role="status">
-            {taunt ? FOX_SAYS : ''}
-          </span>
         </div>
       )}
 
       <Link
         href="/learn"
-        className={`gw-tile gw-study${nudge ? ' gw-nudge' : ''}${taunt ? ' gw-lure' : ''}`}
+        className={`gw-tile gw-study${playIn ? ' gw-in' : ''}${vibrate ? ' gw-vibrate' : ''}`}
         aria-label="study — lecțiile"
-        onAnimationEnd={e => { if (e.animationName === 'gw-shake') setNudge(false) }}
+        onAnimationEnd={e => { if (e.animationName === 'gw-pop') setPlayIn(true) }}
       >
         <span className="gw-band">Play</span>
       </Link>
@@ -121,9 +110,10 @@ const CSS = `
   min-height: 100vh;
   display: flex; flex-wrap: wrap;
   align-items: center; justify-content: center;
-  gap: 28px;
+  gap: 240px;
   padding: 24px 24px 48px;
   background: #ffffff;
+  overflow-x: hidden;
 }
 
 .gw-tile {
@@ -137,8 +127,8 @@ const CSS = `
     radial-gradient(120% 90% at 30% 0%, rgba(255,255,255,.32) 0%, rgba(255,255,255,0) 55%),
     radial-gradient(90% 60% at 100% 100%, rgba(120, 90, 255, .28) 0%, rgba(120, 90, 255, 0) 70%),
     linear-gradient(160deg, var(--gw-blue-light) 0%, var(--gw-blue) 52%, var(--gw-blue-dark) 100%);
-  /* grosimea plăcii + umbra de pe podea + lumină pe muchie */
   box-shadow:
+    0 0 0 4px var(--gw-edge),
     0 10px 0 var(--gw-edge),
     0 22px 30px rgba(0, 95, 142, .38),
     inset 0 0 0 3px rgba(255, 255, 255, .22),
@@ -154,7 +144,21 @@ const CSS = `
 }
 .gw-study { animation-delay: .09s; }
 
-/* luciu curbat pe jumătatea de sus */
+.gw-in { animation: none; }
+
+.gw-vibrate {
+  animation: gw-vibrate .12s linear infinite;
+  animation-delay: 0s;
+}
+
+@keyframes gw-vibrate {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20% { transform: translate(-4px, 1px) rotate(-1deg); }
+  40% { transform: translate(4px, -1px) rotate(1deg); }
+  60% { transform: translate(-3px, -1px) rotate(-.6deg); }
+  80% { transform: translate(3px, 1px) rotate(.6deg); }
+}
+
 .gw-tile::before {
   content: ''; position: absolute; inset: 0 0 50% 0;
   border-radius: 32px 32px 70% 70% / 32px 32px 22% 22%;
@@ -162,7 +166,6 @@ const CSS = `
   pointer-events: none;
 }
 
-/* dungă de lumină care traversează placa la hover */
 .gw-tile::after {
   content: ''; position: absolute; top: -20%; bottom: -20%; left: -60%;
   width: 40%;
@@ -178,15 +181,14 @@ const CSS = `
   transition: transform .7s ease, opacity .15s ease;
 }
 
-/* eticheta — o bandă „lipită" pe placă */
 .gw-band {
   position: relative; z-index: 1;
-  width: 100%;
+  width: calc(100% - 44px);
   padding: 16px 0 14px;
   text-align: center;
   background: linear-gradient(#e4f0f8 0%, #f8fcfe 45%, #dcebf5 100%);
-  border-top: 3px solid #fff;
-  border-bottom: 3px solid #fff;
+  border: 3px solid #fff;
+  border-radius: 16px;
   box-shadow:
     inset 0 3px 6px rgba(0,60,100,.10),
     0 0 14px rgba(255, 255, 255, .75),
@@ -198,7 +200,7 @@ const CSS = `
   text-shadow: 0 2px 0 rgba(0,0,0,.08), 0 1px 0 #fff;
   transition: transform .18s cubic-bezier(.3,.7,.4,1);
 }
-/* Play — placă verde (suprascrie doar variabilele locale ale plăcii) */
+
 .gw-study {
   --gw-blue: #2fb344;
   --gw-blue-light: #7be08a;
@@ -207,7 +209,6 @@ const CSS = `
 }
 .gw-study .gw-band { color: #1fa037; }
 
-/* EiC — placă galbenă (suprascrie doar variabilele locale ale plăcii) */
 .gw-eic {
   --gw-blue: #ffc400;
   --gw-blue-light: #ffe566;
@@ -216,11 +217,11 @@ const CSS = `
 }
 .gw-eic .gw-band { color: #0098ea; }
 
-/* hover — placa se ridică și se înclină ușor */
 .gw-tile:hover {
   transform: translateY(-8px) rotate(-1deg);
   filter: brightness(1.06) saturate(1.05);
   box-shadow:
+    0 0 0 4px var(--gw-edge),
     0 18px 0 var(--gw-edge),
     0 36px 44px rgba(0, 95, 142, .40),
     inset 0 0 0 3px rgba(255, 255, 255, .28),
@@ -230,11 +231,11 @@ const CSS = `
 .gw-study:hover { transform: translateY(-8px) rotate(1deg); }
 .gw-tile:hover .gw-band { transform: scale(1.08); }
 
-/* apăsare — placa se lasă în jos, „grosimea" aproape dispare */
 .gw-tile:active {
   transform: translateY(8px) rotate(0);
   filter: brightness(.96);
   box-shadow:
+    0 0 0 4px var(--gw-edge),
     0 2px 0 var(--gw-edge),
     0 5px 9px rgba(0, 95, 142, .32),
     inset 0 0 0 3px rgba(255, 255, 255, .18),
@@ -244,7 +245,6 @@ const CSS = `
 }
 .gw-tile:active .gw-band { transform: scale(.96); }
 
-/* tastatură */
 .gw-tile:focus-visible { outline: 4px solid #ffb300; outline-offset: 10px; }
 
 @keyframes gw-pop {
@@ -252,15 +252,9 @@ const CSS = `
   to   { opacity: 1; transform: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .gw-tile, .gw-band { transition: none; animation: none; }
-  .gw-tile::after { display: none; }
-  .gw-tile:hover, .gw-study:hover { transform: none; }
-}
-
-/* ── EiC blocat (până se termină etapele din „study") ── */
 .gw-eic-wrap { position: relative; display: flex; }
-button.gw-tile { border: 0; padding: 0; font: inherit; cursor: not-allowed; }
+button.gw-tile { border: 0; padding: 0; font: inherit; cursor: pointer; }
+
 .gw-locked:hover, .gw-locked:active {
   transform: none; filter: none;
 }
@@ -278,60 +272,165 @@ button.gw-tile { border: 0; padding: 0; font: inherit; cursor: not-allowed; }
     0 3px 8px rgba(0, 40, 70, .35),
     inset 0 0 0 2px rgba(255,255,255,.55),
     inset 0 -3px 5px rgba(0,0,0,.18);
+  transition: opacity .3s ease;
 }
-.gw-nudge { animation: gw-shake .45s ease both; }
 
-/* vulpea — stă în colțul de jos-dreapta al plăcii EiC blocate, cu portretul
-   „wink" lângă cap și bula „Hai să ne jucăm!"; nu prinde click-uri */
-.gw-fox {
-  position: absolute; right: -58px; bottom: -40px; z-index: 5;
+/* ========================================================
+   EFECT SPECIAL VIZUAL DE DISPARIȚIE (DUREAZĂ 3 SECUNDE)
+   ======================================================== */
+.gw-tile.gw-special-vanish,
+.gw-tile.gw-special-vanish:hover,
+.gw-tile.gw-special-vanish:active {
+  overflow: visible !important;
+  pointer-events: none !important;
+  animation: gw-disintegrate 3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
+}
+
+.gw-special-vanish::before,
+.gw-special-vanish::after {
+  display: none !important;
+}
+
+.gw-special-vanish .gw-band {
+  animation: gw-band-disintegrate 3s ease-in-out forwards !important;
+}
+
+.gw-special-vanish .gw-lock {
+  animation: gw-lock-burn 3s ease-in-out forwards !important;
+}
+
+/* Undă de șoc și particule de energie */
+.gw-fx-burst {
+  position: absolute;
+  inset: -20px;
+  border-radius: 46px;
   pointer-events: none;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .18));
+  z-index: 10;
 }
-.gw-fox .mascot-bubble { max-width: 210px; font-size: 13.5px; right: 10px; white-space: nowrap; }
-.gw-fox-img {
-  display: block; width: 96px; height: auto;
-  filter: drop-shadow(0 3px 6px rgba(20, 10, 0, .3));
-  animation: gw-fox-breathe 1.4s ease-in-out infinite;
+
+.gw-fx-burst::before {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  border-radius: 56px;
+  background: radial-gradient(circle, rgba(255, 235, 130, 0.95) 0%, rgba(255, 170, 0, 0.6) 40%, rgba(0, 152, 234, 0) 75%);
+  animation: gw-fx-flash 3s ease-out forwards;
 }
-@keyframes gw-fox-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.06); }
+
+.gw-fx-burst::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 3px solid rgba(255, 240, 160, 0.9);
+  border-radius: 42px;
+  box-shadow:
+    0 0 35px rgba(255, 200, 0, 0.95),
+    0 0 65px rgba(255, 120, 0, 0.75),
+    inset 0 0 30px rgba(255, 240, 100, 0.85);
+  animation: gw-fx-shockwave 3s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
 }
-@media (prefers-reduced-motion: reduce) { .gw-fox-img { animation: none; } }
-.gw-sr {
-  position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip: rect(0 0 0 0); white-space: nowrap;
+
+@keyframes gw-disintegrate {
+  0% {
+    transform: scale(1) translateY(0) rotate(0deg);
+    filter: brightness(1) drop-shadow(0 0 0 rgba(255, 196, 0, 0));
+    opacity: 1;
+  }
+  15% {
+    transform: scale(1.06) translateY(-6px) rotate(1.2deg);
+    filter: brightness(1.4) saturate(1.4) drop-shadow(0 0 25px rgba(255, 196, 0, 0.85));
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1.1) translateY(-8px) rotate(-1.5deg);
+    filter: brightness(1.9) saturate(1.8) drop-shadow(0 0 45px rgba(255, 220, 50, 1));
+  }
+  48% {
+    transform: scale(1.14) translateY(-10px) rotate(1deg);
+    filter: brightness(2.5) contrast(1.3) drop-shadow(0 0 70px rgba(255, 180, 0, 1));
+    opacity: 0.98;
+  }
+  65% {
+    transform: scale(1.02) translateY(-4px) rotate(-3deg);
+    filter: brightness(3) blur(5px) drop-shadow(0 0 85px rgba(255, 230, 120, 1));
+    opacity: 0.82;
+  }
+  78% {
+    transform: scale(0.75) translateY(12px) rotate(5deg);
+    filter: brightness(3.5) blur(12px) drop-shadow(0 0 70px rgba(255, 140, 0, 0.8));
+    opacity: 0.5;
+  }
+  90% {
+    transform: scale(0.35) translateY(-15px) rotate(-14deg);
+    filter: brightness(4.2) blur(22px);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0) translateY(-45px) rotate(25deg);
+    filter: brightness(5) blur(36px);
+    opacity: 0;
+  }
 }
-/* păstrăm gw-pop în listă: altfel, la scoaterea clasei, intrarea (opacity 0 → 1) se reia */
-.gw-study.gw-nudge {
-  animation:
-    gw-pop .55s cubic-bezier(.2,.9,.3,1.2) .09s both,
-    gw-shake .45s ease 0s both;
+
+@keyframes gw-band-disintegrate {
+  0% {
+    letter-spacing: .01em;
+    filter: none;
+    transform: scale(1);
+  }
+  25% {
+    letter-spacing: .06em;
+    filter: drop-shadow(0 0 8px #ffffff);
+    transform: scale(1.08);
+  }
+  50% {
+    letter-spacing: .2em;
+    filter: drop-shadow(0 0 25px #ffffff) blur(2px);
+    transform: scale(1.2);
+  }
+  75% {
+    letter-spacing: .38em;
+    filter: drop-shadow(0 0 40px #ffe566) blur(6px);
+    opacity: 0.4;
+  }
+  100% {
+    letter-spacing: .55em;
+    filter: blur(16px);
+    opacity: 0;
+    transform: scale(1.4);
+  }
 }
-/* Play ademenește cât timp vorbește vulpea: dunga de lumină traversează
-   placa în buclă, iar eticheta pulsează */
-.gw-lure::after {
-  opacity: 1;
-  animation: gw-lure-sweep 1.1s ease-in-out infinite;
+
+@keyframes gw-lock-burn {
+  0% { opacity: 1; transform: scale(1); filter: none; }
+  40% { opacity: 0.8; transform: scale(1.2) rotate(10deg); filter: brightness(2); }
+  80% { opacity: 0.3; transform: scale(0.4) rotate(40deg); filter: blur(8px); }
+  100% { opacity: 0; transform: scale(0); filter: blur(16px); }
 }
-.gw-lure .gw-band { animation: gw-lure-band .8s ease-in-out infinite; }
-@keyframes gw-lure-sweep {
-  0%   { transform: translateX(0) skewX(-12deg); }
-  70%, 100% { transform: translateX(520%) skewX(-12deg); }
+
+@keyframes gw-fx-flash {
+  0% { opacity: 0; transform: scale(0.7); }
+  25% { opacity: 0.9; transform: scale(1.1); }
+  55% { opacity: 1; transform: scale(1.35); }
+  80% { opacity: 0.4; transform: scale(1.7); }
+  100% { opacity: 0; transform: scale(2.2); }
 }
-@keyframes gw-lure-band {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.1); }
+
+@keyframes gw-fx-shockwave {
+  0% { opacity: 0; transform: scale(0.8); border-width: 4px; }
+  25% { opacity: 1; transform: scale(1.05); }
+  60% { opacity: 0.8; transform: scale(1.35); border-width: 2px; }
+  100% { opacity: 0; transform: scale(2); border-width: 0px; }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .gw-lure::after, .gw-lure .gw-band { animation: none; }
-}
-@keyframes gw-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-9px) rotate(-1deg); }
-  40% { transform: translateX(8px) rotate(1deg); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(3px); }
+  .gw-tile, .gw-band { transition: none; animation: none; }
+  .gw-tile::after { display: none; }
+  .gw-tile:hover, .gw-study:hover { transform: none; }
+  .gw-tile.gw-special-vanish {
+    animation: none !important;
+    opacity: 0 !important;
+    transition: opacity .3s ease !important;
+  }
 }
 `
