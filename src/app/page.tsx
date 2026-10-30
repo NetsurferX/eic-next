@@ -107,19 +107,21 @@ const CSS = `
   --gw-edge: #004d8a;
   --gw-red: #e53935;
 
-  /* DESKTOP: centrat, 240px între butoane */
+  /* --t = lățimea unui buton. Distanța dintre butoane = t × 240/225 (=240px pe desktop) */
+  --t: 225px;
+
   min-height: 100vh;
   min-height: 100dvh;
   display: flex; flex-wrap: wrap;
   align-items: center; justify-content: center;
-  gap: 240px;
+  gap: calc(var(--t) * 240 / 225);
   padding: 24px 24px 48px;
   background: #ffffff;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 
-/* TELEFON (vertical sau orizontal): fără scroll, butoanele la distanță maximă */
+/* TELEFON: aceleași proporții ca pe desktop (gap = t × 240/225), scalate să încapă fără scroll */
 @media (max-width: 900px), (max-height: 500px) {
   .gw-page {
     height: 100vh;
@@ -127,21 +129,25 @@ const CSS = `
     min-height: 0;
     flex-wrap: nowrap;
     flex-direction: row;
-    justify-content: space-between;
-    gap: 0;
     padding: 28px 28px 52px;
     overflow: hidden;
+    /* orizontal: 2 butoane + gap încap pe lățime, un buton încape pe înălțime */
+    --t: min(225px, calc((100vw - 64px) / 3.07), calc((100dvh - 90px) / .97));
   }
 }
 @media (max-width: 900px) and (orientation: portrait) {
-  .gw-page { flex-direction: column; }
+  .gw-page {
+    flex-direction: column;
+    /* vertical: 2 butoane + gap încap pe înălțime, un buton încape pe lățime */
+    --t: min(225px, calc((100dvh - 90px) / 3.07), calc(100vw - 72px));
+  }
 }
 
 .gw-tile {
   position: relative;
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
-  width: min(225px, 38vmin);
+  width: var(--t);
   aspect-ratio: 225 / 218;
   flex-shrink: 0;
   border-radius: 32px;
@@ -218,7 +224,7 @@ const CSS = `
     0 6px 14px rgba(0, 50, 100, .28);
   font-family: var(--font-serif);
   font-style: italic; font-weight: 700;
-  font-size: min(46px, 7.4vmin); line-height: 1;
+  font-size: calc(var(--t) * .2044); line-height: 1;
   letter-spacing: .01em;
   text-shadow: 0 2px 0 rgba(0,0,0,.08), 0 1px 0 #fff;
   transition: transform .18s cubic-bezier(.3,.7,.4,1);
