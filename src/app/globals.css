@@ -1448,14 +1448,16 @@ button, textarea, input { font-family: var(--font-sans); }
   100% { transform: scale(1); }
 }
 
-.lesson-col-head { position: relative; text-align: center; margin-bottom: .5rem; }
+.lesson-col-head { position: relative; text-align: center; margin-bottom: .5rem; min-height: 3.2rem; }
 .lesson-letter {
   font-family: var(--font-sans);
   font-style: italic;
   font-weight: 700;
-  font-size: 1.9rem;
+  font-size: 1.75rem;
   line-height: 1;
   color: var(--lesson-color);
+  position: relative;
+  z-index: 1;
 }
 .lesson-col.is-locked .lesson-letter { color: var(--color-text-muted); opacity: .5; }
 .lesson-lock {
@@ -1465,10 +1467,11 @@ button, textarea, input { font-family: var(--font-sans); }
 /* Numărul global al lecției (1→16..., peste toate nivelurile) — colț opus
    lacătului, ca să nu se suprapună. */
 .lesson-number {
-  position: absolute; top: -6px; left: 4px;
+  position: absolute; top: -6px; right: 4px;
   font-size: 10px; font-weight: 700;
   color: var(--color-text-muted); opacity: .55;
 }
+.lesson-col.is-locked .lesson-number { left: 4px; right: auto; }
 .lesson-next-hint {
   font-size: 10.5px; font-weight: 700; text-align: center;
   color: var(--lesson-color); opacity: .8;
@@ -3101,26 +3104,6 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-step-btn:hover:not(:disabled) { background: var(--color-surface-2); }
 .lesson-step-btn:disabled { opacity: .35; cursor: default; }
 
-/* ══════════════════════════════════════════════════════════════════════
-   Litera din capul coloanei — zvâcnire la redarea izolată a sunetului
-   (coloana /a/ la start: 3×; click pe literă: 1×). Sincronizată cu
-   `letterPulseId` din learn/page.tsx.
-   ══════════════════════════════════════════════════════════════════════ */
-.lesson-letter.is-pulsing {
-  animation: letter-sound-pulse 420ms cubic-bezier(.34, 1.56, .64, 1);
-  transform-origin: center bottom;
-}
-@keyframes letter-sound-pulse {
-  0%   { transform: scale(1) rotate(0deg); }
-  30%  { transform: scale(1.32) rotate(-5deg); }
-  55%  { transform: scale(0.94) rotate(3deg); }
-  78%  { transform: scale(1.12) rotate(-2deg); }
-  100% { transform: scale(1) rotate(0deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .lesson-letter.is-pulsing { animation: none; }
-}
-
 /* ── Aik: gură ușor deschisă cât vorbește (stare talking pe Mascot / FoxHelper)
    Dacă Mascot.tsx expune `.state-talking` sau un face-portrait, acesta
    completează vizual „deschide gura un pic”. Fallback CSS pe avatarul dock: */
@@ -3139,107 +3122,169 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   Aik în colțul stânga-sus al coloanei active — din gură iese sunetul
-   coloanei; zvâcnește ×3 la start (sincron cu .lesson-letter.is-pulsing).
+   Aik + litera în balon comics — litera iese din gura vulpii, nu stă
+   singură în centrul coloanei. Contur gros tip bandă desenată, coadă
+   (tail) care arată spre gură. Pe coloana activă Aik e vizibil în stânga.
    ══════════════════════════════════════════════════════════════════════ */
-.aik-corner {
-  position: absolute;
-  top: -6px;
-  left: -6px;
-  z-index: 4;
-  width: 44px;
-  height: 44px;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 4px rgba(20, 10, 0, .28));
-  transition: transform .2s ease;
+.aik-speech {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-height: 52px;
+  position: relative;
 }
 
-/* Capul lui Aik — portret circular, gura spre dreapta (spre literă / undă) */
+/* Rândul activ: Aik stânga + balon dreapta, aliniate pe gură */
+.aik-speech.is-active {
+  justify-content: flex-start;
+  padding-left: 2px;
+  gap: 2px;
+}
+
+.aik-corner {
+  position: relative;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(20, 10, 0, .28));
+}
+
 .aik-corner-head {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center 20%;
   border-radius: 50%;
   display: block;
   background: var(--color-surface, #f8f7f4);
-  border: 2px solid color-mix(in srgb, var(--lesson-color, #FFB300) 45%, #fff);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color, #FFB300) 20%, transparent);
+  border: 2.5px solid #1a1917;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 2px 6px rgba(0, 0, 0, .18);
 }
 
-/* Zvâcnirea lui Aik odată cu sunetul (3× la startul coloanei) */
-.aik-corner.is-speaking {
+/* ── Simple message bubble — litera iese din gura lui Aik ── */
+.aik-speech-bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6em;
+  min-height: 2.3em;
+  padding: .4em .65em .45em;
+  background: #fff;
+  border: 2px solid color-mix(in srgb, var(--lesson-color) 45%, #ccc);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  z-index: 2;
+}
+
+.aik-speech-bubble::before,
+.aik-speech-bubble::after {
+  content: none;
+  display: none;
+}
+
+.aik-speech-bubble .lesson-letter {
+  position: relative;
+  z-index: 1;
+  filter: none;
+  -webkit-text-stroke: 0;
+}
+
+.aik-speech.is-active .aik-speech-bubble {
+  border-color: var(--lesson-color);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--lesson-color) 25%, transparent);
+}
+
+.aik-speech.is-locked .aik-speech-bubble {
+  border-color: #ddd;
+  background: #fafafa;
+  box-shadow: none;
+  opacity: .7;
+}
+
+/* Tail → Aik's mouth */
+.aik-speech-tail {
+  display: none;
+  position: absolute;
+  left: -8px;
+  bottom: 12px;
+  width: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 6px 10px 6px 0;
+  border-color: transparent color-mix(in srgb, var(--lesson-color) 45%, #ccc) transparent transparent;
+}
+.aik-speech-tail::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 4px 7px 4px 0;
+  border-color: transparent #fff transparent transparent;
+}
+.aik-speech-tail::after {
+  content: none;
+  display: none;
+}
+
+.aik-speech.is-active .aik-speech-tail {
+  display: block;
+  border-color: transparent var(--lesson-color) transparent transparent;
+}
+
+.aik-speech.is-unlocked:not(.is-active) {
+  justify-content: center;
+}
+
+.aik-speech.is-speaking .aik-speech-bubble {
+  animation: aik-bubble-pop 420ms cubic-bezier(.34, 1.56, .64, 1);
+}
+.aik-speech.is-speaking .aik-corner {
   animation: aik-corner-bounce 420ms cubic-bezier(.34, 1.56, .64, 1);
 }
 
 @keyframes aik-corner-bounce {
-  0%   { transform: scale(1) rotate(0deg) translateY(0); }
-  30%  { transform: scale(1.22) rotate(-8deg) translateY(-4px); }
-  55%  { transform: scale(0.94) rotate(5deg) translateY(1px); }
-  78%  { transform: scale(1.1) rotate(-3deg) translateY(-2px); }
-  100% { transform: scale(1) rotate(0deg) translateY(0); }
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+}
+@keyframes aik-bubble-pop {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.08); }
 }
 
-/* Undă de sunet care „iese din gură” — note + inele concentice spre dreapta */
-.aik-sound-wave {
-  position: absolute;
-  left: 58%;
-  top: 42%;
-  width: 36px;
-  height: 28px;
-  pointer-events: none;
+.lesson-letter.is-pulsing {
+  animation: letter-sound-pulse 420ms ease;
 }
-
-.aik-sound-note {
-  position: absolute;
-  left: 2px;
-  top: 2px;
-  font-size: 14px;
-  line-height: 1;
-  color: var(--lesson-color, #FFB300);
-  text-shadow: 0 0 6px color-mix(in srgb, var(--lesson-color, #FFB300) 55%, transparent);
-  animation: aik-note-float 420ms ease-out both;
-}
-
-.aik-sound-ring {
-  position: absolute;
-  left: 4px;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  margin-top: -5px;
-  border: 2px solid color-mix(in srgb, var(--lesson-color, #FFB300) 70%, transparent);
-  border-radius: 50%;
-  opacity: 0;
-  animation: aik-ring-expand 420ms ease-out both;
-}
-
-.aik-sound-ring.r2 { animation-delay: 60ms; }
-.aik-sound-ring.r3 { animation-delay: 120ms; }
-
-@keyframes aik-note-float {
-  0%   { opacity: 0; transform: translate(0, 4px) scale(.6); }
-  35%  { opacity: 1; transform: translate(6px, -4px) scale(1.1); }
-  100% { opacity: 0; transform: translate(18px, -12px) scale(.85); }
-}
-
-@keyframes aik-ring-expand {
-  0%   { opacity: .85; transform: scale(.4); }
-  100% { opacity: 0; transform: scale(2.4); }
+@keyframes letter-sound-pulse {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.12); }
 }
 
 @media (max-width: 720px) {
-  .aik-corner {
-    top: -4px;
-    left: -4px;
-    width: 36px;
-    height: 36px;
+  .aik-corner { flex-basis: 40px; width: 40px; height: 40px; }
+  .aik-speech-bubble {
+    min-width: 2.3em;
+    min-height: 2.1em;
+    padding: .3em .5em;
+    border-radius: 14px;
   }
+  .lesson-letter { font-size: 1.45rem; }
+  .aik-speech-tail { left: -7px; border-width: 5px 8px 5px 0; }
+  .aik-speech-tail::before { left: 2px; top: -3.5px; border-width: 3.5px 6px 3.5px 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aik-corner.is-speaking,
-  .aik-sound-note,
-  .aik-sound-ring { animation: none !important; }
-  .aik-sound-note { opacity: .9; }
+  .aik-speech.is-speaking .aik-corner,
+  .aik-speech.is-speaking .aik-speech-bubble,
+  .lesson-letter.is-pulsing { animation: none !important; }
 }

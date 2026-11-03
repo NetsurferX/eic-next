@@ -1042,52 +1042,42 @@ export default function LearnPage() {
               onMouseLeave={cancelHoverSelectColumn}
             >
               <div className="lesson-col-head" onClick={() => handleLetterClick(l, i)}>
-                {/* Aik în colțul stânga-sus al coloanei active — din gură
-                    iese sunetul coloanei; zvâcnește odată cu litera (×3 la start). */}
-                {isActive && isUnlocked && (
-                  <div
-                    className={`aik-corner${letterPulseId === l.id ? ' is-speaking' : ''}`}
-                    aria-hidden="true"
-                    title="Aik"
-                  >
-                    {/* Capul lui Aik (portret) — face-smile în repaus, face-laugh
-                        când scoate sunetul coloanei din gură. Mai clar la 40px
-                        decât corpul întreg din Mascot. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={letterPulseId === l.id ? '/mascot/face-laugh.png' : '/mascot/face-smile.png'}
-                      alt=""
-                      className="aik-corner-head"
-                      draggable={false}
-                    />
-                    {letterPulseId === l.id && (
-                      <span className="aik-sound-wave" aria-hidden="true">
-                        <span className="aik-sound-note">♪</span>
-                        <span className="aik-sound-ring r1" />
-                        <span className="aik-sound-ring r2" />
-                        <span className="aik-sound-ring r3" />
-                      </span>
-                    )}
-                  </div>
-                )}
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
                 <span className="lesson-number" aria-hidden="true">{GLOBAL_LESSON_NUMBER[l.id]}</span>
+
+                {/* Litera iese din gura lui Aik, într-un balon comics
+                    (contur gros + coadă spre gură). Pe coloana activă Aik e
+                    vizibil; pe celelalte deblocate rămâne doar balonul. */}
                 <div
-                  className={`lesson-letter${letterPulseId === l.id ? ' is-pulsing' : ''}`}
-                  // Litera din capul coloanei ia și ea tricolorul real (nu
-                  // doar roșul de identitate din --lesson-color) — dar doar
-                  // când coloana e deblocată, la fel ca la cuvinte: blocată
-                  // rămâne pe stilul muted vechi din CSS.
-                  // Widened overshoot margin (8% vs the word-list default
-                  // 2%): the header shows italic IPA symbols (ə, ʊ) at a
-                  // bigger font size, not the plain lowercase Latin word
-                  // letters the tight margin was tuned against — the tight
-                  // margin was clipping their ink slightly top and bottom.
-                  // `.is-pulsing` = zvâcnire la redarea izolată a sunetului
-                  // (fiecare coloană la start: 3×; click pe literă: 1×).
-                  style={isTricolor && isUnlocked ? tricolorLetterStyle(8) : undefined}
+                  className={[
+                    'aik-speech',
+                    isUnlocked ? 'is-unlocked' : 'is-locked',
+                    isActive && isUnlocked ? 'is-active' : '',
+                    letterPulseId === l.id ? 'is-speaking' : '',
+                  ].filter(Boolean).join(' ')}
                 >
-                  {l.letter}
+                  {isActive && isUnlocked && (
+                    <div className="aik-corner" aria-hidden="true" title="Aik">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={letterPulseId === l.id ? '/mascot/face-laugh.png' : '/mascot/face-smile.png'}
+                        alt=""
+                        className="aik-corner-head"
+                        draggable={false}
+                      />
+                    </div>
+                  )}
+                  <div className="aik-speech-bubble">
+                    <span className="aik-speech-tail" aria-hidden="true" />
+                    <div
+                      className={`lesson-letter${letterPulseId === l.id ? ' is-pulsing' : ''}`}
+                      // Tricolor pe /ou/ când e deblocată; altfel culoarea coloanei.
+                      // Conturul comics e pe .aik-speech-bubble, nu pe literă.
+                      style={isTricolor && isUnlocked ? tricolorLetterStyle(8) : undefined}
+                    >
+                      {l.letter}
+                    </div>
+                  </div>
                 </div>
               </div>
 
