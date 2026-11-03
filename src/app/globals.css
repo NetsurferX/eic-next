@@ -3100,3 +3100,146 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-step-btn:hover:not(:disabled) { background: var(--color-surface-2); }
 .lesson-step-btn:disabled { opacity: .35; cursor: default; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Litera din capul coloanei — zvâcnire la redarea izolată a sunetului
+   (coloana /a/ la start: 3×; click pe literă: 1×). Sincronizată cu
+   `letterPulseId` din learn/page.tsx.
+   ══════════════════════════════════════════════════════════════════════ */
+.lesson-letter.is-pulsing {
+  animation: letter-sound-pulse 420ms cubic-bezier(.34, 1.56, .64, 1);
+  transform-origin: center bottom;
+}
+@keyframes letter-sound-pulse {
+  0%   { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(1.32) rotate(-5deg); }
+  55%  { transform: scale(0.94) rotate(3deg); }
+  78%  { transform: scale(1.12) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lesson-letter.is-pulsing { animation: none; }
+}
+
+/* ── Aik: gură ușor deschisă cât vorbește (stare talking pe Mascot / FoxHelper)
+   Dacă Mascot.tsx expune `.state-talking` sau un face-portrait, acesta
+   completează vizual „deschide gura un pic”. Fallback CSS pe avatarul dock: */
+.fox-avatar.is-talking .fox-avatar-img,
+.mascot.state-talking .mascot-fox-img {
+  /* ușoară „respirație” a botului — fără asset nou */
+  animation: aik-mouth-soft 380ms ease-in-out infinite;
+}
+@keyframes aik-mouth-soft {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(1.06) translateY(1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fox-avatar.is-talking .fox-avatar-img,
+  .mascot.state-talking .mascot-fox-img { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Aik în colțul stânga-sus al coloanei active — din gură iese sunetul
+   coloanei; zvâcnește ×3 la start (sincron cu .lesson-letter.is-pulsing).
+   ══════════════════════════════════════════════════════════════════════ */
+.aik-corner {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(20, 10, 0, .28));
+  transition: transform .2s ease;
+}
+
+/* Capul lui Aik — portret circular, gura spre dreapta (spre literă / undă) */
+.aik-corner-head {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 50%;
+  display: block;
+  background: var(--color-surface, #f8f7f4);
+  border: 2px solid color-mix(in srgb, var(--lesson-color, #FFB300) 45%, #fff);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color, #FFB300) 20%, transparent);
+}
+
+/* Zvâcnirea lui Aik odată cu sunetul (3× la startul coloanei) */
+.aik-corner.is-speaking {
+  animation: aik-corner-bounce 420ms cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes aik-corner-bounce {
+  0%   { transform: scale(1) rotate(0deg) translateY(0); }
+  30%  { transform: scale(1.22) rotate(-8deg) translateY(-4px); }
+  55%  { transform: scale(0.94) rotate(5deg) translateY(1px); }
+  78%  { transform: scale(1.1) rotate(-3deg) translateY(-2px); }
+  100% { transform: scale(1) rotate(0deg) translateY(0); }
+}
+
+/* Undă de sunet care „iese din gură” — note + inele concentice spre dreapta */
+.aik-sound-wave {
+  position: absolute;
+  left: 58%;
+  top: 42%;
+  width: 36px;
+  height: 28px;
+  pointer-events: none;
+}
+
+.aik-sound-note {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--lesson-color, #FFB300);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--lesson-color, #FFB300) 55%, transparent);
+  animation: aik-note-float 420ms ease-out both;
+}
+
+.aik-sound-ring {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border: 2px solid color-mix(in srgb, var(--lesson-color, #FFB300) 70%, transparent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: aik-ring-expand 420ms ease-out both;
+}
+
+.aik-sound-ring.r2 { animation-delay: 60ms; }
+.aik-sound-ring.r3 { animation-delay: 120ms; }
+
+@keyframes aik-note-float {
+  0%   { opacity: 0; transform: translate(0, 4px) scale(.6); }
+  35%  { opacity: 1; transform: translate(6px, -4px) scale(1.1); }
+  100% { opacity: 0; transform: translate(18px, -12px) scale(.85); }
+}
+
+@keyframes aik-ring-expand {
+  0%   { opacity: .85; transform: scale(.4); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+@media (max-width: 720px) {
+  .aik-corner {
+    top: -4px;
+    left: -4px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aik-corner.is-speaking,
+  .aik-sound-note,
+  .aik-sound-ring { animation: none !important; }
+  .aik-sound-note { opacity: .9; }
+}

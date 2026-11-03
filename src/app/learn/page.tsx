@@ -259,6 +259,9 @@ export default function LearnPage() {
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
   const [freePracticeCount, setFreePracticeCount] = useState(0)
+  // ── Zvâcnirea literei din capul coloanei (ex. coloana /a/ la start: 3× sunet + pulse)
+  const [letterPulseId, setLetterPulseId] = useState<string | null>(null)
+  const letterPulseDoneRef = useRef<Set<string>>(new Set())
 
   // ── Level-scope celebration state ──
   const [levelCelebrating, setLevelCelebrating]   = useState(false)
@@ -439,7 +442,7 @@ export default function LearnPage() {
     const seenBefore = (() => {
       try { return localStorage.getItem('eic-fox-seen') === '1' } catch { return false }
     })()
-    triggerFox(seenBefore ? 'Bine ai revenit! Hai să continuăm.' : 'Salut! Sunt Vulpea și te ajut la lecție 🦊', 'greeting')
+    triggerFox(seenBefore ? 'Bine ai revenit! Hai să continuăm.' : 'Salut! Sunt Aik și te ajut la lecție 🦊', 'greeting')
     try { localStorage.setItem('eic-fox-seen', '1') } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -866,23 +869,69 @@ export default function LearnPage() {
     currentAudio.current?.pause()
   }, [])
 
-  // ── Click pe LITERA din capul coloanei (la fiecare coloană): vulpea
-  //    propune „Let's play!" și se aude sunetul izolat al literei (același
-  //    matchWord ca în OnboardingSoundIntro), apoi elevul studiază coloana
-  //    (selectColumn rulează separat, prin click-ul coloanei). Doar la CLICK,
-  //    nu la hover. Prima dată per lecție demo-ul OnboardingSoundIntro
-  //    acoperă deja sunetul, deci aici nu se dublează. ──
+  // ── Click pe LITERA din capul coloanei: Aik propune „Let's play!" și se
+  //    aude sunetul izolat (matchWord). Doar la CLICK, nu la hover.
+  //    La prima activare a fiecărei coloane (earned === 0, după intro),
+  //    același ritual rulează automat de 3 ori — Aik din colțul stânga-sus
+  //    al coloanei active zvâcnește și „scoate” sunetul din gură. ──
   const letterSoundStopRef = useRef<(() => void) | null>(null)
+
+  // ── Redă sunetul izolat al literei de `times` ori:
+  //   • litera din cap zvâcnește (letterPulseId)
+  //   • Aik din colțul coloanei active zvâcnește + undă de sunet din gură
+  //   Folosit la startul fiecărei coloane (3×) și la click pe literă (1×).
+  const playLetterPulse = useCallback(async (l: Lesson, times = 1) => {
+    if (!introDone || isPlayingRep || playingWord !== null) return
+    letterSoundStopRef.current?.()
+    autoCancel.current = false
+    const accent = resolveAccent(l.words[0], l)
+    const word = l.matchWord ?? l.words[0].text
+    for (let i = 0; i < times; i++) {
+      if (autoCancel.current) break
+      setLetterPulseId(l.id)
+      if (i === 0 && times > 1) triggerFox(LETTER_FOX_PROMPT, 'greeting')
+      const { promise, stop } = speakWord(word, { accent })
+      letterSoundStopRef.current = stop
+      // zvâcnirea literei + Aik ~420ms (sincron cu animația CSS)
+      await Promise.race([
+        promise,
+        new Promise<void>(r => setTimeout(r, 420)),
+      ])
+      setLetterPulseId(cur => (cur === l.id ? null : cur))
+      try { await promise } catch { /* ignore */ }
+      if (letterSoundStopRef.current === stop) letterSoundStopRef.current = null
+      if (autoCancel.current) break
+      if (i < times - 1) {
+        await new Promise(r => setTimeout(r, 320))
+      }
+    }
+  }, [introDone, isPlayingRep, playingWord, triggerFox])
+
   const handleLetterClick = useCallback((l: Lesson, i: number) => {
     if (!introDone || isPlayingRep || playingWord !== null) return
     if (!colUnlocked[levelIndex][i]) return
     if (!seenIntros.has(l.id)) return
-    triggerFox(LETTER_FOX_PROMPT, 'greeting')
-    letterSoundStopRef.current?.()
-    const { stop } = speakWord(l.matchWord ?? l.words[0].text, { accent: resolveAccent(l.words[0], l) })
-    letterSoundStopRef.current = stop
-  }, [introDone, isPlayingRep, playingWord, colUnlocked, levelIndex, seenIntros, triggerFox])
+    void playLetterPulse(l, 1)
+  }, [introDone, isPlayingRep, playingWord, colUnlocked, levelIndex, seenIntros, playLetterPulse])
   useEffect(() => () => { letterSoundStopRef.current?.() }, [])
+
+  // ── La prima activare a FIECĂREI coloane (după intro-uri, earned === 0):
+  //   sunetul coloanei de 3 ori + litera + Aik zvâcnesc de fiecare dată.
+  //   O singură dată per id de lecție (letterPulseDoneRef).
+  useEffect(() => {
+    if (!hydrated || !introHydrated || !beginnerNoteHydrated || !introDone) return
+    if (introLesson || isPlayingRep || buleleVulpiiConfig || showLevelOverlay || showResetConfirm) return
+    if (!lesson) return
+    if (!colUnlocked[levelIndex]?.[active]) return
+    if (earned > 0) return
+    if (letterPulseDoneRef.current.has(lesson.id)) return
+    if (!seenIntros.has(lesson.id)) return   // așteaptă OnboardingSoundIntro
+    letterPulseDoneRef.current.add(lesson.id)
+    const t = setTimeout(() => { void playLetterPulse(lesson, 3) }, 500)
+    return () => clearTimeout(t)
+  }, [hydrated, introHydrated, beginnerNoteHydrated, introDone, introLesson, isPlayingRep,
+      buleleVulpiiConfig, showLevelOverlay, showResetConfirm, lesson, colUnlocked,
+      levelIndex, active, earned, seenIntros, playLetterPulse])
 
   // ── Apasă pe UN cuvânt anume din listă → se aude doar el, o singură dată,
   //    fără să pornească repetiția întregii coloane și fără să afecteze
@@ -914,11 +963,17 @@ export default function LearnPage() {
   useEffect(() => {
     if (!hydrated || !introHydrated || !beginnerNoteHydrated || !introDone) return
     if (introLesson || isPlayingRep || buleleVulpiiConfig || showLevelOverlay || showResetConfirm) return
+    if (letterPulseId) return   // așteaptă zvâcnirile literei + Aik (×3)
     if (!colUnlocked[levelIndex]?.[active] || earned >= REPS_PER_LESSON) return
-    const t = setTimeout(() => { void handleMainButton() }, earned === 0 ? REP_START_DELAY_MS : REP_GAP_MS)
+    // După ritualul de 3× pe coloana abia deschisă, așteaptă să se termine
+    const startDelay = (earned === 0 && lesson && letterPulseDoneRef.current.has(lesson.id))
+      ? 4500
+      : (earned === 0 ? REP_START_DELAY_MS : REP_GAP_MS)
+    const t = setTimeout(() => { void handleMainButton() }, startDelay)
     return () => clearTimeout(t)
   }, [hydrated, introHydrated, beginnerNoteHydrated, introDone, introLesson, isPlayingRep, buleleVulpiiConfig,
-      showLevelOverlay, showResetConfirm, colUnlocked, levelIndex, active, earned, handleMainButton])
+      showLevelOverlay, showResetConfirm, colUnlocked, levelIndex, active, earned, handleMainButton,
+      letterPulseId, lesson])
 
   // ── Telefon: o singură coloană pe rând (vezi @media max-width:720px din
   //   globals.css), deci coloana activă poate fi în afara ecranului. La
@@ -987,10 +1042,38 @@ export default function LearnPage() {
               onMouseLeave={cancelHoverSelectColumn}
             >
               <div className="lesson-col-head" onClick={() => handleLetterClick(l, i)}>
+                {/* Aik în colțul stânga-sus al coloanei active — din gură
+                    iese sunetul coloanei; zvâcnește odată cu litera (×3 la start). */}
+                {isActive && isUnlocked && (
+                  <div
+                    className={`aik-corner${letterPulseId === l.id ? ' is-speaking' : ''}`}
+                    aria-hidden="true"
+                    title="Aik"
+                  >
+                    {/* Capul lui Aik (portret) — face-smile în repaus, face-laugh
+                        când scoate sunetul coloanei din gură. Mai clar la 40px
+                        decât corpul întreg din Mascot. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={letterPulseId === l.id ? '/mascot/face-laugh.png' : '/mascot/face-smile.png'}
+                      alt=""
+                      className="aik-corner-head"
+                      draggable={false}
+                    />
+                    {letterPulseId === l.id && (
+                      <span className="aik-sound-wave" aria-hidden="true">
+                        <span className="aik-sound-note">♪</span>
+                        <span className="aik-sound-ring r1" />
+                        <span className="aik-sound-ring r2" />
+                        <span className="aik-sound-ring r3" />
+                      </span>
+                    )}
+                  </div>
+                )}
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
                 <span className="lesson-number" aria-hidden="true">{GLOBAL_LESSON_NUMBER[l.id]}</span>
                 <div
-                  className="lesson-letter"
+                  className={`lesson-letter${letterPulseId === l.id ? ' is-pulsing' : ''}`}
                   // Litera din capul coloanei ia și ea tricolorul real (nu
                   // doar roșul de identitate din --lesson-color) — dar doar
                   // când coloana e deblocată, la fel ca la cuvinte: blocată
@@ -1000,6 +1083,8 @@ export default function LearnPage() {
                   // bigger font size, not the plain lowercase Latin word
                   // letters the tight margin was tuned against — the tight
                   // margin was clipping their ink slightly top and bottom.
+                  // `.is-pulsing` = zvâcnire la redarea izolată a sunetului
+                  // (fiecare coloană la start: 3×; click pe literă: 1×).
                   style={isTricolor && isUnlocked ? tricolorLetterStyle(8) : undefined}
                 >
                   {l.letter}
@@ -1275,11 +1360,11 @@ export default function LearnPage() {
           la coloană completă, cară/varsă cupa coloanei în cupa mare ── */}
       <MascotReward animation={mascotAnimation} size={96} />
 
-      {/* Vulpea mare, la centru, la deschiderea paginii — „zboară" apoi
+      {/* Aik mare, la centru, la deschiderea paginii — „zboară" apoi
           spre dock-ul de mai jos (vezi MascotIntro.tsx) ── */}
       {!introDone && <MascotIntro onComplete={() => setIntroDone(true)} />}
 
-      {/* Vulpea-asistent — dock permanent, ascuns cât timp overlay-ul de
+      {/* Aik (vulpea-asistent) — dock permanent, ascuns cât timp overlay-ul de
           nivel e deschis (acela are deja propria mascotă, în cupwrap), sau
           cât timp intro-ul de mai sus încă nu a „aterizat" ── */}
       {!showLevelOverlay && introDone && (
