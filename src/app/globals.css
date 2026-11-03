@@ -3086,3 +3086,17 @@ button, textarea, input { font-family: var(--font-sans); }
   .bulele-overlay-sub { display: none; }
   .bulele-overlay-actions { margin-top: .4rem; }
 }
+
+
+/* ── Navigare lecție anterioară/următoare (←/→) — adăugat, nu modifică nimic existent ── */
+.lesson-step-nav { display: flex; gap: 6px; }
+.lesson-step-btn {
+  font-size: 15px; font-weight: 700; font-family: var(--font-sans); line-height: 1;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 5px 14px; cursor: pointer;
+}
+.lesson-step-btn:hover:not(:disabled) { background: var(--color-surface-2); }
+.lesson-step-btn:disabled { opacity: .35; cursor: default; }

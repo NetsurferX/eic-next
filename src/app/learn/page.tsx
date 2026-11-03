@@ -792,6 +792,45 @@ export default function LearnPage() {
     setActive(firstUnlockedCol === -1 ? 0 : firstUnlockedCol)
   }, [isPlayingRep, unlockedLevels, levelIndex, colUnlocked, cancelMascotReward])
 
+  // ── Navigare lecție anterioară / următoare (săgeți pe ecran + tastele ←/→).
+  //   Merge în ordinea plată a parcursului (FLAT_LESSONS), peste granița
+  //   dintre niveluri. Ținta trebuie să fie deja deblocată — nu sare peste
+  //   deblocări și nu atinge progresul (doar mută „ce se vede"). ──
+  const stepTarget = useCallback((dir: 1 | -1): { li: number; ci: number } | null => {
+    const t = flatIndexOf(levelIndex, active) + dir
+    if (t < 0 || t >= FLAT_LESSONS.length) return null
+    let rest = t
+    for (let li = 0; li < LEVELS.length; li++) {
+      const n = LEVELS[li].lessons.length
+      if (rest < n) return unlockedLevels[li] && colUnlocked[li]?.[rest] ? { li, ci: rest } : null
+      rest -= n
+    }
+    return null
+  }, [levelIndex, active, unlockedLevels, colUnlocked])
+
+  const stepLesson = useCallback((dir: 1 | -1) => {
+    if (isPlayingRep || showLevelOverlay || introLesson || buleleVulpiiConfig) return
+    const tgt = stepTarget(dir)
+    if (!tgt) return
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    cancelMascotReward()
+    setEmptyingColumnId(null)
+    if (tgt.li !== levelIndex) setLevelIndex(tgt.li)
+    setActive(tgt.ci)
+  }, [isPlayingRep, showLevelOverlay, introLesson, buleleVulpiiConfig, stepTarget, levelIndex, cancelMascotReward])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      const el = e.target as HTMLElement | null
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return
+      stepLesson(e.key === 'ArrowRight' ? 1 : -1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [stepLesson])
+
   // ── Reia tot jocul de la zero: șterge progresul salvat și readuce toate
   //   flag-urile la valorile inițiale (aceleași cu cele din useState de mai
   //   sus). Cerută printr-un buton + un modal de confirmare, ca să nu se
@@ -917,6 +956,12 @@ export default function LearnPage() {
       <div className="lesson-top-row">
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
+          <div className="lesson-step-nav">
+            <button type="button" className="lesson-step-btn" aria-label="Lecția anterioară" title="Lecția anterioară (←)"
+              disabled={isPlayingRep || !stepTarget(-1)} onClick={() => stepLesson(-1)}>←</button>
+            <button type="button" className="lesson-step-btn" aria-label="Lecția următoare" title="Lecția următoare (→)"
+              disabled={isPlayingRep || !stepTarget(1)} onClick={() => stepLesson(1)}>→</button>
+          </div>
         </div>
       </div>
 

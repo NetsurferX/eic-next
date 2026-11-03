@@ -99,6 +99,8 @@ const FLOAT = { x: FOX_LEFT + 146, y: SKY_H + 3 }     // pluta, la suprafața ap
 const MOUTH = 0.42 * FISH_W                            // distanța centru → gură
 const HANG = -35 * Math.PI / 180                       // înclinarea peștelui când e tras în sus
 const NEUTRAL = '#f4f1ea'
+// Fundalul butonului de răspuns pentru coloana /əʊ/ — aceleași 3 benzi ca peștele (TRICOLOR_BANDS)
+const TRICOLOR_BUTTON_BG = `linear-gradient(90deg, ${TRICOLOR_BANDS[0]} 0 33.33%, ${TRICOLOR_BANDS[1]} 33.33% 66.66%, ${TRICOLOR_BANDS[2]} 66.66% 100%)`
 // Tazul cu pești (sus-dreapta): w/h = dimensiunea desenului; rim = y-ul buzei tazului
 // tazul e desenat în coordonate 104x96 (BUCKET_VB) și afișat la 60% lățime / 70% înălțime (BUCKET)
 const BUCKET_VB = { w: 104, h: 112, rim: 30 }   // h=112 → la scara 0.6 iese 70% din înălțimea inițială (96)
@@ -721,8 +723,8 @@ export function BulelePestilorGame({
               }}
             >
               <FishSvg
-                body={solved ? fish.group.lesson.color : NEUTRAL}
-                tricolor={solved && fish.group.lesson.id === 'ou'}
+                body={fish.group.lesson.color}
+                tricolor={fish.group.lesson.id === 'ou'}
                 label={lb.node} len={lb.len} width={FISH_W}
               />
               {fish.group.kind === 'next' && <span style={{ position: 'absolute', top: -10, right: -4, fontSize: 13 }}>✨</span>}
@@ -783,14 +785,14 @@ export function BulelePestilorGame({
               onClick={() => handlePress(g)}
               style={{
                 width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation',
-                background: g.lesson.color,
+                background: g.lesson.id === 'ou' ? TRICOLOR_BUTTON_BG : g.lesson.color,
                 boxShadow: hinted ? '0 0 0 5px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.15)',
                 transition: 'box-shadow 200ms',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
               <span style={{ width: compact ? 38 : 30, height: compact ? 38 : 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: g.lesson.color }}>
-                {g.lesson.letter}
+                <span style={g.lesson.id === 'ou' ? tricolorLetterStyle(6) : undefined}>{g.lesson.letter}</span>
               </span>
             </button>
           )

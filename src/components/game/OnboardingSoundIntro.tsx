@@ -17,7 +17,7 @@ interface Props {
 
 type Stage = 'matching' | 'listening' | 'speaking' | 'done'
 
-const MATCH_REPS = 4          // de câte ori se aude sunetul izolat, sincron cu vibrația
+const MATCH_REPS = 3          // de câte ori se aude sunetul izolat, sincron cu vibrația
 const MATCH_GAP_MS = 380      // pauză între repetiții (după ce se termină redarea)
 const MATCH_START_DELAY_MS = 400
 
@@ -29,7 +29,7 @@ const MATCH_START_DELAY_MS = 400
 // Etape:
 //  1. 'matching'  — cerc mare cu un pătrat colorat care vibrează, lângă
 //                   simbolul sunetului (tot vibrând); sunetul izolat
-//                   (aproximat prin TTS — matchWord) se aude de 4 ori,
+//                   (aproximat prin TTS — matchWord) se aude de 3 ori,
 //                   ca elevul să asocieze direct culoarea cu sunetul.
 //                   Vulpea poate adăuga "Roșu = /i/" (colorName + phoneme).
 //  2. 'listening' — pauză scurtă înainte de a rosti cuvântul exemplu.
@@ -42,7 +42,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, color, colorName, m
   const stopRef = useRef<(() => void) | null>(null)
   const cancelledRef = useRef(false)
 
-  // ── Etapa 1: 'matching' — 4 repetiții ale sunetului izolat, sincron cu vibrația ──
+  // ── Etapa 1: 'matching' — 3 repetiții ale sunetului izolat, sincron cu vibrația ──
   useEffect(() => {
     cancelledRef.current = false
     setStage('matching')
