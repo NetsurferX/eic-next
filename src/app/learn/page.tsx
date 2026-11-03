@@ -60,6 +60,8 @@ const LEVELS: Level[] = ALL_LEVELS.map(lvl => ({
 //   singură și se repetă de REPS_PER_LESSON ori (câte o stea per repetare). ──
 const REP_START_DELAY_MS = 900    // pauza dintre deschiderea coloanei și prima repetare
 const REP_GAP_MS = 3000           // pauza dintre repetări (lasă loc animației stelei/vulpii, ~2850ms)
+const LETTER_PULSE_GAP_MS = 1100  // pauza dintre cele 3 zvâcniri ale literei la deschiderea coloanei
+const LETTER_PULSE_AFTER_MS = 7500 // așteptare după ritualul ×3 înainte de auto-repetarea cuvintelor
 
 // Toate cuvintele din toate lecțiile, o singură dată — sursă pentru fetch-ul
 // batch către /api/words la montare, care înlocuiește MarkedWord (colora
@@ -902,7 +904,8 @@ export default function LearnPage() {
       if (letterSoundStopRef.current === stop) letterSoundStopRef.current = null
       if (autoCancel.current) break
       if (i < times - 1) {
-        await new Promise(r => setTimeout(r, 320))
+        // interval mai mare la startul coloanei (×3); click pe literă (×1) nu ajunge aici
+        await new Promise(r => setTimeout(r, LETTER_PULSE_GAP_MS))
       }
     }
   }, [introDone, isPlayingRep, playingWord, triggerFox])
@@ -967,7 +970,7 @@ export default function LearnPage() {
     if (!colUnlocked[levelIndex]?.[active] || earned >= REPS_PER_LESSON) return
     // După ritualul de 3× pe coloana abia deschisă, așteaptă să se termine
     const startDelay = (earned === 0 && lesson && letterPulseDoneRef.current.has(lesson.id))
-      ? 4500
+      ? LETTER_PULSE_AFTER_MS
       : (earned === 0 ? REP_START_DELAY_MS : REP_GAP_MS)
     const t = setTimeout(() => { void handleMainButton() }, startDelay)
     return () => clearTimeout(t)
