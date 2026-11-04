@@ -91,6 +91,12 @@ const SWIM_MS = 10000   // traversarea completă a apei
 const NEXT_FISH_DELAY_MS = 800
 const FISH_W = 112
 const PULL_MS = 1900
+const HOLD_MS = 2500    // peștele prins stă nemișcat (atârnat de undiță) cât se repetă sunetul
+const DROP_SPEED = 2    // zborul spre taz: viteză dublă față de înainte
+// durata totală = aruncare+tragere (60% din PULL_MS) + pauză + zborul spre taz (40% din PULL_MS / DROP_SPEED)
+const PULL_A_MS = PULL_MS * 0.6
+const PULL_B_MS = (PULL_MS * 0.4) / DROP_SPEED
+const PULL_TOTAL_MS = PULL_A_MS + HOLD_MS + PULL_B_MS
 const FOX_LEFT = 14
 const FOX_SIZE = 84
 const TIP = { x: FOX_LEFT + 138, y: SKY_H - 84 }      // vârful undiței (în repaus)
@@ -459,11 +465,22 @@ export function BulelePestilorGame({
     const up = { x: TIP.x - Math.cos(HANG) * MOUTH, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
     const endScale = 0.3
     const t0 = performance.now()
+    let heldSpoken = false
     pullingRef.current = true
     setPull(true)
     const mouthOf = (x: number, y: number, rot: number) => ({ x: x + Math.cos(rot) * MOUTH, y: y + Math.sin(rot) * MOUTH })
     const step = (now: number) => {
-      const t = Math.min((now - t0) / PULL_MS, 1)
+      // timeline: [0..A] aruncare+tragere · [A..A+HOLD] nemișcat · [..TOTAL] zbor în taz (x2)
+      const el = now - t0
+      const t = el < PULL_A_MS
+        ? 0.6 * (el / PULL_A_MS)
+        : el < PULL_A_MS + HOLD_MS
+          ? 0.599999   // rămâne în ramura „fir întins”: peștele atârnă, firul rămâne vizibil
+          : 0.6 + 0.4 * Math.min((el - PULL_A_MS - HOLD_MS) / PULL_B_MS, 1)
+      if (!heldSpoken && el >= PULL_A_MS) {
+        heldSpoken = true
+        speakWord(ttsWordFor(f.group.lesson))   // se aude încă o dată cuvântul/sunetul
+      }
       let fx = start.x, fy = start.y, rot = 0, scale = 1, line = true, taut = false, bend = 0
       let m = mouthOf(fx, fy, 0), lx = TIP.x, ly = TIP.y
       if (t < 0.3) {                        // aruncare: firul (moale) ajunge la gura peștelui
@@ -508,7 +525,7 @@ export function BulelePestilorGame({
           hk.setAttribute('d', `M${lx.toFixed(1)} ${ly.toFixed(1)} v5 q0 6 -6 5`)
         }
       }
-      if (t < 1) rafRef.current = requestAnimationFrame(step)
+      if (el < PULL_TOTAL_MS) rafRef.current = requestAnimationFrame(step)
       else finishPull(f)
     }
     rafRef.current = requestAnimationFrame(step)

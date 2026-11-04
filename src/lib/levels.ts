@@ -159,7 +159,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'ei', letter: 'eɪ', color: '#00246C', tabLabel: 'Bleumarin', matchWord: 'ay',
+        id: 'ei', letter: 'eỷ', color: '#00246C', tabLabel: 'Bleumarin', matchWord: 'ay',
         words: [
           { text: 'day',  mark: 'ay' },
           { text: 'name', mark: 'a' },
@@ -176,7 +176,7 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 3 · Diftongi',
     lessons: [
       {
-        id: 'ju', letter: 'juː', color: '#833C0B', tabLabel: 'Maro', matchWord: 'you',
+        id: 'ju', letter: 'ỷu', color: '#833C0B', tabLabel: 'Maro', matchWord: 'you',
         words: [
           { text: 'cute',     mark: 'u' },
           { text: 'music',    mark: 'u' },
@@ -187,7 +187,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'ai', letter: 'aɪ', color: '#4472C4', tabLabel: 'Albastru', matchWord: 'eye',
+        id: 'ai', letter: 'aỷ', color: '#4472C4', tabLabel: 'Albastru', matchWord: 'eye',
         words: [
           { text: 'night', mark: 'i' },
           { text: 'my',    mark: 'y' },
