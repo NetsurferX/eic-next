@@ -92,6 +92,11 @@ const NEXT_FISH_DELAY_MS = 800
 const FISH_W = 112
 const PULL_MS = 1900
 const HOLD_MS = 2500    // peștele prins stă nemișcat (atârnat de undiță) cât se repetă sunetul
+const LINE_EXTRA = 34   // cât se lungește firul (px) în pauză: peștele atârnă mai jos, mai natural
+const LINE_EXT_MS = 450 // în cât timp se lungește firul la începutul pauzei
+const SWAY_PX = 5       // legănare foarte ușoară în pauză: deplasare laterală maximă (px)
+const SWAY_ROT = 0.07   // ... și înclinare maximă (rad, ~4°)
+const SWAY_CYCLES = 2   // câte balansări complete în pauză
 const DROP_SPEED = 2    // zborul spre taz: viteză dublă față de înainte
 // durata totală = aruncare+tragere (60% din PULL_MS) + pauză + zborul spre taz (40% din PULL_MS / DROP_SPEED)
 const PULL_A_MS = PULL_MS * 0.6
@@ -463,6 +468,7 @@ export function BulelePestilorGame({
     const DROP = Math.PI / 2                  // cap în jos
     // peștele e tras de GURĂ: stă înclinat cu botul în sus, atârnat sub vârful undiței
     const up = { x: TIP.x - Math.cos(HANG) * MOUTH, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
+    const upL = { x: up.x, y: up.y + LINE_EXTRA }   // poziția peștelui cu firul lungit (pauza + începutul zborului)
     const endScale = 0.3
     const t0 = performance.now()
     let heldSpoken = false
@@ -481,6 +487,11 @@ export function BulelePestilorGame({
         heldSpoken = true
         speakWord(ttsWordFor(f.group.lesson))   // se aude încă o dată cuvântul/sunetul
       }
+      // firul se lungește lin la începutul pauzei și rămâne lung până la desprindere
+      const ext = LINE_EXTRA * (el < PULL_A_MS ? 0 : ease(Math.min((el - PULL_A_MS) / LINE_EXT_MS, 1)))
+      // legănare ca un pendul: pornește din 0 și revine la 0 la sfârșitul pauzei (fără salt)
+      const hp = Math.min(Math.max((el - PULL_A_MS) / HOLD_MS, 0), 1)
+      const sway = Math.sin(Math.PI * hp) * Math.sin(2 * Math.PI * SWAY_CYCLES * hp)
       let fx = start.x, fy = start.y, rot = 0, scale = 1, line = true, taut = false, bend = 0
       let m = mouthOf(fx, fy, 0), lx = TIP.x, ly = TIP.y
       if (t < 0.3) {                        // aruncare: firul (moale) ajunge la gura peștelui
@@ -488,25 +499,31 @@ export function BulelePestilorGame({
         lx = lerp(TIP.x, m.x, e); ly = lerp(TIP.y, m.y, e); bend = 0.3 * e
       } else if (t < 0.6) {                 // tragere: fir întins, peștele se ridică și se înclină
         const e = ease((t - 0.3) / 0.3)
-        fx = lerp(start.x, up.x, e); fy = lerp(start.y, up.y, e); rot = lerp(0, HANG, e)
+        fx = lerp(start.x, up.x, e) + sway * SWAY_PX; fy = lerp(start.y, up.y, e) + ext; rot = lerp(0, HANG, e) + sway * SWAY_ROT
         m = mouthOf(fx, fy, rot); lx = m.x; ly = m.y; taut = true; bend = lerp(0.3, 1, e)
-      } else {                              // se desprinde, zboară deasupra tazului și cade în el; lanseta revine elastic
-        line = false
+      } else {                              // zboară deasupra tazului și cade în el; firul se vede, apoi se strânge înapoi la lansetă
         const k = (t - 0.6) / 0.4
         bend = 1 - ease(k)
         if (k < 0.65) {                     // arc spre buza tazului, întorcându-se cu capul în jos
           const e = ease(k / 0.65)
-          const cx = (up.x + above.x) / 2, cy = Math.min(up.y, above.y) - 30
+          const cx = (upL.x + above.x) / 2, cy = Math.min(upL.y, above.y) - 30
           const a = 1 - e
-          fx = a * a * up.x + 2 * a * e * cx + e * e * above.x
-          fy = a * a * up.y + 2 * a * e * cy + e * e * above.y
+          fx = a * a * upL.x + 2 * a * e * cx + e * e * above.x
+          fy = a * a * upL.y + 2 * a * e * cy + e * e * above.y
           rot = lerp(HANG, DROP, e)
           scale = lerp(1, endScale, e)
+          m = mouthOf(fx, fy, rot); lx = m.x; ly = m.y; taut = true   // firul rămâne întins între lansetă și gura peștelui
         } else {                            // cade în taz; de aici peretele tazului îl acoperă (se văd doar cozile)
           const e = ease((k - 0.65) / 0.35)
           fx = above.x; fy = lerp(above.y, inside.y, e)
           rot = DROP; scale = endScale
           if (pullFishRef.current) pullFishRef.current.style.zIndex = '1'
+          // cârligul se eliberează: capătul firului revine rapid la vârful lansetei, peștele cade în taz
+          const m0 = mouthOf(above.x, above.y, DROP)
+          const r = ease(Math.min((k - 0.65) / 0.2, 1))
+          const tipNow = rodGeom(bend).tip
+          lx = lerp(m0.x, tipNow.x, r); ly = lerp(m0.y, tipNow.y, r); taut = false
+          if (r >= 1) line = false
         }
       }
       // totul direct pe DOM, fără setState pe frame
