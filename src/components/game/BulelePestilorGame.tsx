@@ -610,8 +610,9 @@ export function BulelePestilorGame({
 
   const pink = fish?.zone === 'pink' && fish.state === 'swimming'
   const waterBg = pink
-    ? 'linear-gradient(#fdeef4, #f8d9e5)'
-    : 'linear-gradient(#eaf4fb, #cfe6f3)'
+    ? 'linear-gradient(#fdeef4, #f8d9e5 55%, #f2c3d6)'
+    : 'linear-gradient(#eaf4fb, #cfe6f3 55%, #b4d8ec)'
+  const waterTop = pink ? '#fdeef4' : '#eaf4fb'   // culoarea de sus a apei (pentru creasta valurilor)
 
   const mascotState: MascotStateV2 = done
     ? (done.passed ? 'cheering' : 'idle')
@@ -650,9 +651,70 @@ export function BulelePestilorGame({
         )}
         {/* apa */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, bottom: 0, background: waterBg, transition: 'background 400ms' }} />
-        <div style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, height: 3, background: 'rgba(255,255,255,.7)' }} />
+        {/* adâncime: apa se întunecă ușor spre fund */}
+        <div aria-hidden="true" style={{ position: 'absolute', left: 0, right: 0, top: SKY_H, bottom: 0, pointerEvents: 'none', background: 'linear-gradient(transparent 45%, rgba(40,110,150,.16))' }} />
+        {/* particule în suspensie (plancton) care plutesc lent */}
+        <div className="pf-motes" aria-hidden="true" style={{ top: SKY_H + 8, bottom: SAND_H }}>
+          {[[8,22,3,0],[19,64,2,-3],[31,38,2,-6],[44,78,3,-2],[57,18,2,-8],[66,52,3,-5],[78,30,2,-1],[88,70,2,-7],[95,44,3,-4]].map(([l,tp,s,d], i) => (
+            <span key={i} style={{ left: `${l}%`, top: `${tp}%`, width: s, height: s, animationDelay: `${d}s` }} />
+          ))}
+        </div>
+        {/* raze de lumină care se mișcă lent prin apă */}
+        <div className="pf-rays" aria-hidden="true" style={{ top: SKY_H, bottom: SAND_H }} />
+        {/* suprafața: valuri care se deplasează lent în direcții opuse */}
+        <svg aria-hidden="true" width="100%" height="10" style={{ position: 'absolute', left: 0, top: SKY_H - 6, pointerEvents: 'none' }}>
+          <defs>
+            <pattern id="pf-wave-back" patternUnits="userSpaceOnUse" width="110" height="10">
+              <path d="M0 6 Q27 2 55 6 T110 6 V10 H0 Z" fill={waterTop} fillOpacity=".75" style={{ transition: 'fill 400ms' }} />
+              <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="-110 0" dur="9s" repeatCount="indefinite" />
+            </pattern>
+            <pattern id="pf-wave-front" patternUnits="userSpaceOnUse" width="80" height="10">
+              <path d="M0 6 Q20 1 40 6 T80 6 V10 H0 Z" fill={waterTop} style={{ transition: 'fill 400ms' }} />
+              <path d="M0 6 Q20 1 40 6 T80 6" fill="none" stroke="rgba(255,255,255,.9)" strokeWidth="1.5" />
+              <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="80 0" dur="6s" repeatCount="indefinite" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="10" fill="url(#pf-wave-back)" />
+          <rect width="100%" height="10" fill="url(#pf-wave-front)" />
+        </svg>
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: SAND_H, background: 'linear-gradient(#e8cf8f,#d4b56b)' }} />
-        <div className="pf-bubbles" aria-hidden="true"><span /><span /><span /></div>
+        {/* reflexii de lumină (caustice) pe fund */}
+        <div className="pf-caustic" aria-hidden="true" style={{ bottom: SAND_H - 6 }} />
+        {/* nisip cu margine ondulată și granulație */}
+        <svg aria-hidden="true" width="100%" height={SAND_H + 8} style={{ position: 'absolute', left: 0, bottom: 0, pointerEvents: 'none' }}>
+          <defs>
+            <linearGradient id="pf-sand-g" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2={SAND_H + 8}>
+              <stop offset="0" stopColor="#ecd698" /><stop offset="1" stopColor="#d2b366" />
+            </linearGradient>
+            <pattern id="pf-sand" patternUnits="userSpaceOnUse" width="140" height={SAND_H + 8}>
+              <path d={`M0 6 Q35 1 70 6 T140 6 V${SAND_H + 8} H0 Z`} fill="url(#pf-sand-g)" />
+              {[[12,12],[33,17],[52,10],[74,15],[96,11],[118,18],[131,9],[22,20],[63,21],[104,21]].map(([x,y], i) => (
+                <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 1.4 : 1} fill={i % 2 ? '#bd9a4c' : '#f6e8b8'} opacity=".7" />
+              ))}
+            </pattern>
+          </defs>
+          <rect width="100%" height={SAND_H + 8} fill="url(#pf-sand)" />
+        </svg>
+        {/* stânci și pietricele (decor) */}
+        {[{ l: '13%', w: 38, h: 22 }, { l: '57%', w: 30, h: 16 }, { l: '86%', w: 42, h: 24 }].map((r, i) => (
+          <div key={i} aria-hidden="true" style={{ position: 'absolute', left: r.l, bottom: SAND_H - 8, width: r.w, height: r.h, pointerEvents: 'none',
+            borderRadius: '55% 45% 30% 30% / 70% 65% 30% 30%', background: 'linear-gradient(160deg,#a9b4bd,#6f7d89)', boxShadow: 'inset -4px -3px 0 rgba(0,0,0,.12), inset 3px 2px 0 rgba(255,255,255,.25)' }}>
+            <span style={{ position: 'absolute', left: '12%', bottom: 0, width: '45%', height: '28%', borderRadius: '50% 50% 0 0', background: 'rgba(96,170,120,.75)' }} />
+          </div>
+        ))}
+        {[{ l: '25%', s: 8 }, { l: '27.5%', s: 5 }, { l: '44%', s: 7 }, { l: '67%', s: 6 }, { l: '70%', s: 9 }, { l: '78%', s: 5 }].map((r, i) => (
+          <div key={i} aria-hidden="true" style={{ position: 'absolute', left: r.l, bottom: SAND_H - 5, width: r.s, height: r.s * 0.65, pointerEvents: 'none',
+            borderRadius: '50%', background: i % 2 ? '#b9a98f' : '#9aa6ae', boxShadow: 'inset -1px -1px 0 rgba(0,0,0,.15)' }} />
+        ))}
+        <div className="pf-bubbles" aria-hidden="true"><span /><span /><span /><span /><span /><span /><span /></div>
+        {/* alge pe fund (decor, în spatele peștilor) */}
+        {[{ l: '34%', h: 40, d: '0s' }, { l: '71%', h: 52, d: '-1.3s' }, { l: '93%', h: 36, d: '-2.1s' }].map((w, i) => (
+          <svg key={i} className="pf-weed" aria-hidden="true" width="22" height={w.h} viewBox="0 0 22 52" preserveAspectRatio="none"
+            style={{ left: w.l, bottom: SAND_H - 3, height: w.h, animationDelay: w.d }}>
+            <path d="M11 52 C3 40 19 32 11 22 C5 14 15 8 11 0" fill="none" stroke="#6fb592" strokeWidth="4" strokeLinecap="round" opacity=".85" />
+            <path d="M6 52 C0 44 8 38 4 30" fill="none" stroke="#86c8a4" strokeWidth="3" strokeLinecap="round" opacity=".8" />
+          </svg>
+        ))}
 
         {/* pontonul */}
         <div style={{ position: 'absolute', left: 0, top: SKY_H - 10, width: 170, height: 12, background: 'repeating-linear-gradient(90deg,#b88a55 0 22px,#a77a47 22px 24px)', borderRadius: '0 0 6px 0' }} />
@@ -858,10 +920,30 @@ export function BulelePestilorGame({
         .pf-score-flash { animation: pf-score-flash 400ms ease-out; display: inline-block; }
         @keyframes pf-bubble { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: .8 } 100% { transform: translateY(-150px) scale(1); opacity: 0 } }
         .pf-bubbles { position: absolute; left: 0; right: 0; bottom: 0; height: ${stageH - SKY_H}px; pointer-events: none; }
-        .pf-bubbles span { position: absolute; bottom: ${SAND_H}px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.7); animation: pf-bubble 3.6s linear infinite; }
+        .pf-bubbles span { position: absolute; bottom: ${SAND_H}px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.7); animation: pf-bubble 3.6s linear infinite, pf-wob 1.7s ease-in-out infinite alternate; }
         .pf-bubbles span:nth-child(1) { left: 22%; animation-delay: 0s; }
         .pf-bubbles span:nth-child(2) { left: 52%; width: 4px; height: 4px; animation-delay: 1.2s; }
         .pf-bubbles span:nth-child(3) { left: 82%; width: 6px; height: 6px; animation-delay: 2.3s; }
+        .pf-bubbles span:nth-child(4) { left: 38%; width: 3px; height: 3px; animation-duration: 4.6s, 1.4s; animation-delay: 0.7s; }
+        .pf-bubbles span:nth-child(5) { left: 65%; width: 5px; height: 5px; animation-duration: 3.1s, 2s; animation-delay: 1.9s; }
+        .pf-bubbles span:nth-child(6) { left: 10%; width: 4px; height: 4px; animation-duration: 4.2s, 1.6s; animation-delay: 3s; }
+        .pf-bubbles span:nth-child(7) { left: 92%; width: 3px; height: 3px; animation-duration: 5s, 1.5s; animation-delay: 2.6s; }
+        @keyframes pf-wob { 0% { translate: -4px 0 } 100% { translate: 5px 0 } }
+        @keyframes pf-mote { 0% { transform: translate(0,0); opacity: .15 } 50% { opacity: .65 } 100% { transform: translate(26px,-14px); opacity: .15 } }
+        .pf-motes { position: absolute; left: 0; right: 0; pointer-events: none; }
+        .pf-motes span { position: absolute; border-radius: 50%; background: rgba(255,255,255,.9); animation: pf-mote 9s ease-in-out infinite alternate; }
+        @keyframes pf-caustic { 0% { background-position: 0 0, 45px 20px } 100% { background-position: 90px 0, -45px 20px } }
+        .pf-caustic { position: absolute; left: 0; right: 0; height: 70px; pointer-events: none; animation: pf-caustic 12s linear infinite;
+          background-image: radial-gradient(ellipse 26px 7px at 30px 14px, rgba(255,255,255,.55), transparent 70%), radial-gradient(ellipse 20px 6px at 20px 22px, rgba(255,255,255,.4), transparent 70%);
+          background-size: 90px 40px, 90px 40px;
+          -webkit-mask-image: linear-gradient(transparent, #000 90%); mask-image: linear-gradient(transparent, #000 90%); }
+        @keyframes pf-rays-drift { 0% { transform: translateX(-3%) } 100% { transform: translateX(3%) } }
+        .pf-rays { position: absolute; left: -20%; width: 140%; pointer-events: none; animation: pf-rays-drift 9s ease-in-out infinite alternate;
+          background: repeating-linear-gradient(105deg, transparent 0 70px, rgba(255,255,255,.22) 70px 100px, transparent 100px 190px);
+          -webkit-mask-image: linear-gradient(#000, transparent 85%); mask-image: linear-gradient(#000, transparent 85%); }
+        @keyframes pf-weed { 0%,100% { transform: rotate(-5deg) } 50% { transform: rotate(5deg) } }
+        .pf-weed { position: absolute; pointer-events: none; transform-origin: 50% 100%; animation: pf-weed 3.4s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .pf-rays, .pf-weed, .pf-motes span, .pf-caustic { animation: none } }
       `}</style>
     </div>
   )
