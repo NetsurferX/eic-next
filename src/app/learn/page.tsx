@@ -14,6 +14,7 @@ import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
 import { MascotIntro } from '@/components/game/MascotIntro'
 import { StarIcon } from '@/components/game/StarIcon'
+import { symbolView, WHITE_OUTLINED_TEXT_STYLE } from '@/lib/symbolDisplay'
 import type { RenderNode } from '@/lib/renderNode'
 import { BuleleVulpiiOverlay, type BuleleVulpiiOverlayConfig } from '@/components/game/BuleleVulpiiOverlay'
 
@@ -802,16 +803,12 @@ export default function LearnPage() {
   //   dintre niveluri. Ținta trebuie să fie deja deblocată — nu sare peste
   //   deblocări și nu atinge progresul (doar mută „ce se vede"). ──
   const stepTarget = useCallback((dir: 1 | -1): { li: number; ci: number } | null => {
-    const t = flatIndexOf(levelIndex, active) + dir
-    if (t < 0 || t >= FLAT_LESSONS.length) return null
-    let rest = t
-    for (let li = 0; li < LEVELS.length; li++) {
-      const n = LEVELS[li].lessons.length
-      if (rest < n) return unlockedLevels[li] && colUnlocked[li]?.[rest] ? { li, ci: rest } : null
-      rest -= n
-    }
-    return null
-  }, [levelIndex, active, unlockedLevels, colUnlocked])
+    // Săgețile comută între LECȚII (= pagina cu coloanele unui nivel), nu între coloane.
+    const li = levelIndex + dir
+    if (li < 0 || li >= LEVELS.length || !unlockedLevels[li]) return null
+    const firstUnlockedCol = colUnlocked[li]?.findIndex(Boolean) ?? -1
+    return { li, ci: firstUnlockedCol === -1 ? 0 : firstUnlockedCol }
+  }, [levelIndex, unlockedLevels, colUnlocked])
 
   const stepLesson = useCallback((dir: 1 | -1) => {
     if (isPlayingRep || showLevelOverlay || introLesson || buleleVulpiiConfig) return
@@ -1076,9 +1073,13 @@ export default function LearnPage() {
                       className={`lesson-letter${letterPulseId === l.id ? ' is-pulsing' : ''}`}
                       // Tricolor pe /ou/ când e deblocată; altfel culoarea coloanei.
                       // Conturul comics e pe .aik-speech-bubble, nu pe literă.
-                      style={isTricolor && isUnlocked ? tricolorLetterStyle(8) : undefined}
+                      style={isUnlocked
+                        ? (isTricolor ? tricolorLetterStyle(8)
+                          : symbolView(l).whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
+                          : { color: symbolView(l).color })
+                        : undefined}
                     >
-                      {l.letter}
+                      {symbolView(l).text}
                     </div>
                   </div>
                 </div>

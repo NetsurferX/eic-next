@@ -7,6 +7,7 @@ import WordRenderer from '@/components/WordRenderer'
 import type { RenderNode } from '@/lib/renderNode'
 import type { Lesson, LessonWord } from '@/lib/levels'
 import { tricolorLetterStyle, TRICOLOR_BANDS, TRICOLOR_UNDERLINE_COLOR } from '@/lib/tricolorStyle'
+import { symbolView, bodyColorFor, CONSONANT_IDS, WHITE_OUTLINED_TEXT_STYLE } from '@/lib/symbolDisplay'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Vulpea la pescuit (fost „Bulele Vulpii — pești”) — componentă NOUĂ, paralelă cu BuleleVulpiiGame.
@@ -89,7 +90,11 @@ const SAND_H = 16
 // Ritm (mai lent decât prima variantă: 6000 / 1300 / 250) — ajustabil aici.
 const SWIM_MS = 10000   // traversarea completă a apei
 const NEXT_FISH_DELAY_MS = 800
-const FISH_W = 112
+const FISH_W = 140      // pești mai mari (înainte 112)
+const FROM_RIGHT_P = 0.75   // șansa ca peștele să vină din dreapta (spre vulpe); restul vin din stânga
+const START_HOLD_MS = 3000   // peștele stă ~3 s la primul anunț
+const HINT_AT = 80           // la 80% parcurs (mai are 20%) vulpea repetă anunțul, peștele stă iar 3 s
+const HINT_HOLD_MS = 3000
 const PULL_MS = 1900
 const HOLD_MS = 2500    // peștele prins stă nemișcat (atârnat de undiță) cât se repetă sunetul
 const LINE_EXTRA = 34   // cât se lungește firul (px) în pauză: peștele atârnă mai jos, mai natural
@@ -102,7 +107,7 @@ const DROP_SPEED = 2    // zborul spre taz: viteză dublă față de înainte
 const PULL_A_MS = PULL_MS * 0.6
 const PULL_B_MS = (PULL_MS * 0.4) / DROP_SPEED
 const PULL_TOTAL_MS = PULL_A_MS + HOLD_MS + PULL_B_MS
-const FOX_LEFT = 14
+const FOX_LEFT = 78   // vulpea e mutată spre dreapta ca tazul să stea lângă ea, pe ponton (înainte 14)
 const FOX_SIZE = 84
 const TIP = { x: FOX_LEFT + 138, y: SKY_H - 84 }      // vârful undiței (în repaus)
 const ROD_BASE = { x: FOX_LEFT + 70, y: SKY_H - 44 }  // de unde pornește undița
@@ -116,26 +121,29 @@ const TRICOLOR_BUTTON_BG = `linear-gradient(90deg, ${TRICOLOR_BANDS[0]} 0 33.33%
 // tazul e desenat în coordonate 104x96 (BUCKET_VB) și afișat la 60% lățime / 70% înălțime (BUCKET)
 const BUCKET_VB = { w: 104, h: 112, rim: 30 }   // h=112 → la scara 0.6 iese 70% din înălțimea inițială (96)
 const BUCKET_SCALE = 0.6
-const BUCKET = { w: BUCKET_VB.w * BUCKET_SCALE, h: BUCKET_VB.h * BUCKET_SCALE, rim: BUCKET_VB.rim * BUCKET_SCALE, top: 4, right: 8 }
+const BUCKET = { w: BUCKET_VB.w * BUCKET_SCALE, h: BUCKET_VB.h * BUCKET_SCALE, rim: BUCKET_VB.rim * BUCKET_SCALE, top: SKY_H - 10 - BUCKET_VB.h * BUCKET_SCALE, left: 8 }   // tazul stă pe ponton, în stânga vulpii
 
 type Zone = 'blue' | 'pink'
 type FState = 'swimming' | 'hooked' | 'miss'
 interface LiveFish {
   id: number; qi: number; group: Group; word: LessonWord
   y: number; phase: number; progress: number; zone: Zone; state: FState
+  dir: 1 | -1   // 1 = înoată stânga→dreapta, -1 = dreapta→stânga
 }
 interface Cell { filled: boolean; lesson: Lesson | null; bonus: boolean }
 
 let fishSeq = 0
 
-function fishX(progress: number, W: number) { return (-0.08 + 1.16 * (progress / 100)) * W }
+function fishX(progress: number, W: number, dir: 1 | -1 = 1) {
+  return (dir === 1 ? -0.08 + 1.16 * (progress / 100) : 1.08 - 1.16 * (progress / 100)) * W
+}
 function fishY(f: LiveFish, p: number) { return f.y + Math.sin((p / 100) * Math.PI * 4 + f.phase) * 8 }
 // Poziția peștelui care înoată = un singur transform (GPU), scris direct pe element la fiecare frame.
 function swimTransform(f: LiveFish, p: number, W: number) {
   const dy = Math.cos((p / 100) * Math.PI * 4 + f.phase) * 8 * Math.PI * 4 / 100
   const dx = 1.16 * W / 100
-  const tilt = f.state === 'swimming' ? (Math.atan2(dy, dx) * 180) / Math.PI : 0
-  return `translate3d(${fishX(p, W).toFixed(1)}px, ${fishY(f, p).toFixed(1)}px, 0) translate(-50%,-50%) rotate(${tilt.toFixed(2)}deg)`
+  const tilt = f.state === 'swimming' ? ((f.dir ?? 1) * Math.atan2(dy, dx) * 180) / Math.PI : 0
+  return `translate3d(${fishX(p, W, f.dir ?? 1).toFixed(1)}px, ${fishY(f, p).toFixed(1)}px, 0) translate(-50%,-50%) rotate(${tilt.toFixed(2)}deg)`
 }
 // Lanseta: `bend` 0 = repaus, 1 = încordată de pește.
 function rodGeom(bend: number) {
@@ -156,21 +164,27 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const OFFGLIDE: Record<string, string> = { y: 'ỷ', Y: 'Ỷ', i: 'ỉ', I: 'Ỉ' }
 const isVowelLike = (ch: string) => /[aeiouwy]/i.test(ch)
 
+function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: number } {
+  const sv = symbolView(lesson)
+  // gh/ph: butonul e „f”, dar peștele poartă „ph”/„gh” (după cuvântul lui)
+  const txt = lesson.id === 'gh-ph-f' && word ? word.mark : sv.text
+  const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6)
+    : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
+    : { color: sv.color }
+  return { node: <span style={style}>{txt}</span>, len: txt.replace(/\u200D/g, '').length }
+}
+
 function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: boolean): { node: ReactNode; len: number } {
-  // Peștele rămâne gol (fără literă/cuvânt) până utilizatorul răspunde corect.
+  // Nivelul 1: la consoane simbolul se vede pe pește de la început.
+  if (level === 1 && !solved && CONSONANT_IDS.has(lesson.id)) return symbolNode(lesson, word)
+  // Altfel peștele rămâne gol până utilizatorul răspunde corect.
   // len rămâne corect ca să nu sară mărimea fontului la dezvăluire.
   if (!solved) {
-    const hidden = level === 1 ? lesson.letter.replace(/\u200D/g, '') : word.text
+    const hidden = level === 1 ? symbolView(lesson).text.replace(/\u200D/g, '') : word.text
     return { node: null, len: Math.max(hidden.length, 1) }
   }
   const tri = lesson.id === 'ou'
-  if (level === 1) {
-    const txt = lesson.letter
-    const style: CSSProperties = solved
-      ? (tri ? tricolorLetterStyle(6) : { color: lesson.color })
-      : { color: '#333' }
-    return { node: <span style={style}>{txt}</span>, len: txt.replace(/\u200D/g, '').length }
-  }
+  if (level === 1) return symbolNode(lesson, word)
   const text = word.text
   const nodes = nodesCache.get(text.toLowerCase())
   if (solved && nodes) return { node: <WordRenderer nodes={nodes} wordStr={text} />, len: text.length }
@@ -207,7 +221,7 @@ function FishSvg({ body, tricolor = false, label, len, width, wag = true }: {
   const fs = Math.min(26, 50 / (0.65 * Math.max(len, 1))) // în unități viewBox (100 lățime)
   return (
     <div style={{ position: 'relative', width, height }}>
-      <svg width={width} height={height} viewBox="0 0 100 50" style={{ overflow: 'visible', display: 'block' }} aria-hidden="true">
+      <svg width={width} height={height} viewBox="0 0 100 50" style={{ overflow: 'visible', display: 'block', transform: 'scaleX(var(--flip, 1))' }} aria-hidden="true">
         {tricolor && (
           <defs>
             <linearGradient id={gid} x1="1" y1="0" x2="0" y2="0">
@@ -228,7 +242,7 @@ function FishSvg({ body, tricolor = false, label, len, width, wag = true }: {
         <rect x="22" y="10" width="52" height="30" rx="15" fill="rgba(255,255,255,.95)" stroke="rgba(0,0,0,.2)" strokeWidth="1" />
       </svg>
       <div style={{
-        position: 'absolute', left: '22%', top: '20%', width: '52%', height: '60%',
+        position: 'absolute', left: 'calc(22% + (1 - var(--flip, 1)) * 2%)', top: '20%', width: '52%', height: '60%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', fontSize: (width * fs) / 100,
       }}>
@@ -236,6 +250,25 @@ function FishSvg({ body, tricolor = false, label, len, width, wag = true }: {
       </div>
     </div>
   )
+}
+
+// Bâzâit neplăcut (două unde dezacordate) pentru răspuns greșit — doar aici, fără a atinge lib/sound.ts.
+function playBuzzer() {
+  try {
+    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    if (!AC) return
+    const ctx = new AC()
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(0.18, ctx.currentTime)
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
+    g.connect(ctx.destination)
+    for (const f of [110, 117]) {
+      const o = ctx.createOscillator()
+      o.type = 'sawtooth'; o.frequency.value = f
+      o.connect(g); o.start(); o.stop(ctx.currentTime + 0.4)
+    }
+    window.setTimeout(() => ctx.close(), 600)
+  } catch { /* fără sunet dacă audio e blocat */ }
 }
 
 export function BulelePestilorGame({
@@ -266,6 +299,8 @@ export function BulelePestilorGame({
   const [done, setDone] = useState<null | { rate: number; passed: boolean }>(null)
   const [paused, setPaused] = useState(false)
   const [confirmExit, setConfirmExit] = useState(false)
+  const [announce, setAnnounce] = useState<Lesson | null>(null)   // bula comics de lângă capul vulpii
+  const [buzzId, setBuzzId] = useState<string | null>(null)       // butonul care „protestează” (răspuns greșit)
 
   const stageRef = useRef<HTMLDivElement>(null)
   const bucketRef = useRef<HTMLDivElement | null>(null)
@@ -283,6 +318,7 @@ export function BulelePestilorGame({
   const timers = useRef<number[]>([])
   const rafRef = useRef<number | null>(null)
   const progressRef = useRef(0)
+  const holdUntilRef = useRef(0)
   const swimElRef = useRef<HTMLDivElement | null>(null)
   const pullFishRef = useRef<HTMLDivElement | null>(null)
   const rodARef = useRef<SVGPathElement | null>(null)
@@ -303,8 +339,12 @@ export function BulelePestilorGame({
       id: fishSeq++, qi: pos, group: item.group, word: pickWord(item.group.lesson),
       y: SKY_H + 46 + Math.random() * (stageHRef.current - SKY_H - SAND_H - 92),
       phase: Math.random() * Math.PI * 2, progress: 0, zone: 'blue', state: 'swimming',
+      dir: Math.random() < FROM_RIGHT_P ? -1 : 1,
     })
     speakWord(ttsWordFor(item.group.lesson))
+    holdUntilRef.current = performance.now() + START_HOLD_MS
+    setAnnounce(item.group.lesson)
+    later(() => setAnnounce(null), START_HOLD_MS)
   }
 
   function advanceQueue() {
@@ -412,6 +452,7 @@ export function BulelePestilorGame({
     const tick = (now: number) => {
       const dt = Math.min(now - last, 100)   // un tab adormit nu „teleportează” peștele
       last = now
+      if (now < holdUntilRef.current) { raf = requestAnimationFrame(tick); return }   // peștele stă pe loc (anunț)
       progressRef.current = Math.min(100, progressRef.current + (100 * dt) / SWIM_MS)
       apply()
       const p = progressRef.current
@@ -419,7 +460,7 @@ export function BulelePestilorGame({
         setFish(prev => (prev && prev.id === fishId ? { ...prev, zone: 'pink', state: 'miss' } : prev))
         return
       }
-      if (p >= 66 && !pinkSent) {
+      if (p >= HINT_AT && !pinkSent) {
         pinkSent = true
         setFish(prev => (prev && prev.id === fishId ? { ...prev, zone: 'pink' } : prev))
       }
@@ -437,8 +478,10 @@ export function BulelePestilorGame({
     if (fish.zone === 'pink' && !hintFiredFor.current.has(fish.id)) {
       hintFiredFor.current.add(fish.id)
       speakWord(ttsWordFor(fish.group.lesson))
+      holdUntilRef.current = performance.now() + HINT_HOLD_MS
       setHintGroup(fish.group)
-      later(() => setHintGroup(null), 1000)
+      setAnnounce(fish.group.lesson)
+      later(() => { setHintGroup(null); setAnnounce(null) }, HINT_HOLD_MS)
     }
     if (fish.state === 'miss' && !missHandledFor.current.has(fish.id)) {
       missHandledFor.current.add(fish.id)
@@ -458,23 +501,25 @@ export function BulelePestilorGame({
     if (!stage || !bucketEl) { finishPull(f); return }
     const W = stage.clientWidth
     const p0 = progressRef.current
-    const start = { x: fishX(p0, W), y: fishY(f, p0) }
+    const dir: 1 | -1 = f.dir ?? 1   // ?? 1: protecție pentru peștii creați înainte de un hot-reload
+    const start = { x: fishX(p0, W, dir), y: fishY(f, p0) }
     const sr = stage.getBoundingClientRect()
     const cr = bucketEl.getBoundingClientRect()
     const cx0 = cr.left - sr.left + cr.width / 2
     const rimY = cr.top - sr.top + BUCKET.rim
     const above  = { x: cx0, y: rimY - 8 }   // deasupra buzei tazului, cu capul în jos
     const inside = { x: cx0, y: rimY + 16 }   // înăuntru (acoperit de peretele tazului)
-    const DROP = Math.PI / 2                  // cap în jos
+    const DROP = (Math.PI / 2) * dir          // cap în jos (peștele păstrează sensul: fără întoarcere în oglindă)
     // peștele e tras de GURĂ: stă înclinat cu botul în sus, atârnat sub vârful undiței
-    const up = { x: TIP.x - Math.cos(HANG) * MOUTH, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
+    const up = { x: TIP.x - Math.cos(HANG) * MOUTH * dir, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
     const upL = { x: up.x, y: up.y + LINE_EXTRA }   // poziția peștelui cu firul lungit (pauza + începutul zborului)
     const endScale = 0.3
     const t0 = performance.now()
     let heldSpoken = false
     pullingRef.current = true
     setPull(true)
-    const mouthOf = (x: number, y: number, rot: number) => ({ x: x + Math.cos(rot) * MOUTH, y: y + Math.sin(rot) * MOUTH })
+    // s = sensul peștelui (1 = cu botul spre dreapta, -1 = spre stânga); rămâne același pe tot parcursul prinderii
+    const mouthOf = (x: number, y: number, rot: number, s = 1) => ({ x: x + Math.cos(rot) * MOUTH * s, y: y + Math.sin(rot) * MOUTH * s })
     const step = (now: number) => {
       // timeline: [0..A] aruncare+tragere · [A..A+HOLD] nemișcat · [..TOTAL] zbor în taz (x2)
       const el = now - t0
@@ -492,15 +537,15 @@ export function BulelePestilorGame({
       // legănare ca un pendul: pornește din 0 și revine la 0 la sfârșitul pauzei (fără salt)
       const hp = Math.min(Math.max((el - PULL_A_MS) / HOLD_MS, 0), 1)
       const sway = Math.sin(Math.PI * hp) * Math.sin(2 * Math.PI * SWAY_CYCLES * hp)
-      let fx = start.x, fy = start.y, rot = 0, scale = 1, line = true, taut = false, bend = 0
-      let m = mouthOf(fx, fy, 0), lx = TIP.x, ly = TIP.y
+      let fx = start.x, fy = start.y, rot = 0, scale = 1, line = true, taut = false, bend = 0, flip: number = dir
+      let m = mouthOf(fx, fy, 0, flip), lx = TIP.x, ly = TIP.y
       if (t < 0.3) {                        // aruncare: firul (moale) ajunge la gura peștelui
         const e = ease(t / 0.3)
         lx = lerp(TIP.x, m.x, e); ly = lerp(TIP.y, m.y, e); bend = 0.3 * e
       } else if (t < 0.6) {                 // tragere: fir întins, peștele se ridică și se înclină
         const e = ease((t - 0.3) / 0.3)
-        fx = lerp(start.x, up.x, e) + sway * SWAY_PX; fy = lerp(start.y, up.y, e) + ext; rot = lerp(0, HANG, e) + sway * SWAY_ROT
-        m = mouthOf(fx, fy, rot); lx = m.x; ly = m.y; taut = true; bend = lerp(0.3, 1, e)
+        fx = lerp(start.x, up.x, e) + sway * SWAY_PX; fy = lerp(start.y, up.y, e) + ext; rot = lerp(0, HANG * dir, e) + sway * SWAY_ROT
+        m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = lerp(0.3, 1, e)
       } else {                              // zboară deasupra tazului și cade în el; firul se vede, apoi se strânge înapoi la lansetă
         const k = (t - 0.6) / 0.4
         bend = 1 - ease(k)
@@ -510,16 +555,16 @@ export function BulelePestilorGame({
           const a = 1 - e
           fx = a * a * upL.x + 2 * a * e * cx + e * e * above.x
           fy = a * a * upL.y + 2 * a * e * cy + e * e * above.y
-          rot = lerp(HANG, DROP, e)
+          rot = lerp(HANG * dir, DROP, e)
           scale = lerp(1, endScale, e)
-          m = mouthOf(fx, fy, rot); lx = m.x; ly = m.y; taut = true   // firul rămâne întins între lansetă și gura peștelui
+          m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true   // firul rămâne întins între lansetă și gura peștelui
         } else {                            // cade în taz; de aici peretele tazului îl acoperă (se văd doar cozile)
           const e = ease((k - 0.65) / 0.35)
           fx = above.x; fy = lerp(above.y, inside.y, e)
           rot = DROP; scale = endScale
           if (pullFishRef.current) pullFishRef.current.style.zIndex = '1'
           // cârligul se eliberează: capătul firului revine rapid la vârful lansetei, peștele cade în taz
-          const m0 = mouthOf(above.x, above.y, DROP)
+          const m0 = mouthOf(above.x, above.y, DROP, dir)
           const r = ease(Math.min((k - 0.65) / 0.2, 1))
           const tipNow = rodGeom(bend).tip
           lx = lerp(m0.x, tipNow.x, r); ly = lerp(m0.y, tipNow.y, r); taut = false
@@ -528,7 +573,7 @@ export function BulelePestilorGame({
       }
       // totul direct pe DOM, fără setState pe frame
       const pf = pullFishRef.current
-      if (pf) pf.style.transform = `translate3d(${fx.toFixed(1)}px, ${fy.toFixed(1)}px, 0) translate(-50%,-50%) rotate(${rot.toFixed(3)}rad) scale(${scale.toFixed(3)})`
+      if (pf) { pf.style.transform = `translate3d(${fx.toFixed(1)}px, ${fy.toFixed(1)}px, 0) translate(-50%,-50%) rotate(${rot.toFixed(3)}rad) scale(${scale.toFixed(3)})`; pf.style.setProperty('--flip', flip.toFixed(3)) }
       const rg = rodGeom(bend)
       rodARef.current?.setAttribute('d', rg.d)
       rodBRef.current?.setAttribute('d', rg.d)
@@ -566,6 +611,10 @@ export function BulelePestilorGame({
       scoreRef.current -= 1
       setScore(scoreRef.current)
       flashScore()
+      playBuzzer()                       // peștele rămâne pe loc; butonul protestează
+      navigator.vibrate?.(180)
+      setBuzzId(group.lesson.id)
+      later(() => setBuzzId(null), 450)
       return
     }
     scoreRef.current += fish.group.kind === 'next' ? 2 : 1
@@ -717,17 +766,32 @@ export function BulelePestilorGame({
         ))}
 
         {/* pontonul */}
-        <div style={{ position: 'absolute', left: 0, top: SKY_H - 10, width: 170, height: 12, background: 'repeating-linear-gradient(90deg,#b88a55 0 22px,#a77a47 22px 24px)', borderRadius: '0 0 6px 0' }} />
-        <div style={{ position: 'absolute', left: 150, top: SKY_H + 2, width: 8, height: 40, background: '#8a6238' }} />
+        <div style={{ position: 'absolute', left: 0, top: SKY_H - 10, width: FOX_LEFT + 156, height: 12, background: 'repeating-linear-gradient(90deg,#b88a55 0 22px,#a77a47 22px 24px)', borderRadius: '0 0 6px 0' }} />
+        <div style={{ position: 'absolute', left: FOX_LEFT + 136, top: SKY_H + 2, width: 8, height: 40, background: '#8a6238' }} />
         {/* vulpea (singura de pe ecran) */}
         <div style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
           <MascotV2 steady state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
         </div>
+        {/* bula comics cu simbolul rostit de vulpe; chenarul are culoarea simbolului (negru la consoane) */}
+        {announce && !paused && !done && (() => {
+          const sv = symbolView(announce)
+          const border = sv.tricolor ? TRICOLOR_BANDS[1] : sv.whiteOutlined ? '#000' : sv.color
+          return (
+            <div style={{
+              position: 'absolute', left: FOX_LEFT + FOX_SIZE + 2, top: SKY_H - FOX_SIZE - 16, zIndex: 5,
+              background: '#fff', border: `3px solid ${border}`, borderRadius: 14, padding: '2px 12px',
+              fontSize: 26, fontWeight: 800, fontStyle: 'italic', boxShadow: '2px 3px 0 rgba(0,0,0,.15)',
+            }}>
+              <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{sv.text}</span>
+              <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />
+            </div>
+          )
+        })()}
 
         {/* tazul cu pești: se văd doar cozile; pe taz scrie câți pești s-au prins */}
         <div
           ref={bucketRef}
-          style={{ position: 'absolute', right: BUCKET.right, top: BUCKET.top, width: BUCKET.w, height: BUCKET.h, zIndex: 2, pointerEvents: 'none' }}
+          style={{ position: 'absolute', left: BUCKET.left, top: BUCKET.top, width: BUCKET.w, height: BUCKET.h, zIndex: 2, pointerEvents: 'none' }}
           aria-label={`${caughtCount} pești prinși`}
         >
           <svg width={BUCKET.w} height={BUCKET.h} viewBox={`0 0 ${BUCKET_VB.w} ${BUCKET_VB.h}`} style={{ overflow: 'visible', display: 'block' }}>
@@ -750,7 +814,7 @@ export function BulelePestilorGame({
                   <path
                     className="pf-tailpop"
                     d="M-3 4 L-10 -22 Q0 -15 10 -22 L3 4 Z"
-                    fill={c.lesson.id === 'ou' ? `url(#${bucketId}-tri)` : c.lesson.color}
+                    fill={c.lesson.id === 'ou' ? `url(#${bucketId}-tri)` : bodyColorFor(c.lesson)}
                     stroke="#1a1006" strokeWidth="2" strokeLinejoin="round"
                   />
                 </g>
@@ -815,11 +879,12 @@ export function BulelePestilorGame({
               style={{
                 position: 'absolute', left: 0, top: 0, willChange: 'transform', zIndex: 2,
                 transform: swimTransform(fish, progressRef.current, W),
-                animation: fish.state === 'miss' ? 'pf-away 600ms ease-in forwards' : undefined,
+                animation: fish.state === 'miss' ? `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards` : undefined,
+                ['--flip' as string]: fish.dir ?? 1,
               }}
             >
               <FishSvg
-                body={fish.group.lesson.color}
+                body={bodyColorFor(fish.group.lesson)}
                 tricolor={fish.group.lesson.id === 'ou'}
                 label={lb.node} len={lb.len} width={FISH_W}
               />
@@ -831,9 +896,9 @@ export function BulelePestilorGame({
         {fish && pull && (() => {
           const lb = buildLabel(fish.group.lesson, level, fish.word, true)
           return (
-            <div ref={pullFishRef} style={{ position: 'absolute', left: 0, top: 0, willChange: 'transform', zIndex: 4, transform: 'translate3d(-999px,-999px,0)' }}>
+            <div ref={pullFishRef} style={{ position: 'absolute', left: 0, top: 0, willChange: 'transform', zIndex: 4, transform: 'translate3d(-999px,-999px,0)', ['--flip' as string]: fish.dir ?? 1 }}>
               <FishSvg
-                body={fish.group.lesson.color}
+                body={bodyColorFor(fish.group.lesson)}
                 tricolor={fish.group.lesson.id === 'ou'}
                 label={lb.node} len={lb.len} width={FISH_W} wag={false}
               />
@@ -875,20 +940,23 @@ export function BulelePestilorGame({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: compact ? 10 : 14, marginTop: compact ? 8 : 16 }}>
         {visibleGroups.map(g => {
           const hinted = hintGroup?.lesson.id === g.lesson.id
+          const sv = symbolView(g.lesson)
+          const ringColor = bodyColorFor(g.lesson)
           return (
             <button
               key={g.lesson.id}
               onClick={() => handlePress(g)}
+              className={buzzId === g.lesson.id ? 'pf-wrong' : hinted ? 'pf-buzz' : undefined}
               style={{
                 width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation',
-                background: g.lesson.id === 'ou' ? TRICOLOR_BUTTON_BG : g.lesson.color,
+                background: g.lesson.id === 'ou' ? TRICOLOR_BUTTON_BG : ringColor,
                 boxShadow: hinted ? '0 0 0 5px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.15)',
                 transition: 'box-shadow 200ms',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <span style={{ width: compact ? 38 : 30, height: compact ? 38 : 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: g.lesson.color }}>
-                <span style={g.lesson.id === 'ou' ? tricolorLetterStyle(6) : undefined}>{g.lesson.letter}</span>
+              <span style={{ width: compact ? 38 : 30, height: compact ? 38 : 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: sv.color }}>
+                <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{sv.text}</span>
               </span>
             </button>
           )
@@ -903,9 +971,14 @@ export function BulelePestilorGame({
       )}
 
       <style>{`
+        @keyframes pf-buzz { 0%,100% { transform: translateX(0) scale(1) } 12% { transform: translateX(-5px) scale(1.12) } 25% { transform: translateX(5px) scale(1.12) } 37% { transform: translateX(-5px) scale(1.12) } 50% { transform: translateX(5px) scale(1.12) } 62% { transform: translateX(-3px) scale(1.06) } 75% { transform: translateX(3px) scale(1.06) } }
+        .pf-buzz { animation: pf-buzz 450ms ease-in-out infinite; outline: 4px solid rgba(255,140,0,.55); outline-offset: 2px; }
+        @keyframes pf-wrong { 0%,100% { transform: translateX(0) } 15% { transform: translateX(-8px) rotate(-6deg) } 30% { transform: translateX(8px) rotate(6deg) } 45% { transform: translateX(-7px) rotate(-5deg) } 60% { transform: translateX(7px) rotate(5deg) } 80% { transform: translateX(-3px) } }
+        .pf-wrong { animation: pf-wrong 420ms linear; outline: 4px solid rgba(204,0,0,.55); outline-offset: 2px; }
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
+        @keyframes pf-away-l { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: -70px } }
         @keyframes pf-pop { 0% { transform: scale(.3); opacity: 0 } 70% { transform: scale(1.2); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
         @keyframes pf-tailpop { 0% { transform: translateY(14px); opacity: 0 } 60% { transform: translateY(-3px); opacity: 1 } 100% { transform: translateY(0); opacity: 1 } }
         .pf-tailpop { animation: pf-tailpop 400ms ease-out; }
