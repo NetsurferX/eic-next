@@ -60,6 +60,7 @@ const LEVELS: Level[] = ALL_LEVELS.map(lvl => ({
 // ── Repetări automate: la deschiderea unei coloane, ascultarea pornește
 //   singură și se repetă de REPS_PER_LESSON ori (câte o stea per repetare). ──
 const REP_START_DELAY_MS = 900    // pauza dintre deschiderea coloanei și prima repetare
+const REPLAY_GAP_MS = 1200        // pauza dintre repetările din RE-PLAY (fără animația stelei)
 const REP_GAP_MS = 3000           // pauza dintre repetări (lasă loc animației stelei/vulpii, ~2850ms)
 const LETTER_PULSE_GAP_MS = 1100  // pauza dintre cele 3 zvâcniri ale literei la deschiderea coloanei
 const LETTER_PULSE_AFTER_MS = 7500 // așteptare după ritualul ×3 înainte de auto-repetarea cuvintelor
@@ -764,6 +765,32 @@ export default function LearnPage() {
     })
   }, [buleleVulpiiConfig, starsEarned, levelIndex, active, levelStars, level, lesson, isLastLevel, triggerFox])
 
+  // ── RE-PLAY — după ce omul a absolvit coloana ȘI subjocul (stele pline, jocul închis),
+  //   poate rejuca coloana (REPS_PER_LESSON repetări automate) și apoi subjocul.
+  //   Nu atinge progresul: nu acordă stele, nu deblochează nimic (pendingAdvanceRef = null). ──
+  const handleReplay = useCallback(async () => {
+    if (isPlayingRep || buleleVulpiiConfig || showLevelOverlay || introLesson) return
+    if (starsEarned[levelIndex][active] < REPS_PER_LESSON) return
+    const replayLesson = lesson
+    const flatIdx = flatIndexOf(levelIndex, active)
+    autoCancel.current = false
+    setIsPlayingRep(true)
+    for (let r = 0; r < REPS_PER_LESSON; r++) {
+      await playColumnOnce(replayLesson)
+      if (autoCancel.current) break
+      if (r < REPS_PER_LESSON - 1) await new Promise(res => setTimeout(res, REPLAY_GAP_MS))
+      if (autoCancel.current) break
+    }
+    setIsPlayingRep(false)
+    if (autoCancel.current) return
+    pendingAdvanceRef.current = null
+    setBuleleVulpiiConfig({
+      lesson: replayLesson,
+      distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
+      nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+    })
+  }, [isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, levelIndex, active, lesson, playColumnOnce])
+
   const selectColumn = useCallback((i: number) => {
     if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
     setActive(i)
@@ -1105,6 +1132,29 @@ export default function LearnPage() {
                 <p className="lesson-next-hint">se deschide imediat</p>
               )}
 
+              {isActive && isUnlocked && trophyEarned && !buleleVulpiiConfig ? (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
+                  <button
+                    type="button"
+                    className="lesson-replay-btn"
+                    disabled={isPlayingRep}
+                    onClick={(e) => { e.stopPropagation(); void handleReplay() }}
+                    aria-label="Re-play: rejoacă coloana și subjocul"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      border: '2px solid rgba(0,0,0,.18)', borderRadius: 999, padding: '7px 20px',
+                      background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color,
+                      color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.45)',
+                      boxShadow: '0 3px 0 rgba(0,0,0,.22), 0 4px 10px rgba(0,0,0,.12)',
+                      fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 800,
+                      fontSize: '1.05rem', letterSpacing: '.04em', whiteSpace: 'nowrap',
+                      cursor: isPlayingRep ? 'default' : 'pointer', opacity: isPlayingRep ? 0.55 : 1,
+                    }}
+                  >
+                    <span aria-hidden="true">↻</span> RE-PLAY
+                  </button>
+                </div>
+              ) : (
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
                 {Array.from({ length: REPS_PER_LESSON }).map((_, s) => (
                   <span
@@ -1123,6 +1173,7 @@ export default function LearnPage() {
                   </span>
                 ))}
               </div>
+              )}
 
               <div className="lesson-words">
                 {l.words.map((w: LessonWord) => {
