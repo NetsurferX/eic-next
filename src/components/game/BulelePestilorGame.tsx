@@ -101,21 +101,23 @@ const SWIM_MS = 10000   // traversarea completă a apei
 const NEXT_FISH_DELAY_MS = 800
 const FISH_W = 140      // pești mai mari (înainte 112)
 const FROM_RIGHT_P = 0.75   // șansa ca peștele să vină din dreapta (spre vulpe); restul vin din stânga
-const START_HOLD_MS = 3000   // peștele stă ~3 s la primul anunț
+const START_HOLD_MS = 0      // pauza de la apariție ELIMINATĂ (înainte 3000): peștele înoată imediat
+const ANNOUNCE_BUBBLE_MS = 3000   // bula comics a vulpii rămâne vizibilă atât (nu mai ține peștele pe loc)
 const HINT_AT = 80           // la 80% parcurs (mai are 20%) vulpea repetă anunțul, peștele stă iar 3 s
 const HINT_HOLD_MS = 3000
 const PULL_MS = 1900
 const HOLD_MS = 2500    // peștele prins stă nemișcat (atârnat de undiță) cât se repetă sunetul
-const LINE_EXTRA = 34   // cât se lungește firul (px) în pauză: peștele atârnă mai jos, mai natural
-const LINE_EXT_MS = 450 // în cât timp se lungește firul la începutul pauzei
+const LINE_EXTRA = 34   // cât mai jos (px) atârnă peștele sub vârful undiței când e tras sus: mai natural
 const SWAY_PX = 5       // legănare foarte ușoară în pauză: deplasare laterală maximă (px)
 const SWAY_ROT = 0.07   // ... și înclinare maximă (rad, ~4°)
 const SWAY_CYCLES = 2   // câte balansări complete în pauză
 const DROP_SPEED = 2    // zborul spre taz: viteză dublă față de înainte
-// durata totală = aruncare+tragere (60% din PULL_MS) + pauză + zborul spre taz (40% din PULL_MS / DROP_SPEED)
-const PULL_A_MS = PULL_MS * 0.6
+// Ordinea: aruncare (cârligul ajunge în buza peștelui) → PAUZĂ cu legănare, cu peștele încă în apă, prins de buză
+//          → tras în sus → zbor în taz. Durata totală e aceeași ca înainte.
+const CAST_MS = PULL_MS * 0.3
+const LIFT_MS = PULL_MS * 0.3
 const PULL_B_MS = (PULL_MS * 0.4) / DROP_SPEED
-const PULL_TOTAL_MS = PULL_A_MS + HOLD_MS + PULL_B_MS
+const PULL_TOTAL_MS = CAST_MS + HOLD_MS + LIFT_MS + PULL_B_MS
 const FOX_LEFT = 78   // vulpea e mutată spre dreapta ca tazul să stea lângă ea, pe ponton (înainte 14)
 const FOX_SIZE = 84
 const TIP = { x: FOX_LEFT + 138, y: SKY_H - 84 }      // vârful undiței (în repaus)
@@ -354,7 +356,7 @@ export function BulelePestilorGame({
     holdUntilRef.current = performance.now() + START_HOLD_MS
     setAnnounceWord(level === 3 ? w.text : null)
     setAnnounce(item.group.lesson)
-    later(() => setAnnounce(null), START_HOLD_MS)
+    later(() => setAnnounce(null), ANNOUNCE_BUBBLE_MS)
   }
 
   function advanceQueue() {
@@ -532,33 +534,32 @@ export function BulelePestilorGame({
     // s = sensul peștelui (1 = cu botul spre dreapta, -1 = spre stânga); rămâne același pe tot parcursul prinderii
     const mouthOf = (x: number, y: number, rot: number, s = 1) => ({ x: x + Math.cos(rot) * MOUTH * s, y: y + Math.sin(rot) * MOUTH * s })
     const step = (now: number) => {
-      // timeline: [0..A] aruncare+tragere · [A..A+HOLD] nemișcat · [..TOTAL] zbor în taz (x2)
+      // timeline: [0..CAST] aruncare · [..+HOLD] prins de buză, nemișcat în apă, se leagănă ·
+      //           [..+LIFT] tras în sus · [..TOTAL] zbor în taz (x2)
       const el = now - t0
-      const t = el < PULL_A_MS
-        ? 0.6 * (el / PULL_A_MS)
-        : el < PULL_A_MS + HOLD_MS
-          ? 0.599999   // rămâne în ramura „fir întins”: peștele atârnă, firul rămâne vizibil
-          : 0.6 + 0.4 * Math.min((el - PULL_A_MS - HOLD_MS) / PULL_B_MS, 1)
-      if (!heldSpoken && el >= PULL_A_MS) {
+      const liftAt = CAST_MS + HOLD_MS
+      const flyAt = liftAt + LIFT_MS
+      if (!heldSpoken && el >= CAST_MS) {
         heldSpoken = true
-        sayAnnouncement(f.group.lesson, f.word, level, () => !pausedRef.current)   // se aude încă o dată sunetul (și cuvântul la nivelul 3)
+        sayAnnouncement(f.group.lesson, f.word, level, () => !pausedRef.current)   // se aude încă o dată sunetul (și cuvântul la nivelul 3), exact când cârligul prinde buza
       }
-      // firul se lungește lin la începutul pauzei și rămâne lung până la desprindere
-      const ext = LINE_EXTRA * (el < PULL_A_MS ? 0 : ease(Math.min((el - PULL_A_MS) / LINE_EXT_MS, 1)))
       // legănare ca un pendul: pornește din 0 și revine la 0 la sfârșitul pauzei (fără salt)
-      const hp = Math.min(Math.max((el - PULL_A_MS) / HOLD_MS, 0), 1)
+      const hp = Math.min(Math.max((el - CAST_MS) / HOLD_MS, 0), 1)
       const sway = Math.sin(Math.PI * hp) * Math.sin(2 * Math.PI * SWAY_CYCLES * hp)
       let fx = start.x, fy = start.y, rot = 0, scale = 1, line = true, taut = false, bend = 0, flip: number = dir
       let m = mouthOf(fx, fy, 0, flip), lx = TIP.x, ly = TIP.y
-      if (t < 0.3) {                        // aruncare: firul (moale) ajunge la gura peștelui
-        const e = ease(t / 0.3)
+      if (el < CAST_MS) {                   // aruncare: firul (moale) ajunge la gura peștelui
+        const e = ease(el / CAST_MS)
         lx = lerp(TIP.x, m.x, e); ly = lerp(TIP.y, m.y, e); bend = 0.3 * e
-      } else if (t < 0.6) {                 // tragere: fir întins, peștele se ridică și se înclină
-        const e = ease((t - 0.3) / 0.3)
-        fx = lerp(start.x, up.x, e) + sway * SWAY_PX; fy = lerp(start.y, up.y, e) + ext; rot = lerp(0, HANG * dir, e) + sway * SWAY_ROT
+      } else if (el < liftAt) {             // cârligul e în buză: peștele stă în apă și se leagănă, firul întins
+        fx = start.x + sway * SWAY_PX; rot = sway * SWAY_ROT
+        m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = 0.3 + 0.08 * sway
+      } else if (el < flyAt) {              // tragere: peștele se ridică și se înclină, atârnat de undiță
+        const e = ease((el - liftAt) / LIFT_MS)
+        fx = lerp(start.x, upL.x, e); fy = lerp(start.y, upL.y, e); rot = lerp(0, HANG * dir, e)
         m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = lerp(0.3, 1, e)
       } else {                              // zboară deasupra tazului și cade în el; firul se vede, apoi se strânge înapoi la lansetă
-        const k = (t - 0.6) / 0.4
+        const k = Math.min((el - flyAt) / PULL_B_MS, 1)
         bend = 1 - ease(k)
         if (k < 0.65) {                     // arc spre buza tazului, întorcându-se cu capul în jos
           const e = ease(k / 0.65)

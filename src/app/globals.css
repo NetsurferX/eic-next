@@ -3288,3 +3288,59 @@ button, textarea, input { font-family: var(--font-sans); }
   .aik-speech.is-speaking .aik-speech-bubble,
   .lesson-letter.is-pulsing { animation: none !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   OnboardingSoundIntro — etapa 'matching' („Un sunet nou”): simbolul mare
+   = cerc cu pătrat colorat care vibrează la fiecare redare a sunetului.
+   Aceste clase erau folosite în OnboardingSoundIntro.tsx dar lipseau din CSS
+   (de aceea cardul arăta gol sub vulpe). Bloc NOU, doar adăugat.
+   ══════════════════════════════════════════════════════════════════════ */
+.sound-match-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: .8rem;
+  margin: .2rem 0 1rem;
+}
+.sound-match-phoneme {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 3rem;
+  line-height: 1;
+  animation: sound-match-vibe 600ms ease-in-out;
+}
+.sound-match-equals {
+  font-family: var(--font-sans);
+  font-size: 2rem;
+  line-height: 1;
+  opacity: .55;
+}
+.sound-match-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 4.5rem; height: 4.5rem;
+  border-radius: 50%;
+  border: 3px solid var(--color-border, #e8e6e1);
+  background: #fff;
+  flex: 0 0 auto;
+}
+.sound-match-square {
+  display: block;
+  width: 2.4rem; height: 2.4rem;
+  border-radius: 8px;
+  animation: sound-match-vibe 600ms ease-in-out;
+}
+.sound-match-caption {
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 700;
+  margin: 0 0 1.1rem;
+}
+@keyframes sound-match-vibe {
+  0%, 100% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(-3px) scale(1.12); }
+  30% { transform: translateX(3px) scale(1.12); }
+  45% { transform: translateX(-3px) scale(1.08); }
+  60% { transform: translateX(3px) scale(1.08); }
+  80% { transform: translateX(-1px) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sound-match-phoneme, .sound-match-square { animation: none; }
+}
