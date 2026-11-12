@@ -794,9 +794,9 @@ export function BulelePestilorGame({
         <div style={{ position: 'absolute', left: 0, top: SKY_H - 10, width: FOX_LEFT + 156, height: 12, background: 'repeating-linear-gradient(90deg,#b88a55 0 22px,#a77a47 22px 24px)', borderRadius: '0 0 6px 0' }} />
         <div style={{ position: 'absolute', left: FOX_LEFT + 136, top: SKY_H + 2, width: 8, height: 40, background: '#8a6238' }} />
         {/* vulpea (singura de pe ecran) */}
-        <div className={`pf-fox${pull ? ' is-fight' : ''}`} style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
+        <div className="pf-fox" style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
           <div ref={foxLookRef} style={{ transformOrigin: '42% 78%' }}>
-            <FoxMotion state={mascotState} action={done?.passed ? 'celebrating' : pull ? 'jumping' : (!paused && !done && fish?.state === 'swimming' && !pink ? 'watching' : undefined)} size={FOX_SIZE} />
+            <FoxMotion state={mascotState} action={done?.passed ? 'celebrating' : (!paused && !done && fish?.state === 'swimming' && !pink ? 'watching' : undefined)} size={FOX_SIZE} />
           </div>
         </div>
         {/* bula comics cu simbolul rostit de vulpe; chenarul are culoarea simbolului (negru la consoane) */}
@@ -1058,8 +1058,6 @@ export function BulelePestilorGame({
         .pf-weed { position: absolute; pointer-events: none; transform-origin: 50% 100%; animation: pf-weed 3.4s ease-in-out infinite; }
         @keyframes pf-dock { 0%,100% { transform: rotate(-0.35deg) } 38% { transform: rotate(0.7deg) translateY(-1px) } 68% { transform: rotate(-0.15deg) translateY(0.4px) } }
         .pf-fox { transform-origin: 40% 100%; animation: pf-dock 6.4s ease-in-out infinite; }
-        .pf-fox.is-fight { animation: pf-fight 0.7s ease-in-out infinite; }
-        @keyframes pf-fight { 0%,100% { transform: rotate(0.6deg) } 35% { transform: rotate(-3.2deg) translate(-1px, 1px) } 68% { transform: rotate(2deg) translate(1px, 0) } }
         @media (prefers-reduced-motion: reduce) { .pf-rays, .pf-weed, .pf-motes span, .pf-caustic, .pf-fox { animation: none } }
       `}</style>
     </div>
