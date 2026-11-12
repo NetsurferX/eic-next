@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { MascotV2, type MascotStateV2 } from '@/components/game/MascotV2'
+import { FoxMotion, type FoxMotionState } from '@/components/game/FoxMotion'
 import { useSpringLook } from '@/components/game/useSpringLook'
 import { speakWord } from '@/lib/speak'
 import WordRenderer from '@/components/WordRenderer'
@@ -688,7 +688,7 @@ export function BulelePestilorGame({
     : 'linear-gradient(#eaf4fb, #cfe6f3 55%, #b4d8ec)'
   const waterTop = pink ? '#fdeef4' : '#eaf4fb'   // culoarea de sus a apei (pentru creasta valurilor)
 
-  const mascotState: MascotStateV2 = done
+  const mascotState: FoxMotionState = done
     ? (done.passed ? 'cheering' : 'idle')
     : paused ? 'sleeping'
       : pull ? 'pointing'
@@ -796,7 +796,7 @@ export function BulelePestilorGame({
         {/* vulpea (singura de pe ecran) */}
         <div className={`pf-fox${pull ? ' is-fight' : ''}`} style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
           <div ref={foxLookRef} style={{ transformOrigin: '42% 78%' }}>
-            <MascotV2 steady state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
+            <FoxMotion state={mascotState} action={done?.passed ? 'celebrating' : pull ? 'jumping' : (!paused && !done && fish?.state === 'swimming' && !pink ? 'watching' : undefined)} size={FOX_SIZE} />
           </div>
         </div>
         {/* bula comics cu simbolul rostit de vulpe; chenarul are culoarea simbolului (negru la consoane) */}
