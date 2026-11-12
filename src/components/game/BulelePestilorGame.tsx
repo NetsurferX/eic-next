@@ -15,7 +15,7 @@ import { symbolView, bodyColorFor, CONSONANT_IDS, WHITE_OUTLINED_TEXT_STYLE } fr
 // Același API ca BuleleVulpiiGame (lesson/distractorLessons/nextLesson/level/
 // onFinish/onExit). Nefolosită în /learn. Nu modifică BuleleVulpiiGame.tsx, Mascot*.tsx, levels.ts sau altceva.
 // Aceeași logică de joc (coadă 60/35/5, zona roz = indiciu, ajutor ×10,
-// +1 / −1 / +2, prag 80%), dar:
+// +1 / −1 / +2, prag 80%), cu vulpea animată din FoxMotion, dar:
 //  • baloanele devin PEȘTI care înoată de la stânga la dreapta; unul care
 //    ajunge la capăt fără apăsare corectă SCAPĂ (−1);
 //  • vulpea stă pe un ponton și PESCUIEȘTE: la apăsare corectă undița
