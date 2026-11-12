@@ -21,6 +21,21 @@ const FRAMES = {
   sleep: P + '12_sleep.png',
 } as const
 
+const FRAME_SIZE = 346
+const MEASURED: Record<string, { cx: number; bottom: number }> = {
+  [FRAMES.idle]: { cx: 178, bottom: 337 }, [FRAMES.blink]: { cx: 177, bottom: 335 },
+  [FRAMES.front]: { cx: 175, bottom: 336 }, [FRAMES.sit]: { cx: 165, bottom: 336 },
+  [FRAMES.point]: { cx: 166, bottom: 332 }, [FRAMES.wave]: { cx: 170, bottom: 332 },
+  [FRAMES.clap]: { cx: 158, bottom: 333 }, [FRAMES.sleep]: { cx: 172, bottom: 279 },
+}
+function alignFrame(src: string) {
+  const m = MEASURED[src]
+  if (!m) return undefined
+  const dx = ((178 - m.cx) / FRAME_SIZE) * 100
+  const dy = ((337 - m.bottom) / FRAME_SIZE) * 100
+  return `translate(${dx.toFixed(2)}%, ${dy.toFixed(2)}%)`
+}
+
 const STATE_FRAME: Record<FoxMotionState, string> = {
   idle: FRAMES.idle,
   pointing: FRAMES.point,
@@ -100,7 +115,7 @@ export function FoxMotion({
         <div className="mascot-fox-anchor">
           <div className="mascot-fox-visual">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={src} src={src} alt="" className="mascot-fox-img fox-motion-frame" draggable={false} />
+            <img key={src} src={src} alt="" className="mascot-fox-img fox-motion-frame" style={{ transform: alignFrame(src) }} draggable={false} />
           </div>
         </div>
         <div className="mascot-sparkles" aria-hidden="true">
