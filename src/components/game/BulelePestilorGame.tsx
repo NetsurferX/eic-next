@@ -867,21 +867,22 @@ export function BulelePestilorGame({
           const rg = rodGeom(0)
           const tip = rg.tip
           return (
-            <svg width="100%" height={stageH} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3 }} aria-hidden="true">
+            <svg
+              width="100%"
+              height={stageH}
+              style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3,
+                transformBox: 'view-box',
+                transformOrigin: `${ROD_BASE.x}px ${ROD_BASE.y}px`,
+                animation: pull ? 'none' : 'pf-rod-rest 5.4s ease-in-out infinite',
+              }}
+              aria-hidden="true"
+            >
               {/* mânerul pornește din lăbuță; mulineta rămâne sub palmă */ }
               <line x1={ROD_BASE.x - 8} y1={ROD_BASE.y + 7} x2={ROD_BASE.x + 5} y2={ROD_BASE.y - 1} stroke="#3d2a18" strokeWidth="7" strokeLinecap="round" />
               <circle cx={ROD_BASE.x - 1} cy={ROD_BASE.y + 10} r="4.5" fill="#9aa3ab" stroke="#4a5158" strokeWidth="1.3" />
               <path ref={rodARef} d={rg.d} fill="none" stroke="#6b4a2b" strokeWidth="4" strokeLinecap="round" />
               <path ref={rodBRef} d={rg.d} fill="none" stroke="#d2a86e" strokeWidth="1.4" strokeLinecap="round" />
-              {/* lăbuța vulpii se așază peste mâner: palmă portocalie, pernițe crem și deget mare care strânge lemnul */}
-              <g transform={`translate(${ROD_BASE.x - 1} ${ROD_BASE.y + 1}) rotate(-28)`} pointerEvents="none">
-                <ellipse cx="0" cy="0" rx="9.5" ry="7.2" fill="#d97832" stroke="#8f431f" strokeWidth="1.3" />
-                <ellipse cx="-1" cy="1" rx="5.2" ry="4.1" fill="#f6d9b4" opacity=".96" />
-                <ellipse cx="-6.2" cy="-5.4" rx="3.2" ry="2.6" fill="#f6d9b4" stroke="#a85b2b" strokeWidth=".7" />
-                <ellipse cx="-1.2" cy="-7.1" rx="3.1" ry="2.5" fill="#f6d9b4" stroke="#a85b2b" strokeWidth=".7" />
-                <ellipse cx="4.1" cy="-5.2" rx="3" ry="2.4" fill="#f6d9b4" stroke="#a85b2b" strokeWidth=".7" />
-                <path d="M4 2 Q8 4 7 8" fill="none" stroke="#f6d9b4" strokeWidth="3.2" strokeLinecap="round" />
-              </g>
               {pull ? (
                 <>
                   <path ref={lineRef} d={`M${tip.x} ${tip.y}`} fill="none" stroke="#555" strokeWidth="1.1" />
@@ -1027,6 +1028,7 @@ export function BulelePestilorGame({
         @keyframes pf-ripple { 0% { transform: scale(.5); opacity: .9 } 100% { transform: scale(2); opacity: 0 } }
         .pf-ripple { transform-box: fill-box; transform-origin: center; animation: pf-ripple 2.2s ease-out infinite; }
         .pf-ripple2 { animation-delay: 1.1s; }
+        @keyframes pf-rod-rest { 0%,100% { transform: rotate(0deg) } 34% { transform: rotate(-1.25deg) } 68% { transform: rotate(.55deg) } }
         @keyframes pf-bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(3px) } }
         .pf-float { animation: pf-bob 1.6s ease-in-out infinite; }
         @keyframes pf-score-flash { 0% { transform: scale(1) } 40% { transform: scale(1.35) rotate(-2deg) } 100% { transform: scale(1) } }
