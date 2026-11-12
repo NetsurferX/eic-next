@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { MascotV2, type MascotStateV2 } from '@/components/game/MascotV2'
+import { useSpringLook } from '@/components/game/useSpringLook'
 import { speakWord } from '@/lib/speak'
 import WordRenderer from '@/components/WordRenderer'
 import type { RenderNode } from '@/lib/renderNode'
@@ -335,6 +336,18 @@ export function BulelePestilorGame({
   const rodBRef = useRef<SVGPathElement | null>(null)
   const lineRef = useRef<SVGPathElement | null>(null)
   const hookRef = useRef<SVGPathElement | null>(null)
+  const foxLookRef = useRef<HTMLDivElement | null>(null)
+  useSpringLook(foxLookRef, () => {
+    const fishEl = pullFishRef.current ?? swimElRef.current
+    if (fishEl) {
+      const r = fishEl.getBoundingClientRect()
+      if (r.width > 0) return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+    }
+    const stage = stageRef.current
+    if (!stage) return null
+    const sr = stage.getBoundingClientRect()
+    return { x: sr.left + FLOAT.x, y: sr.top + FLOAT.y }
+  }, { maxRot: 8, maxShift: 4 })
 
   function later(fn: () => void, ms: number) {
     timers.current.push(window.setTimeout(fn, ms))
@@ -782,7 +795,9 @@ export function BulelePestilorGame({
         <div style={{ position: 'absolute', left: FOX_LEFT + 136, top: SKY_H + 2, width: 8, height: 40, background: '#8a6238' }} />
         {/* vulpea (singura de pe ecran) */}
         <div className={`pf-fox${pull ? ' is-fight' : ''}`} style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
-          <MascotV2 steady state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
+          <div ref={foxLookRef} style={{ transformOrigin: '42% 78%' }}>
+            <MascotV2 steady state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
+          </div>
         </div>
         {/* bula comics cu simbolul rostit de vulpe; chenarul are culoarea simbolului (negru la consoane) */}
         {announce && !paused && !done && (() => {

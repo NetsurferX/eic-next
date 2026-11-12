@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSpringLook } from '@/components/game/useSpringLook'
 
 // ── Vulpea-asistent (FoxHelper) — spre deosebire de Mascot (bufnița din
 //    docul de coloană/nivel), asta stă PERMANENT pe ecran, ca un Clippy
@@ -66,6 +67,20 @@ export function FoxHelper({
     return () => clearInterval(t)
   }, [current, menuOpen])
 
+  const lookRef = useRef<HTMLSpanElement>(null)
+  const pointer = useRef<{ x: number; y: number } | null>(null)
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => { pointer.current = { x: e.clientX, y: e.clientY } }
+    const onLeave = () => { pointer.current = null }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerleave', onLeave)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerleave', onLeave)
+    }
+  }, [])
+  useSpringLook(lookRef, () => pointer.current, { maxRot: 9, maxShift: 3 })
+
   const tip = current ?? (menuOpen ? null : { id: 'idle', text: idleTip, mood: 'idle' as const })
   const mood: FoxMood = tip?.mood ?? 'idle'
 
@@ -93,8 +108,10 @@ export function FoxHelper({
         aria-label="Asistent"
         title="Vulpea te ajută"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={FACE_BY_MOOD[mood]} alt="" className="fox-avatar-img" draggable={false} />
+        <span ref={lookRef} style={{ display: 'block', width: '100%', height: '100%', transformOrigin: '50% 72%' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={FACE_BY_MOOD[mood]} alt="" className="fox-avatar-img" draggable={false} />
+        </span>
       </button>
     </div>
   )
