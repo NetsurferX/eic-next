@@ -1061,7 +1061,7 @@ export function BulelePestilorGame({
         .pf-weed { position: absolute; pointer-events: none; transform-origin: 50% 100%; animation: pf-weed 3.4s ease-in-out infinite; }
         @keyframes pf-dock { 0%,100% { transform: rotate(-0.35deg) } 38% { transform: rotate(0.7deg) translateY(-1px) } 68% { transform: rotate(-0.15deg) translateY(0.4px) } }
         .pf-fox { transform-origin: 40% 100%; animation: pf-dock 6.4s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) { .pf-rays, .pf-weed, .pf-motes span, .pf-caustic, .pf-fox { animation: none } }
+        @media (prefers-reduced-motion: reduce) { .pf-rays, .pf-weed, .pf-motes span, .pf-caustic, .pf-fox, .pf-rod-rest { animation: none } }
       `}</style>
     </div>
   )
