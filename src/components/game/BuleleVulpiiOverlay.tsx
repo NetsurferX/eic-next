@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import type { Lesson } from '@/lib/levels'
-import type { BuleleVulpiiLevel, BuleleVulpiiResult } from './BuleleVulpiiGame'
 // Actualizare (2026-10-02): jocul montat e varianta cu pești. Revenire la baloane =
 // import { BuleleVulpiiGame } from './BuleleVulpiiGame' + <BuleleVulpiiGame> mai jos.
-import { BulelePestilorGame } from './BulelePestilorGame'
+import { BulelePestilorGame, type BulelePestilorLevel, type BulelePestilorResult } from './BulelePestilorGame'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Overlay full-screen deschis din /learn imediat după ce o coloană e
@@ -41,8 +40,8 @@ export function BuleleVulpiiOverlay({
   config: BuleleVulpiiOverlayConfig
   onDone: () => void
 }) {
-  const [level, setLevel] = useState<BuleleVulpiiLevel>(1)
-  const [result, setResult] = useState<BuleleVulpiiResult | null>(null)
+  const [level, setLevel] = useState<BulelePestilorLevel>(1)
+  const [result, setResult] = useState<BulelePestilorResult | null>(null)
   const [closing, setClosing] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
 
@@ -57,7 +56,7 @@ export function BuleleVulpiiOverlay({
   // Ce se întâmplă la finalul numărătorii: fie trece la nivelul următor
   // (rezultat OK, mai există un nivel), fie închide overlay-ul și continuă
   // lecția (nivelul 2 e gata, sau pragul nu a fost atins).
-  const advancesLevel = !!result?.passed && level < 2
+  const advancesLevel = !!result?.passed && level < 3
 
   useEffect(() => {
     if (!result) {
@@ -74,7 +73,7 @@ export function BuleleVulpiiOverlay({
   useEffect(() => {
     if (countdown !== 0) return
     if (advancesLevel) {
-      setLevel(l => (l + 1) as BuleleVulpiiLevel)
+      setLevel(l => (l + 1) as BulelePestilorLevel)
       setResult(null)
       setCountdown(null)
     } else {

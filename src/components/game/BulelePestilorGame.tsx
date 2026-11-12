@@ -24,7 +24,7 @@ import { symbolView, bodyColorFor, CONSONANT_IDS, WHITE_OUTLINED_TEXT_STYLE } fr
 //    scăpat nu pune coadă. Dinții dispar (nu mai au rol).
 // ─────────────────────────────────────────────────────────────────────────
 
-export type BulelePestilorLevel = 1 | 2
+export type BulelePestilorLevel = 1 | 2 | 3
 type Level = BulelePestilorLevel
 
 export interface BulelePestilorResult { level: BulelePestilorLevel; rate: number; passed: boolean }
@@ -55,6 +55,15 @@ function pickWord(lesson: Lesson): LessonWord {
 }
 function ttsWordFor(lesson: Lesson): string {
   return lesson.matchWord ?? lesson.words[0]?.text ?? lesson.letter
+}
+// Vulpea spune simbolul (cu accentul lecției: la coloana o = en-GB → /ɒ/ RP). La nivelul 3 spune apoi și cuvântul.
+// `stillOn` oprește lanțul dacă între timp s-a dat pauză.
+function sayAnnouncement(lesson: Lesson, word: LessonWord, level: Level, stillOn: () => boolean) {
+  const accent = lesson.accent ?? 'en-US'
+  const first = speakWord(ttsWordFor(lesson), { accent })
+  if (level === 3) {
+    first.promise.then(() => { if (stillOn()) speakWord(word.text, { accent: word.accent ?? accent }) })
+  }
 }
 
 const TOTAL = 5
@@ -175,40 +184,38 @@ function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: 
 }
 
 function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: boolean): { node: ReactNode; len: number } {
-  // Nivelul 1: la consoane simbolul se vede pe pește de la început.
-  if (level === 1 && !solved && CONSONANT_IDS.has(lesson.id)) return symbolNode(lesson, word)
-  // Altfel peștele rămâne gol până utilizatorul răspunde corect.
-  // len rămâne corect ca să nu sară mărimea fontului la dezvăluire.
-  if (!solved) {
-    const hidden = level === 1 ? symbolView(lesson).text.replace(/\u200D/g, '') : word.text
-    return { node: null, len: Math.max(hidden.length, 1) }
+  const flat = lesson.id === 'o'   // coloana o: roz complet, fără negru
+  // Nivelul 3: peștele poartă cuvântul, complet prelucrat — mai puțin litera/literele antrenate,
+  // care rămân neutre și se umflă/se dezumflă încet până se apasă butonul potrivit.
+  if (level === 3) {
+    const text = word.text
+    const nodes = nodesCache.get(text.toLowerCase())
+    const idx = text.toLowerCase().indexOf(word.mark.toLowerCase())
+    const range: [number, number] | undefined = !solved && idx !== -1 ? [idx, idx + word.mark.length] : undefined
+    if (nodes) return { node: <WordRenderer nodes={nodes} wordStr={text} flatSimple={flat} pulseRange={range} />, len: text.length }
+    if (idx === -1) return { node: <span style={{ color: '#333' }}>{text}</span>, len: text.length }
+    const markEnd = idx + word.mark.length
+    const tri = lesson.id === 'ou'
+    return {
+      len: text.length,
+      node: (
+        <span style={{ color: '#333' }}>
+          {text.slice(0, idx)}
+          {[...text.slice(idx, markEnd)].map((ch, k, arr) => {
+            if (!solved) return <span key={k} className="eic-pulse">{ch}</span>
+            if (tri && isVowelLike(ch)) return <span key={k} style={{ ...tricolorLetterStyle(), textDecorationColor: TRICOLOR_UNDERLINE_COLOR }}>{ch}</span>
+            if (lesson.id === 'oi' && k === arr.length - 1) return <span key={k} style={{ color: '#CC0000' }}>{OFFGLIDE[ch] ?? ch}</span>
+            return <span key={k} style={isVowelLike(ch) ? { color: lesson.color } : undefined}>{ch}</span>
+          })}
+          {text.slice(markEnd)}
+        </span>
+      ),
+    }
   }
-  const tri = lesson.id === 'ou'
-  if (level === 1) return symbolNode(lesson, word)
-  const text = word.text
-  const nodes = nodesCache.get(text.toLowerCase())
-  if (solved && nodes) return { node: <WordRenderer nodes={nodes} wordStr={text} />, len: text.length }
-  const idx = text.toLowerCase().indexOf(word.mark.toLowerCase())
-  if (!solved || idx === -1) return { node: <span style={{ color: '#333' }}>{text}</span>, len: text.length }
-  const markEnd = idx + word.mark.length
-  const markChars = [...text.slice(idx, markEnd)]
-  return {
-    len: text.length,
-    node: (
-      <span style={{ color: '#333' }}>
-        {text.slice(0, idx)}
-        {markChars.map((ch, k) => {
-          if (tri && isVowelLike(ch)) {
-            return <span key={k} style={{ ...tricolorLetterStyle(), textDecorationColor: TRICOLOR_UNDERLINE_COLOR }}>{ch}</span>
-          }
-          const diac = lesson.id === 'oi' && k === markChars.length - 1
-          if (diac) return <span key={k} style={{ color: '#CC0000' }}>{OFFGLIDE[ch] ?? ch}</span>
-          return <span key={k} style={isVowelLike(ch) ? { color: lesson.color } : undefined}>{ch}</span>
-        })}
-        {text.slice(markEnd)}
-      </span>
-    ),
-  }
+  // Nivelul 1: peștele e colorat (corpul), iar la consoane poartă și simbolul din prima clipă.
+  // Nivelul 2: peștele vine gol; la apăsarea corectă primește simbolul și culoarea.
+  if (solved || (level === 1 && CONSONANT_IDS.has(lesson.id))) return symbolNode(lesson, word)
+  return { node: null, len: Math.max(symbolView(lesson).text.replace(/\u200D/g, '').length, 1) }
 }
 
 // ── peștele (SVG), cu CAPUL spre dreapta (sensul de înot) ──
@@ -300,6 +307,7 @@ export function BulelePestilorGame({
   const [paused, setPaused] = useState(false)
   const [confirmExit, setConfirmExit] = useState(false)
   const [announce, setAnnounce] = useState<Lesson | null>(null)   // bula comics de lângă capul vulpii
+  const [announceWord, setAnnounceWord] = useState<string | null>(null)   // nivelul 3: și cuvântul, în bulă
   const [buzzId, setBuzzId] = useState<string | null>(null)       // butonul care „protestează” (răspuns greșit)
 
   const stageRef = useRef<HTMLDivElement>(null)
@@ -335,14 +343,16 @@ export function BulelePestilorGame({
     const item = q[pos]
     progressRef.current = 0
     setFourthVisible(item.group.kind === 'next')
+    const w = pickWord(item.group.lesson)
     setFish({
-      id: fishSeq++, qi: pos, group: item.group, word: pickWord(item.group.lesson),
+      id: fishSeq++, qi: pos, group: item.group, word: w,
       y: SKY_H + 46 + Math.random() * (stageHRef.current - SKY_H - SAND_H - 92),
       phase: Math.random() * Math.PI * 2, progress: 0, zone: 'blue', state: 'swimming',
       dir: Math.random() < FROM_RIGHT_P ? -1 : 1,
     })
-    speakWord(ttsWordFor(item.group.lesson))
+    sayAnnouncement(item.group.lesson, w, level, () => !pausedRef.current)
     holdUntilRef.current = performance.now() + START_HOLD_MS
+    setAnnounceWord(level === 3 ? w.text : null)
     setAnnounce(item.group.lesson)
     later(() => setAnnounce(null), START_HOLD_MS)
   }
@@ -477,9 +487,10 @@ export function BulelePestilorGame({
     if (!fish) return
     if (fish.zone === 'pink' && !hintFiredFor.current.has(fish.id)) {
       hintFiredFor.current.add(fish.id)
-      speakWord(ttsWordFor(fish.group.lesson))
+      sayAnnouncement(fish.group.lesson, fish.word, level, () => !pausedRef.current)
       holdUntilRef.current = performance.now() + HINT_HOLD_MS
       setHintGroup(fish.group)
+      setAnnounceWord(level === 3 ? fish.word.text : null)
       setAnnounce(fish.group.lesson)
       later(() => { setHintGroup(null); setAnnounce(null) }, HINT_HOLD_MS)
     }
@@ -530,7 +541,7 @@ export function BulelePestilorGame({
           : 0.6 + 0.4 * Math.min((el - PULL_A_MS - HOLD_MS) / PULL_B_MS, 1)
       if (!heldSpoken && el >= PULL_A_MS) {
         heldSpoken = true
-        speakWord(ttsWordFor(f.group.lesson))   // se aude încă o dată cuvântul/sunetul
+        sayAnnouncement(f.group.lesson, f.word, level, () => !pausedRef.current)   // se aude încă o dată sunetul (și cuvântul la nivelul 3)
       }
       // firul se lungește lin la începutul pauzei și rămâne lung până la desprindere
       const ext = LINE_EXTRA * (el < PULL_A_MS ? 0 : ease(Math.min((el - PULL_A_MS) / LINE_EXT_MS, 1)))
@@ -630,7 +641,7 @@ export function BulelePestilorGame({
     if (!fish || fish.state !== 'swimming' || pausedRef.current || heartsRef.current <= 0) return
     heartsRef.current -= 1
     setHearts(heartsRef.current)
-    speakWord(ttsWordFor(fish.group.lesson))
+    sayAnnouncement(fish.group.lesson, fish.word, level, () => !pausedRef.current)
     setHelpMessage(fish.group.lesson.letter)
     later(() => setHelpMessage(null), 1400)
   }
@@ -783,6 +794,7 @@ export function BulelePestilorGame({
               fontSize: 26, fontWeight: 800, fontStyle: 'italic', boxShadow: '2px 3px 0 rgba(0,0,0,.15)',
             }}>
               <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{sv.text}</span>
+              {announceWord && <span style={{ marginLeft: 10, fontSize: 20, fontStyle: 'normal', fontWeight: 700, color: '#333' }}>{announceWord}</span>}
               <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />
             </div>
           )
@@ -884,8 +896,8 @@ export function BulelePestilorGame({
               }}
             >
               <FishSvg
-                body={bodyColorFor(fish.group.lesson)}
-                tricolor={fish.group.lesson.id === 'ou'}
+                body={level === 2 && !solved ? NEUTRAL : bodyColorFor(fish.group.lesson)}
+                tricolor={fish.group.lesson.id === 'ou' && !(level === 2 && !solved)}
                 label={lb.node} len={lb.len} width={FISH_W}
               />
               {fish.group.kind === 'next' && <span style={{ position: 'absolute', top: -10, right: -4, fontSize: 13 }}>✨</span>}
@@ -975,6 +987,8 @@ export function BulelePestilorGame({
         .pf-buzz { animation: pf-buzz 450ms ease-in-out infinite; outline: 4px solid rgba(255,140,0,.55); outline-offset: 2px; }
         @keyframes pf-wrong { 0%,100% { transform: translateX(0) } 15% { transform: translateX(-8px) rotate(-6deg) } 30% { transform: translateX(8px) rotate(6deg) } 45% { transform: translateX(-7px) rotate(-5deg) } 60% { transform: translateX(7px) rotate(5deg) } 80% { transform: translateX(-3px) } }
         .pf-wrong { animation: pf-wrong 420ms linear; outline: 4px solid rgba(204,0,0,.55); outline-offset: 2px; }
+        @keyframes pf-swell { 0%,100% { transform: scale(1) } 50% { transform: scale(1.4) } }
+        .eic-pulse { display: inline-block; animation: pf-swell 2.6s ease-in-out infinite; }
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }

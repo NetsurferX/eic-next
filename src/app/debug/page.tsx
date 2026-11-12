@@ -32,7 +32,7 @@ export default function BulelePestilorPage() {
             <option key={f.lesson.id} value={i}>{f.levelName} · {f.lesson.tabLabel} ({f.lesson.letter})</option>
           ))}
         </select>
-        {([1, 2] as BulelePestilorLevel[]).map(lv => (
+        {([1, 2, 3] as BulelePestilorLevel[]).map(lv => (
           <button
             key={lv}
             onClick={() => { setLevel(lv); setNonce(n => n + 1) }}

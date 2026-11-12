@@ -118,6 +118,7 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
   'k|ch':  'ċh',   // chemistry, school (ch → /k/)
   'sh|ch': 'c̄h',   // chef, machine     (ch → /ʃ/)
   'dj|g':  'ğ',    // gem, barge        (g → /dʒ/)
+  'dj|dge': 'dğe', // bridge, judge     (dge → /dʒ/) — cerere Dorel 2026-11: „bridğe” (g → ğ, d și e rămân)
   'z|s':   'ṡ',    // does, is          (s → /z/)
   'sh|s':  'ŝ',    // sugar             (s → /ʃ/)
   'ch|t':  'ẗ',    // culture           (t → /tʃ/)

@@ -8,6 +8,12 @@ import { emitPipelineStage, nodesDiffer } from '@/lib/pipelineTrace'
 interface Props {
   nodes:   RenderNode[]
   wordStr: string
+  // Opțional, doar pentru /learn și jocul „Vulpea la pescuit” (valori implicite = comportament neschimbat):
+  //  flatSimple — vocalele cu gradient 70/30 spre negru (ɒ, ʌ, ɪ, ʊ) se desenează într-o singură culoare plată.
+  //  pulseRange — [început, sfârșit) în literele cuvântului: nodurile care ating intervalul se desenează
+  //               neutru + clasa `eic-pulse` (animația o definește părintele). Folosit la nivelul 3.
+  flatSimple?: boolean
+  pulseRange?: [number, number]
 }
 
 // ── Tricolor (/əʊ/) vertical-gradient calibration ──────────────────────────
@@ -15,7 +21,7 @@ interface Props {
 // /learn page's hand-curated "ou" column can share the exact same
 // calibration instead of re-deriving its own copy.
 
-export default function WordRenderer({ nodes, wordStr }: Props) {
+export default function WordRenderer({ nodes, wordStr, flatSimple = false, pulseRange }: Props) {
   // NOTE: split out + traced (each step reports to /debug/graph's live
   // view via pipelineTrace.ts) at Dorel's explicit request. Purely
   // additive — same three calls, same order, same output as before;
@@ -32,10 +38,23 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
   const displayNodes = resolveDisplay(renderNodes)
   emitPipelineStage(wordStr, 'resolveDisplay', nodesDiffer(renderNodes, displayNodes))
 
+  // poziția (în litere) la care începe fiecare nod — pentru pulseRange
+  let letterOff = 0
+  const offsets = displayNodes.map(d => { const o = letterOff; letterOff += (d.t ?? '').length; return o })
+
   return (
     <span className="eic-word">
-      {displayNodes.map((d, i) => {
-        if (!d.t) return null
+      {displayNodes.map((d0, i) => {
+        if (!d0.t) return null
+
+        // flatSimple: gradientul 70/30 al vocalelor simple devine culoare plată (prima culoare din gradient)
+        const flatHex = flatSimple && d0.gradient && !d0.perLetterGradient && d0.gradientCss
+          ? d0.gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0]
+          : undefined
+        const inPulse = !!pulseRange && offsets[i] < pulseRange[1] && offsets[i] + d0.t.length > pulseRange[0]
+        const d = inPulse
+          ? { ...d0, gradient: false, gradientCss: undefined, perLetterGradient: false, color: '#333', underline: false, offglideColor: undefined }
+          : flatHex ? { ...d0, gradient: false, gradientCss: undefined, color: flatHex } : d0
 
         // Verified against the print reference: /əʊ/'s tricolor cycles on
         // EACH letter independently (e.g. "oa" in croak — both o and a get
@@ -95,6 +114,7 @@ export default function WordRenderer({ nodes, wordStr }: Props) {
           d.syllabicVR ? 'eic-syllabic-vr' : '',
           d.underline  ? 'eic-stressed'    : '',
           d.mute       ? 'eic-silent'      : '',
+          inPulse      ? 'eic-pulse'       : '',
         ].filter(Boolean).join(' ')
 
         return (

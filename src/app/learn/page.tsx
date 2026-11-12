@@ -14,7 +14,7 @@ import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
 import { MascotIntro } from '@/components/game/MascotIntro'
 import { StarIcon } from '@/components/game/StarIcon'
-import { symbolView, WHITE_OUTLINED_TEXT_STYLE } from '@/lib/symbolDisplay'
+import { symbolView, WHITE_OUTLINED_TEXT_STYLE, CONSONANT_IDS, CONSONANT_BLACK } from '@/lib/symbolDisplay'
 import type { RenderNode } from '@/lib/renderNode'
 import { BuleleVulpiiOverlay, type BuleleVulpiiOverlayConfig } from '@/components/game/BuleleVulpiiOverlay'
 
@@ -48,11 +48,49 @@ const COLUMN_WORD_OVERRIDES: Record<string, LessonWord[]> = {
     { text: 'bug',  mark: 'u', accent: 'en-GB' },
     { text: 'son',  mark: 'o', accent: 'en-GB' },
   ],
+  // u: moon, blue, fruit, soup
+  u: [
+    { text: 'moon',  mark: 'oo' },
+    { text: 'blue',  mark: 'ue' },
+    { text: 'fruit', mark: 'ui' },
+    { text: 'soup',  mark: 'ou' },
+  ],
+  // ỷu: cute, music, new (în loc de use), beauty (în loc de computer).
+  // new: en-GB explicit — în US „new” e /nu/ (fără yod), n-ar mai aparține coloanei /ỷu/.
+  ju: [
+    { text: 'cute',   mark: 'u' },
+    { text: 'music',  mark: 'u' },
+    { text: 'new',    mark: 'ew', accent: 'en-GB' },
+    { text: 'beauty', mark: 'eau' },
+  ],
+  // aỷ: „my” pe primul loc
+  ai: [
+    { text: 'my',    mark: 'y' },
+    { text: 'night', mark: 'i' },
+    { text: 'time',  mark: 'i' },
+    { text: 'like',  mark: 'i' },
+  ],
+  // aw: „flower” în loc de „now”
+  au: [
+    { text: 'loud',   mark: 'ou' },
+    { text: 'cow',    mark: 'ow' },
+    { text: 'house',  mark: 'ou' },
+    { text: 'flower', mark: 'ow' },
+  ],
+  // ə+ (l̩/m̩): „uncle” cu accent en-GB, ca „u” să fie /ʌ/ (US îl transcrie cu schwa → ar ieși negru)
+  'syllabic-lm': [
+    { text: 'little', mark: 'le' },
+    { text: 'table',  mark: 'le' },
+    { text: 'apple',  mark: 'le' },
+    { text: 'uncle',  mark: 'le', accent: 'en-GB' },
+  ],
 }
+// Coloanele de consoane sunt NEGRE (culoare + etichetă), nu violet/portocaliu/etc. Local paginii — levels.ts neatins.
 const LEVELS: Level[] = ALL_LEVELS.map(lvl => ({
   ...lvl,
   lessons: lvl.lessons.map(l => ({
     ...l,
+    ...(CONSONANT_IDS.has(l.id) ? { color: CONSONANT_BLACK, tabLabel: l.id === 'syllabic-lm' ? l.tabLabel : 'Negru' } : {}),
     words: (COLUMN_WORD_OVERRIDES[l.id] ?? l.words).slice(0, WORDS_PER_COLUMN),
   })),
 }))
@@ -1101,8 +1139,9 @@ export default function LearnPage() {
                       // Tricolor pe /ou/ când e deblocată; altfel culoarea coloanei.
                       // Conturul comics e pe .aik-speech-bubble, nu pe literă.
                       style={isUnlocked
-                        ? (isTricolor ? tricolorLetterStyle(8)
+                        ? (isTricolor ? tricolorLetterStyle(8, 0.7)   // banda galbenă cu 30% mai subțire (doar în capul coloanei)
                           : symbolView(l).whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
+                          : l.id === 'oi' ? { color: OFFGLIDE_COLOR }   // ỷ din titlu: roșu
                           : { color: symbolView(l).color })
                         : undefined}
                     >
@@ -1190,7 +1229,7 @@ export default function LearnPage() {
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
                       {wordNodes[w.text.toLowerCase()]
-                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} />
+                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} />
                         : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />}
                     </button>
                   )
