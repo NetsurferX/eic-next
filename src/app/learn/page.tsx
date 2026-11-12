@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
-import { MascotIntro } from '@/components/game/MascotIntro'
+import { FoxReel, FACE_IDLE_REEL, FACE_SPEAK_REEL } from '@/components/game/useFrameCycle'
 import { StarIcon } from '@/components/game/StarIcon'
 import { symbolView, WHITE_OUTLINED_TEXT_STYLE, CONSONANT_IDS, CONSONANT_BLACK } from '@/lib/symbolDisplay'
 import type { RenderNode } from '@/lib/renderNode'
@@ -1123,12 +1123,9 @@ export default function LearnPage() {
                 >
                   {isActive && isUnlocked && (
                     <div className="aik-corner" aria-hidden="true" title="Aik">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={letterPulseId === l.id ? '/mascot/face-laugh.png' : '/mascot/face-smile.png'}
-                        alt=""
+                      <FoxReel
+                        frames={letterPulseId === l.id ? FACE_SPEAK_REEL : FACE_IDLE_REEL}
                         className="aik-corner-head"
-                        draggable={false}
                       />
                     </div>
                   )}

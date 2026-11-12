@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSpringLook } from '@/components/game/useSpringLook'
+import { FoxReel, FACE_IDLE_REEL } from '@/components/game/useFrameCycle'
 
 // ── Vulpea-asistent (FoxHelper) — spre deosebire de Mascot (bufnița din
 //    docul de coloană/nivel), asta stă PERMANENT pe ecran, ca un Clippy
@@ -109,8 +110,12 @@ export function FoxHelper({
         title="Vulpea te ajută"
       >
         <span ref={lookRef} style={{ display: 'block', width: '100%', height: '100%', transformOrigin: '50% 72%' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={FACE_BY_MOOD[mood]} alt="" className="fox-avatar-img" draggable={false} />
+          {mood === 'idle' ? (
+            <FoxReel frames={FACE_IDLE_REEL} className="fox-avatar-img" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={FACE_BY_MOOD[mood]} alt="" className="fox-avatar-img" draggable={false} />
+          )}
         </span>
       </button>
     </div>

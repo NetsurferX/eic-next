@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useFrameCycle, type ReelFrame } from '@/components/game/useFrameCycle'
 
 // ── MascotV2 — copie PARALELĂ a lui Mascot.tsx, pe noul set de 12 vulpi
 //    (public/mascot/v2/). Mascot.tsx nu e modificat și rămâne folosit de
@@ -98,6 +99,19 @@ function alignTransform(src: string): string {
 }
 const STEADY_HOLD_MS = 250
 
+const IDLE_REEL: ReelFrame[] = [
+  { src: POSE.idleSide, ms: 1100 },
+  { src: POSE.blink, ms: 120 },
+  { src: POSE.idleSide, ms: 700 },
+  { src: POSE.idleFront, ms: 480 },
+  { src: POSE.idleSide, ms: 640 },
+  { src: POSE.blink, ms: 110 },
+  { src: POSE.sit, ms: 720 },
+  { src: POSE.idleSide, ms: 520 },
+  { src: POSE.wave, ms: 460 },
+  { src: POSE.idleSide, ms: 800 },
+]
+
 export function MascotV2({
   state = 'idle',
   action,
@@ -156,14 +170,18 @@ export function MascotV2({
     return () => window.clearInterval(t)
   }, [action])
 
+  const idleFrame = useFrameCycle(!action && state === 'idle' ? IDLE_REEL : null)
+
   const pose =
     action === 'walking'
       ? runFrame ? POSE.runB : POSE.runA
-      : action
-        ? ACTION_POSE[action]
-        : state === 'idle' && blinking
-          ? POSE.blink
-          : STATE_POSE[state]
+      : idleFrame
+        ? idleFrame
+        : action
+          ? ACTION_POSE[action]
+          : state === 'idle' && blinking
+            ? POSE.blink
+            : STATE_POSE[state]
 
   // ── fade încrucișat între cadre — două straturi <img> suprapuse, cel nou
   //    intră cu opacitate crescândă peste cel vechi, care rămâne dedesubt
@@ -209,7 +227,7 @@ export function MascotV2({
   useEffect(() => {
     if (!steady || shown === pose) return
     const blinkInvolved = pose === POSE.blink || shown === POSE.blink
-    const exempt = blinkInvolved || action === 'walking'
+    const exempt = blinkInvolved || action === 'walking' || state === 'idle'
     const wait = exempt ? 0 : Math.max(0, STEADY_HOLD_MS - (Date.now() - lastSwap.current))
     const t = window.setTimeout(() => {
       if (!blinkInvolved) lastSwap.current = Date.now()

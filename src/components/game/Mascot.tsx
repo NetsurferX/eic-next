@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useFrameCycle, type ReelFrame } from '@/components/game/useFrameCycle'
 
 // ── Mascota EiC — vulpița din poveste, care participă la joc: se apleacă
 //    invitator spre buton când te așteaptă să apeși (`pointing`), bate din
@@ -91,6 +92,20 @@ const ACTION_POSE: Record<MascotAction, string> = {
 
 const BLINK_POSE = '/mascot/fox-blink.png'
 
+// Repaus = secvență de poze reale, nu o singură imagine care respiră.
+const IDLE_REEL: ReelFrame[] = [
+  { src: '/mascot/fox-idle.png', ms: 1500 },
+  { src: '/mascot/fox-blink.png', ms: 130 },
+  { src: '/mascot/fox-idle.png', ms: 820 },
+  { src: '/mascot/fox-blink.png', ms: 110 },
+  { src: '/mascot/fox-idle.png', ms: 640 },
+  { src: '/mascot/fox-jump.png', ms: 260 },
+  { src: '/mascot/fox-idle.png', ms: 480 },
+  { src: '/mascot/fox-pointing.png', ms: 380 },
+  { src: '/mascot/fox-idle.png', ms: 900 },
+  { src: '/mascot/fox-clap.png', ms: 320 },
+]
+
 function resolvePose(state: MascotState, action: MascotAction | undefined, blinking: boolean) {
   if (action) return ACTION_POSE[action]
   if (state === 'idle' && blinking) return BLINK_POSE
@@ -147,7 +162,8 @@ export function Mascot({
     }
   }, [state, action])
 
-  const pose = resolvePose(state, action, blinking)
+  const idleFrame = useFrameCycle(state === 'idle' && !action ? IDLE_REEL : null)
+  const pose = idleFrame ?? resolvePose(state, action, blinking)
 
   // ── fade încrucișat între cadre — două straturi <img> suprapuse, cel nou
   //    intră cu opacitate crescândă peste cel vechi, care rămâne dedesubt
