@@ -13,7 +13,7 @@ export default function Page(){
       <div style={{position:'absolute',top:35,left:'12%',fontSize:30,opacity:.7}}>♪</div>
       <div style={{position:'absolute',top:65,right:'16%',fontSize:24,opacity:.6}}>♫</div>
       <Shadow x={300} size={SIZE}/>
-      <div style={{position:'absolute',left:'50%',bottom:55,transform:'translateX(-50%)',animation:reduced?'none':'listen 3s ease-in-out infinite'}}>
+      <div style={{position:'absolute',inset:0,pointerEvents:'none',transformOrigin:'50% 85%',animation:reduced?'none':'listen 3s ease-in-out infinite'}}>
         <Fox f={{src:heard?POSE.front:POSE.idle,x:300,y:0,flip:1,sx:1,sy:1,rot:heard?-3:0}} size={SIZE}/>
       </div>
       {heard&&<div style={{position:'absolute',left:'58%',top:45,background:'#fff',padding:'9px 13px',borderRadius:14,boxShadow:'0 3px 12px #0002',fontWeight:700}}>Te ascult! 💛</div>}
