@@ -89,16 +89,17 @@ export function FoxMotion({
   }, [state, action])
   useEffect(() => {
     if (state !== 'idle' || action) { setFrame(0); return }
-    const id = window.setInterval(() => setFrame((n) => (n + 1) % 4), 1750)
+    const id = window.setInterval(() => setFrame((n) => (n + 1) % 10), 1250)
     return () => window.clearInterval(id)
   }, [state, action])
 
   const src = action ? ACTION_FRAME[action] : state === 'idle' && blink ? FRAMES.blink
-    : state === 'idle' && frame === 2 ? FRAMES.front
-      : state === 'idle' && frame === 3 ? FRAMES.sit
-        : STATE_FRAME[state]
+     : state === 'idle' && frame === 2 ? FRAMES.front
+      : state === 'idle' && (frame === 4 || frame === 5) ? (frame === 4 ? FRAMES.runA : FRAMES.runB)
+        : state === 'idle' && frame === 7 ? FRAMES.sit
+          : STATE_FRAME[state]
 
-  const motionClass = action === 'running' || action === 'walking' ? 'fox-motion-running'
+  const motionClass = action === 'running' || action === 'walking' || (!action && state === 'idle' && (frame === 4 || frame === 5)) ? 'fox-motion-running'
     : action === 'jumping' || state === 'cheering' ? 'fox-motion-jumping'
       : state === 'sleeping' ? 'fox-motion-sleeping'
         : state === 'clapping' || action === 'celebrating' ? 'fox-motion-celebrating'
