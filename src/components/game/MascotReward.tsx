@@ -154,7 +154,7 @@ action: 'grabbing',
 x: starX,
 y: starY,
 })
-}, 650)
+}, 780)
 
 /*
 * 3.
@@ -169,7 +169,7 @@ action: 'holding-star',
 x: columnCupX,
 y: columnCupY,
 })
-}, 1050)
+}, 1380)
 
 /*
 * 4.
@@ -201,11 +201,11 @@ isLevelComplete: false,
 x: columnCupX,
 y: columnCupY,
 })
-}, 2050)
+}, 2300)
 
 schedule(() => {
 setAnimation(null)
-}, 2850)
+}, 3300)
 
 return
 }
@@ -244,7 +244,7 @@ action: 'holding-cup',
 x: bigCupX,
 y: bigCupY,
 })
-}, 3200)
+}, 3250)
 
 /*
 * 7.
@@ -259,7 +259,7 @@ action: 'pouring',
 x: bigCupX,
 y: bigCupY,
 })
-}, 4000)
+}, 4200)
 
 /*
 * 8.
@@ -275,7 +275,7 @@ isLevelComplete: true,
 x: bigCupX,
 y: bigCupY,
 })
-}, 5100)
+}, 5350)
 
 /*
 * 9.
@@ -283,7 +283,7 @@ y: bigCupY,
 */
 schedule(() => {
 setAnimation(null)
-}, 6000)
+}, 6400)
 },
 [clearTimers, schedule],
 )
