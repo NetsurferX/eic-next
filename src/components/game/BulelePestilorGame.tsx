@@ -870,11 +870,11 @@ export function BulelePestilorGame({
             <svg
               width="100%"
               height={stageH}
+              className={pull ? undefined : 'pf-rod-rest'}
               style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3,
                 transformBox: 'view-box',
                 transformOrigin: `${ROD_BASE.x}px ${ROD_BASE.y}px`,
-                animation: pull ? 'none' : 'pf-rod-rest 5.4s ease-in-out infinite',
               }}
               aria-hidden="true"
             >
@@ -1029,6 +1029,7 @@ export function BulelePestilorGame({
         .pf-ripple { transform-box: fill-box; transform-origin: center; animation: pf-ripple 2.2s ease-out infinite; }
         .pf-ripple2 { animation-delay: 1.1s; }
         @keyframes pf-rod-rest { 0%,100% { transform: rotate(0deg) } 34% { transform: rotate(-1.25deg) } 68% { transform: rotate(.55deg) } }
+        .pf-rod-rest { animation: pf-rod-rest 5.4s ease-in-out infinite; }
         @keyframes pf-bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(3px) } }
         .pf-float { animation: pf-bob 1.6s ease-in-out infinite; }
         @keyframes pf-score-flash { 0% { transform: scale(1) } 40% { transform: scale(1.35) rotate(-2deg) } 100% { transform: scale(1) } }
