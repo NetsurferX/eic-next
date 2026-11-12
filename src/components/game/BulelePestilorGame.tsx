@@ -688,12 +688,14 @@ export function BulelePestilorGame({
     : 'linear-gradient(#eaf4fb, #cfe6f3 55%, #b4d8ec)'
   const waterTop = pink ? '#fdeef4' : '#eaf4fb'   // culoarea de sus a apei (pentru creasta valurilor)
 
+  // La pescuit vulpea rămâne așezată; nu folosim ciclul idle (care include
+  // cadre de alergare), iar mișcarea undiței/privirea sunt animate separat.
   const mascotState: FoxMotionState = done
-    ? (done.passed ? 'cheering' : 'idle')
+    ? (done.passed ? 'cheering' : 'sitting')
     : paused ? 'sleeping'
-      : pull ? 'pointing'
+      : pull ? 'sitting'
         : cheer ? 'clapping'
-          : helpMessage || pink ? 'pointing' : 'idle'
+          : helpMessage || pink ? 'pointing' : 'sitting'
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit' }}>
@@ -796,7 +798,7 @@ export function BulelePestilorGame({
         {/* vulpea (singura de pe ecran) */}
         <div className="pf-fox" style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
           <div ref={foxLookRef} style={{ transformOrigin: '42% 78%' }}>
-            <FoxMotion state={mascotState} action={done?.passed ? 'celebrating' : (!paused && !done && fish?.state === 'swimming' && !pink ? 'watching' : undefined)} size={FOX_SIZE} />
+            <FoxMotion state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={FOX_SIZE} />
           </div>
         </div>
         {/* bula comics cu simbolul rostit de vulpe; chenarul are culoarea simbolului (negru la consoane) */}
