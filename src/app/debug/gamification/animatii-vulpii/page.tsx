@@ -10,6 +10,10 @@ const ANIMS = [
   { href: 'somn', emoji: '😴', title: 'Somnul', desc: 'Respiră adânc, se ridică Z-uri sub lună. „Trezește” = tresărire, salut, se așază și adoarme la loc.' },
   { href: 'priveste', emoji: '👀', title: 'Te urmărește', desc: 'Își întoarce corpul după cursor/deget, clipește, saltă la click; dacă o ignori, se așază și adoarme.' },
   { href: 'sarbatoare', emoji: '🎉', title: 'Sărbătoarea', desc: 'Răspuns corect: sărituri de bucurie + explozie de stele și confetti. „Aproape”: încurajare blândă.' },
+  { href: 'pescuit', emoji: '🎣', title: 'Pescuitul liniștit', desc: 'Vulpea stă așezată pe ponton, urmărește pluta și reacționează discret la trăsătură.' },
+  { href: 'asculta', emoji: '👂', title: 'Ascultă', desc: 'Își îndreaptă atenția spre copil și răspunde calm, cu o mică înclinare.' },
+  { href: 'gandeste', emoji: '💭', title: 'Se gândește', desc: 'Înclină capul, privește în sus și lasă ideile să apară.' },
+  { href: 'primeste-stea', emoji: '⭐', title: 'Primește o stea', desc: 'Primește recompensa cu grijă și o arată cu mândrie.' },
 ]
 
 export default function Page() {
