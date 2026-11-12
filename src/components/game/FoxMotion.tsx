@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 
-export type FoxMotionState = 'idle' | 'pointing' | 'clapping' | 'cheering' | 'talking' | 'sleeping'
+export type FoxMotionState = 'idle' | 'sitting' | 'pointing' | 'clapping' | 'cheering' | 'talking' | 'sleeping'
 export type FoxMotionAction = 'idle' | 'walking' | 'running' | 'jumping' | 'grabbing' | 'holding-star' | 'holding-cup' | 'pouring' | 'celebrating' | 'watching' | 'waving'
 
 const P = '/mascot/v2/'
@@ -38,6 +38,7 @@ function alignFrame(src: string) {
 
 const STATE_FRAME: Record<FoxMotionState, string> = {
   idle: FRAMES.idle,
+  sitting: FRAMES.sit,
   pointing: FRAMES.point,
   clapping: FRAMES.clap,
   cheering: FRAMES.cheer,
