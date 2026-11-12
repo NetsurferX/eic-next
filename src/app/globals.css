@@ -2722,7 +2722,8 @@ button, textarea, input { font-family: var(--font-sans); }
   transform: translate(-50%, -50%);
   z-index: 80;
   pointer-events: none;
-  transition: left 550ms cubic-bezier(.4, 0, .2, 1), top 550ms cubic-bezier(.4, 0, .2, 1);
+  transition: left 850ms cubic-bezier(.22, .72, .18, 1), top 850ms cubic-bezier(.22, .72, .18, 1);
+  will-change: left, top;
 }
 .mascot-reward-layer .mascot {
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .18));
