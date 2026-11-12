@@ -224,13 +224,15 @@ export function MascotV2({
   }, [])
 
   const shownPose = steady ? shown : pose
-  // stările „de salt” / acțiunile păstrează animația CSS proprie; restul
-  // primesc respirația continuă pe stratul interior.
-  const calm = steady && state !== 'cheering' && !action
-  const anchorStyle: CSSProperties | undefined = calm ? { animation: 'none' } : undefined
+  // stările „de salt” / acțiunile păstrează animația CSS proprie; idle-ul
+  // primește respirația continuă. Pointing și clapping își păstrează
+  // aplecarea / bătaia din globals.css (la pescuit vulpea se apleacă
+  // când trage, nu doar respiră).
+  const breathOnly = steady && !action && (state === 'idle' || state === 'sitting' || state === 'talking' || state === 'waving')
+  const anchorStyle: CSSProperties | undefined = (breathOnly || (steady && state === 'sleeping' && !action)) ? { animation: 'none' } : undefined
   const visualStyle: CSSProperties | undefined =
-    calm && !reduceMotion
-      ? { animation: 'mascot-idle-bob 2.6s ease-in-out infinite', transformOrigin: '50% 100%' }
+    breathOnly && !reduceMotion
+      ? { animation: 'mascot-idle-bob 4.4s cubic-bezier(.45,.05,.55,.95) infinite', transformOrigin: '50% 92%' }
       : undefined
   const shineTransform = steady ? alignTransform(shownPose) : undefined
 

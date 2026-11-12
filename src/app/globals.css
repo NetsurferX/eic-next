@@ -2413,11 +2413,17 @@ button, textarea, input { font-family: var(--font-sans); }
   align-items: flex-end;
   justify-content: center;
   transform-origin: 50% 100%;
-  animation: mascot-idle-bob 2.6s ease-in-out infinite;
+  animation: mascot-idle-bob 4.4s cubic-bezier(.45, .05, .55, .95) infinite;
 }
+/* respirație asimetrică: inspir mai lung, scurtă ținută, expir mai iute,
+   plus o ușoară schimbare de greutate — nu un du-te-vino simetric */
 @keyframes mascot-idle-bob {
-  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-  50%      { transform: translateY(-5px) rotate(-1.5deg) scale(1.015); }
+  0%        { transform: translateY(0) rotate(0deg) scale(1, 1); }
+  22%       { transform: translateY(-1px) rotate(-0.35deg) scale(1.008, 0.994); }
+  46%       { transform: translateY(-3px) rotate(-0.9deg) scale(1.016, 1.006); }
+  58%       { transform: translateY(-2.2px) rotate(-0.45deg) scale(1.008, 1.002); }
+  82%       { transform: translateY(0.5px) rotate(0.55deg) scale(0.997, 1.008); }
+  100%      { transform: translateY(0) rotate(0deg) scale(1, 1); }
 }
 
 .mascot-fox-visual {
@@ -2487,11 +2493,12 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* ── stare: "pointing" — vulpea se apleacă spre buton, săgeata pulsează ── */
 .mascot.state-pointing .mascot-fox-anchor {
-  animation: mascot-point-lean 900ms ease-in-out infinite;
+  animation: mascot-point-lean 1.8s ease-in-out infinite;
 }
 @keyframes mascot-point-lean {
-  0%, 100% { transform: translateY(0) rotate(-3deg) translateX(0); }
-  50%      { transform: translateY(-2px) rotate(-9deg) translateX(3px); }
+  0%, 28%  { transform: translateY(0) rotate(-2deg) translateX(0); }
+  52%      { transform: translateY(-1px) rotate(-5.5deg) translateX(2px); }
+  74%, 100%{ transform: translateY(0.4px) rotate(-2.4deg) translateX(0.5px); }
 }
 .mascot-point-hint {
   position: absolute;
@@ -2815,7 +2822,7 @@ button, textarea, input { font-family: var(--font-sans); }
   border: 1.5px solid var(--color-border);
   cursor: pointer;
   box-shadow: var(--shadow-md);
-  animation: fox-idle-bounce 2.6s ease-in-out infinite;
+  animation: fox-idle-bounce 5.2s cubic-bezier(.45, .05, .55, .95) infinite;
   transition: transform .15s;
   padding: 0;
   overflow: hidden;
@@ -2833,8 +2840,11 @@ button, textarea, input { font-family: var(--font-sans); }
   pointer-events: none;
 }
 @keyframes fox-idle-bounce {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-5px) rotate(-4deg); }
+  0%        { transform: translateY(0) rotate(0deg); }
+  30%       { transform: translateY(-1.5px) rotate(-1.2deg); }
+  55%       { transform: translateY(-2.5px) rotate(-0.4deg); }
+  78%       { transform: translateY(0.4px) rotate(1deg); }
+  100%      { transform: translateY(0) rotate(0deg); }
 }
 .fox-avatar-celebrate { animation: fox-idle-bounce 2.6s ease-in-out infinite, fox-celebrate-pulse 700ms ease; }
 @keyframes fox-celebrate-pulse {
