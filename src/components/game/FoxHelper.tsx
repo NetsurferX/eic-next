@@ -109,15 +109,42 @@ export function FoxHelper({
         aria-label="Asistent"
         title="Vulpea te ajută"
       >
-        <span ref={lookRef} style={{ display: 'block', width: '100%', height: '100%', transformOrigin: '50% 72%' }}>
+        <span
+          ref={lookRef}
+          className={`fox-helper-motion fox-helper-motion-${mood} ${thinking ? 'is-thinking' : ''}`}
+          style={{ display: 'block', width: '100%', height: '100%', transformOrigin: '50% 72%' }}
+        >
           {mood === 'idle' ? (
             <FoxReel frames={FACE_IDLE_REEL} className="fox-avatar-img" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={FACE_BY_MOOD[mood]} alt="" className="fox-avatar-img" draggable={false} />
           )}
+          {thinking && <span className="fox-helper-thoughts" aria-hidden="true"><i /><i /><i /></span>}
+          {mood === 'celebrate' && <span className="fox-helper-sparkles" aria-hidden="true">✦ ✧ ✦</span>}
+          {mood === 'greeting' && <span className="fox-helper-wave" aria-hidden="true">✦</span>}
         </span>
       </button>
+      <style jsx>{`
+        .fox-helper-motion { position: relative; }
+        .fox-helper-motion-hint { animation: fox-helper-listen 2.8s ease-in-out infinite; }
+        .fox-helper-motion-greeting { animation: fox-helper-greet 1.5s ease-in-out 2; }
+        .fox-helper-motion-celebrate { animation: fox-helper-celebrate 650ms ease-in-out 3; }
+        .fox-helper-thoughts { position:absolute; right:2%; top:2%; display:flex; align-items:flex-end; gap:3px; }
+        .fox-helper-thoughts i { display:block; width:5px; height:5px; border-radius:50%; background:#fff; box-shadow:0 1px 5px #5678; animation:fox-helper-thought 1s ease-in-out infinite alternate; }
+        .fox-helper-thoughts i:nth-child(2) { width:7px; height:7px; animation-delay:140ms; }
+        .fox-helper-thoughts i:nth-child(3) { width:9px; height:9px; animation-delay:280ms; }
+        .fox-helper-sparkles,.fox-helper-wave { position:absolute; color:#f7b928; font-size:15px; font-weight:900; text-shadow:0 1px 3px #fff; pointer-events:none; }
+        .fox-helper-sparkles { left:-12%; top:-10%; letter-spacing:3px; animation:fox-helper-spark 700ms ease-in-out infinite alternate; }
+        .fox-helper-wave { right:-8%; top:0; animation:fox-helper-wave 500ms ease-in-out 3; }
+        @keyframes fox-helper-listen { 0%,100% { transform:rotate(0) translateY(0) } 35% { transform:rotate(-3deg) translateY(-2px) } 68% { transform:rotate(2deg) translateY(0) } }
+        @keyframes fox-helper-greet { 0%,100% { transform:rotate(0) } 25% { transform:rotate(-4deg) translateY(-2px) } 55% { transform:rotate(3deg) } }
+        @keyframes fox-helper-celebrate { 0%,100% { transform:scale(1) } 45% { transform:scale(1.08) rotate(-2deg) } }
+        @keyframes fox-helper-thought { to { transform:translateY(-7px); opacity:.45 } }
+        @keyframes fox-helper-spark { to { transform:translateY(-5px) scale(1.12); opacity:.6 } }
+        @keyframes fox-helper-wave { 0%,100% { transform:rotate(0) } 50% { transform:rotate(22deg) translateY(-3px) } }
+        @media (prefers-reduced-motion:reduce) { .fox-helper-motion,.fox-helper-motion * { animation:none !important; transition:none !important } }
+      `}</style>
     </div>
   )
 }
