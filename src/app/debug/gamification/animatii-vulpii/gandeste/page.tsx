@@ -11,7 +11,7 @@ export default function Page(){
   return <Shell title="💭 Se gândește" desc="O pauză de reflecție: vulpea înclină ușor capul, privește în sus, iar ideile apar pe rând.">
     <Stage height={380}>
       <Shadow x={300} size={SIZE}/>
-      <div style={{position:'absolute',left:'50%',bottom:55,transform:'translateX(-50%)',animation:reduced?'none':thinking?'think-sway 3.8s ease-in-out infinite':'none'}}>
+      <div style={{position:'absolute',inset:0,pointerEvents:'none',transformOrigin:'50% 85%',animation:reduced?'none':thinking?'think-sway 3.8s ease-in-out infinite':'none'}}>
         <Fox f={{src:thinking?POSE.front:POSE.idle,x:300,y:0,flip:1,sx:1,sy:1,rot:thinking?-4:0}} size={SIZE}/>
       </div>
       {thinking&&<div style={{position:'absolute',left:'59%',top:54,display:'flex',alignItems:'end',gap:7}}>
