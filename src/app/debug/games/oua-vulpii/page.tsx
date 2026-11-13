@@ -299,7 +299,7 @@ export default function OuaVulpiiPage() {
             {LANES.map((lane, i) => (
               <button key={lane.key} onClick={() => chooseLane(i as Lane)} className={`${styles.catcher} ${basket === i ? styles.activeCatcher : ''} ${flash === i ? styles.catchFlash : ''}`} aria-label={`Mută vulpea: ${lane.label}`}>
                 <div className={styles.fox}>{basket === i
-                  ? <Mascot state={flash === i ? 'cheering' : 'idle'} action={flash === i ? 'celebrating' : 'watching'} size={72} />
+                  ? <Mascot state={flash === i ? 'cheering' : 'idle'} action={flash === i ? 'celebrating' : undefined} size={72} />
                   : '·'}</div>
                 <span className={styles.basket}>🧺</span>
               </button>
