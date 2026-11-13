@@ -130,7 +130,7 @@ export default function OuaVulpiiPage() {
   const start = useCallback(() => {
     setEggs([]); eggsRef.current = []
     setScore(0); scoreRef.current = 0
-    setMisses(0); setBasket(0)
+    setMisses(0); setBasket(0); setLatestCaught(null)
     lastSpawn.current = performance.now()
     nextId.current = 1
     setMessage('Hai, vulpițo! Prinde ouăle!')
@@ -189,7 +189,7 @@ export default function OuaVulpiiPage() {
         const caughtWord = caughtEggs[caughtEggs.length - 1]?.word
         if (caughtWord) {
           setLatestCaught(caughtWord)
-          speakWord(caughtWord.text, { accent: caughtWord.accent })
+          if (soundRef.current) speakWord(caughtWord.text, { accent: caughtWord.accent })
           setLearnedWords(previous => [...new Set([...previous, ...caughtEggs.flatMap(egg => egg.word ? [egg.word.text] : [])])])
         }
         const total = scoreRef.current + caught
