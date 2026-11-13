@@ -1083,6 +1083,10 @@ export default function LearnPage() {
             <button type="button" className="lesson-step-btn" aria-label="Lecția următoare" title="Lecția următoare (→)"
               disabled={isPlayingRep || !stepTarget(1)} onClick={() => stepLesson(1)}>→</button>
           </div>
+          <Link href="/debug/games/oua-vulpii" onClick={stopPlayback}
+            style={{ background: '#fff7e6', color: '#5a4620', border: '1px solid #efcf87', borderRadius: 999, padding: '8px 13px', fontWeight: 900, fontSize: 12, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 2px 7px #8a682019' }}>
+            🦊 Joacă cu vulpița
+          </Link>
         </div>
       </div>
 
