@@ -3146,18 +3146,23 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
 }
 
-/* Rândul activ: Aik stânga + balon dreapta, aliniate pe gură */
+/* Rândul activ: Aik stânga (mai jos / mai mic) + balon cu simbolul */
 .aik-speech.is-active {
   justify-content: flex-start;
-  padding-left: 2px;
-  gap: 2px;
+  align-items: flex-start;
+  padding-left: 0;
+  gap: 0;
 }
 
 .aik-corner {
   position: relative;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  /* mai jos față de simbol + un pic mai în stânga */
+  margin-top: 14px;
+  margin-left: -6px;
+  margin-right: -2px;
   z-index: 3;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(20, 10, 0, .28));
@@ -3266,23 +3271,31 @@ button, textarea, input { font-family: var(--font-sans); }
 
 @keyframes aik-corner-bounce {
   0%, 100% { transform: scale(1); }
-  40% { transform: scale(1.12); }
+  40% { transform: scale(1.08); }
 }
 @keyframes aik-bubble-pop {
   0%, 100% { transform: scale(1); }
   40% { transform: scale(1.08); }
 }
 
+/* Vibrații mici continue cât timp se aude sunetul izolat */
 .lesson-letter.is-pulsing {
-  animation: letter-sound-pulse 420ms ease;
+  animation: letter-sound-vibrate 140ms ease-in-out infinite;
+  transform-origin: center center;
 }
-@keyframes letter-sound-pulse {
-  0%, 100% { transform: scale(1); }
-  40% { transform: scale(1.12); }
+@keyframes letter-sound-vibrate {
+  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  20% { transform: translate(-1.2px, 0.6px) rotate(-1.2deg) scale(1.03); }
+  40% { transform: translate(1.4px, -0.5px) rotate(1deg) scale(1.05); }
+  60% { transform: translate(-0.8px, 0.4px) rotate(-0.6deg) scale(1.02); }
+  80% { transform: translate(1px, -0.3px) rotate(0.8deg) scale(1.04); }
 }
 
 @media (max-width: 720px) {
-  .aik-corner { flex-basis: 40px; width: 40px; height: 40px; }
+  .aik-corner {
+    flex-basis: 30px; width: 30px; height: 30px;
+    margin-top: 12px; margin-left: -4px;
+  }
   .aik-speech-bubble {
     min-width: 2.3em;
     min-height: 2.1em;
