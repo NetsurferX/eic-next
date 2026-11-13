@@ -184,9 +184,10 @@ export default function OuaVulpiiPage() {
         const lane = availableLanes[Math.floor(Math.random() * availableLanes.length)] as Lane
         if (!henVisibleRef.current && Math.random() < 0.11) {
           henVisibleRef.current = true
-          henUntil.current = now + 2300
+          henUntil.current = now + 5000
           setHenVisible(true)
-        }        const word = learningWordsRef.current.length
+        }
+        const word = learningWordsRef.current.length
           ? learningWordsRef.current[Math.floor(Math.random() * learningWordsRef.current.length)]
           : undefined
         const egg: Egg = { id: nextId.current++, lane, born: now, duration: Math.max(1650, 4200 - scoreRef.current * 4.5), word }
@@ -348,7 +349,7 @@ export default function OuaVulpiiPage() {
                 <span className={styles.overlayIcon}>{phase === 'over' ? '🏆' : phase === 'paused' ? '⏸️' : '🥚'}</span>
                 <h2>{phase === 'over' ? 'Runda s-a încheiat!' : phase === 'paused' ? 'Pauză de vulpe' : 'Ești gata de joacă?'}</h2>
                 <p>{phase === 'over' ? `Ai prins ${score} ouă. Mai încercăm?` : phase === 'paused' ? 'Ouăle așteaptă cuminți.' : 'Privește oul și mută vulpea în cuibul potrivit înainte să ajungă jos.'}</p>
-                {phase === 'ready' && (
+                {(phase === 'ready' || phase === 'over') && (
                   <div className={styles.modeSelect} aria-label="Alege modul">
                     <button className={mode === 'A' ? styles.selectedMode : ''} onClick={() => setMode('A')}>GAME A <small>Clasic · 3 cuiburi active</small></button>
                     <button className={mode === 'B' ? styles.selectedMode : ''} onClick={() => setMode('B')}>GAME B <small>Rapid · 4 cuiburi active</small></button>
