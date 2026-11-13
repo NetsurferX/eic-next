@@ -22,6 +22,7 @@
 .gameCard{max-width:1100px;margin:auto;background:#fff;border:1px solid #e1e9da;border-radius:26px;overflow:hidden;box-shadow:0 18px 55px #314d2515}
 .farmSky{height:510px;position:relative;overflow:hidden;background:linear-gradient(180deg,#bce9f3 0%,#e7f5d9 76%,#8fc46f 76%,#72ae5b 100%)}
 .sun{position:absolute;right:8%;top:7%;font-size:38px;filter:drop-shadow(0 3px 4px #e9b53c55)}
+.hen{position:absolute;z-index:2;left:50%;top:5%;transform:translateX(-50%);font-size:34px;filter:drop-shadow(0 3px 4px #52653b44);animation:henPeek .45s ease-out both}@keyframes henPeek{from{opacity:0;transform:translate(-50%,-12px) scale(.8)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
 .cloud{position:absolute;font-size:36px;opacity:.8}.cloudOne{left:14%;top:9%}.cloudTwo{left:62%;top:17%;font-size:28px}
 .fence{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:22px;opacity:.7}
 .nests{position:absolute;z-index:2;left:5%;right:5%;top:25%;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -44,6 +45,7 @@
 @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
 .overlayIcon{font-size:40px}.overlayCard h2{margin:8px 0;color:#315b3e;font-size:24px}.overlayCard p{color:#71806d;font-weight:700;line-height:1.5}
 .primary{border:0;border-radius:999px;background:#f2b83e;color:#493512;padding:12px 27px;font:900 15px Nunito, sans-serif;cursor:pointer;box-shadow:0 4px 0 #d89b27}
+.modeSelect{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 18px}.modeSelect button{border:1px solid #dfe7d8;border-radius:13px;background:#f8faf5;color:#536b50;padding:9px 7px;font:900 12px Nunito,sans-serif;cursor:pointer}.modeSelect button small{display:block;margin-top:3px;font-size:9px;font-weight:700;color:#87937d}.modeSelect .selectedMode{border-color:#e5ad3d;background:#fff4d7;box-shadow:0 0 0 3px #f3c85d33}
 .gameFooter{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .status{margin:0;color:#55735b;font-weight:900}.controls{display:flex;gap:8px}.controls button{border:1px solid #dce6d7;background:#f8fbf5;color:#526d50;border-radius:999px;padding:8px 14px;font:800 12px Nunito,sans-serif;cursor:pointer}.controls button:disabled{opacity:.4;cursor:not-allowed}
 .instructions{max-width:1100px;margin:18px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
