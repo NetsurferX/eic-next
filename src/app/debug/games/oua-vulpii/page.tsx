@@ -274,8 +274,8 @@ export default function OuaVulpiiPage() {
       <header className={styles.heading}>
         <div>
           <p className={styles.kicker}>JOC DE ATENȚIE ȘI REACȚIE</p>
-          <h1>Vulpea și ouăle fermecate</h1>
-          <p>Patru cuiburi. Un coș isteț. Cât de multe ouă poți salva?</p>
+          <h1>Vulpea și ouăle</h1>
+          <p>Patru cuiburi. Patru poziții. Un singur coș isteț.</p>
         </div>
         <Mascot state={phase === 'over' ? 'talking' : score > 0 ? 'cheering' : 'idle'} action={phase === 'playing' ? 'walking' : undefined} size={104} />
       </header>
