@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+.page{min-height:100vh;padding:22px clamp(14px,4vw,48px) 42px;background:radial-gradient(ellipse at 50% 0%,#fff7dc 0,#f4f8ec 46%,#e9f3e8 100%);color:#26352c;font-family:Nunito,system-ui,sans-serif}
+.topbar{max-width:1100px;margin:0 auto 18px;display:flex;align-items:center;justify-content:space-between}
+.back{color:#55735b;text-decoration:none;font-weight:800}.back:hover{text-decoration:underline}
+.eyebrow,.kicker{font-size:11px;letter-spacing:.18em;font-weight:900;color:#8b9a76}
+.sound{border:0;background:#fff;border-radius:50%;width:42px;height:42px;font-size:19px;box-shadow:0 3px 10px #324b261a;cursor:pointer}
+.heading{max-width:1100px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.heading h1{font-size:clamp(28px,5vw,48px);line-height:1.05;margin:4px 0 8px;color:#244a35;letter-spacing:-.04em}
+.heading p:last-child{margin:0;color:#6c7b69;font-weight:700}
+.kicker{margin:0}
+.hud{max-width:1100px;margin:0 auto 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hud>div{background:#fff;border:1px solid #e4eadc;border-radius:16px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 14px #324b2609}
+.hud span{font-size:10px;letter-spacing:.1em;font-weight:900;color:#87937d}.hud strong{font-size:23px;color:#315b3e}.hud .misses{font-size:15px;letter-spacing:2px}
+
+.learningRibbon{max-width:1100px;margin:0 auto 14px;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;background:#fffdf5;border:1px solid #e9e4ce;border-radius:18px;box-shadow:0 5px 18px #324b2609}
+.lessonBadge{display:flex;align-items:center;gap:10px;padding-right:15px;border-right:1px solid #e8e5d8}
+.lessonBadge span,.learningCatch>span,.learnedCount span{display:block;color:#87937d;font-size:9px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.lessonBadge strong{display:grid;place-items:center;min-width:42px;height:42px;padding:0 8px;border-radius:13px;background:#eef4e8;color:#315b3e;font-size:23px}
+.learningCatch{min-width:0}.learningCatch strong{display:block;margin:2px 0;color:#2f5037;font-size:19px;line-height:1.25}.learningCatch small{display:block;color:#829078;font-size:10px;font-weight:700}
+.learnedCount{text-align:center;padding-left:14px;border-left:1px solid #e8e5d8}.learnedCount strong{display:block;color:#d59b2d;font-size:23px;line-height:1.1}
+.gameCard{max-width:1100px;margin:auto;background:#fff;border:1px solid #e1e9da;border-radius:26px;overflow:hidden;box-shadow:0 18px 55px #314d2515}
+
+/* ========== FERMĂ – layout Game & Watch Egg / Nu, pogodi ========== */
+.farmSky{height:520px;position:relative;overflow:hidden;background:linear-gradient(180deg,#bce9f3 0%,#e7f5d9 72%,#8fc46f 72%,#72ae5b 100%)}
+.sun{position:absolute;right:8%;top:6%;font-size:36px;filter:drop-shadow(0 3px 4px #e9b53c55);z-index:1}
+.hen{position:absolute;z-index:7;left:50%;top:4%;transform:translateX(-50%);font-size:32px;filter:drop-shadow(0 3px 4px #52653b44);animation:henPeek .45s ease-out both}
+@keyframes henPeek{from{opacity:0;transform:translate(-50%,-12px) scale(.8)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+.cloud{position:absolute;font-size:34px;opacity:.75;z-index:1}
+.cloudOne{left:12%;top:8%}
+.cloudTwo{left:64%;top:15%;font-size:26px}
+
+/* 4 polițe PARALELE pe latură (același unghi pe stânga, oglindit pe dreapta) */
+.shelf{position:absolute;z-index:2;height:12px;border-radius:6px;background:linear-gradient(180deg,#d4b483,#a67c4a);box-shadow:0 3px 0 #7a5a32,0 5px 8px #00000022;pointer-events:none}
+/* stânga: ambele coboară spre centru cu +14° (paralele) */
+.shelfLeftTop{left:8%;top:24%;width:34%;transform:rotate(14deg);transform-origin:left center}
+.shelfLeftBottom{left:8%;top:54%;width:34%;transform:rotate(14deg);transform-origin:left center}
+/* dreapta: ambele coboară spre centru cu -14° (paralele, oglindite) */
+.shelfRightTop{right:8%;top:24%;width:34%;transform:rotate(-14deg);transform-origin:right center}
+.shelfRightBottom{right:8%;top:54%;width:34%;transform:rotate(-14deg);transform-origin:right center}
+
+/* Cuiburi (găini) pe cele două laturi */
+.sideNests{position:absolute;inset:0;z-index:4;pointer-events:none}
+.nest{position:absolute;pointer-events:auto;min-width:62px;border:2px solid #fff9;border-radius:16px;background:#fff9;padding:6px 8px;color:#35543a;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;transition:.18s;box-shadow:0 3px 10px #324b2618}
+.nestIcon{font-size:26px;line-height:1}
+.nest small{font-size:9px;font-weight:900;white-space:nowrap}
+.nest b{font-size:10px;background:#e7f1dd;border-radius:20px;padding:1px 8px;margin-top:1px}
+.nestleftTop{left:1.5%;top:9%}
+.nestrightTop{right:1.5%;top:9%}
+.nestleftBottom{left:1.5%;top:56%}
+.nestrightBottom{right:1.5%;top:56%}
+.selectedNest{border-color:#e8a52b;background:#fff;box-shadow:0 0 0 4px #f4c96d55,0 5px 14px #536b2b22;transform:scale(1.06)}
+
+/* Ouă – se mișcă pe poliță de la margine spre punctul de prindere */
+.egg{position:absolute;z-index:5;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:0;filter:drop-shadow(0 4px 3px #52653b44);transition:left .04s linear,top .04s linear;animation:eggWobble .55s ease-in-out infinite alternate;pointer-events:none}
+.eggSymbol{font-size:26px;line-height:1}
+.eggWord{margin-top:-1px;padding:1px 5px;border:1px solid #e8e5d8;border-radius:8px;background:#fffdf0;color:#304d34;font-size:9px;font-weight:1000;line-height:1.25;white-space:nowrap;box-shadow:0 2px 4px #40532b22}
+@keyframes eggWobble{from{rotate:-9deg}to{rotate:9deg}}
+
+/*
+  Vulpea – 4 poziții discrete de prindere, aliniate la capătul interior
+  al fiecărei polițe. Se întoarce spre polița activă și coșul e deplasat.
+*/
+.centerFox{position:absolute;z-index:6;width:120px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transition:left .16s ease,top .16s ease;transform:translate(-50%,-50%)}
+/* poziții discrete la capătul polițelor (paralele) */
+.centerFox[data-side="left"][data-height="top"]{left:40%;top:40%}
+.centerFox[data-side="right"][data-height="top"]{left:60%;top:40%}
+.centerFox[data-side="left"][data-height="bottom"]{left:40%;top:70%}
+.centerFox[data-side="right"][data-height="bottom"]{left:60%;top:70%}
+.foxBody{position:relative;z-index:2;filter:drop-shadow(0 5px 6px #40532b44);transition:transform .16s ease}
+.centerFox[data-side="left"] .foxBody{transform:scaleX(-1)} /* privește spre stânga */
+.foxBody :global(.mascot){--mascot-size:82px}
+.basket{font-size:32px;margin-top:-14px;filter:drop-shadow(0 3px 2px #455c3344);z-index:1;transition:transform .16s ease}
+.centerFox[data-side="left"] .basket{transform:translateX(-8px)}
+.centerFox[data-side="right"] .basket{transform:translateX(8px)}
+.centerFox[data-height="top"] .basket{transform:translateY(-6px)}
+.centerFox[data-side="left"][data-height="top"] .basket{transform:translate(-8px,-6px)}
+.centerFox[data-side="right"][data-height="top"] .basket{transform:translate(8px,-6px)}
+.catchZones{position:absolute;inset:-18px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;z-index:3}
+.catchZone{border:0;background:transparent;cursor:pointer;border-radius:14px}
+.activeZone{background:#f0b84328;box-shadow:inset 0 0 0 2px #f0b84377}
+.catchFlash{animation:catch .26s ease-out}
+@keyframes catch{50%{filter:brightness(1.18)}}
+.grass{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:20px;opacity:.75;z-index:1}
+
+.overlay{position:absolute;z-index:8;inset:0;background:#183a2b55;display:grid;place-items:center;padding:18px;backdrop-filter:blur(3px)}
+.overlayCard{width:min(390px,100%);padding:26px 25px 24px;background:#fffdf5;border-radius:24px;text-align:center;box-shadow:0 15px 45px #142b1d44;animation:cardIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+.overlayIcon{font-size:40px}.overlayCard h2{margin:8px 0;color:#315b3e;font-size:24px}.overlayCard p{color:#71806d;font-weight:700;line-height:1.5}
+.primary{border:0;border-radius:999px;background:#f2b83e;color:#493512;padding:12px 27px;font:900 15px Nunito,sans-serif;cursor:pointer;box-shadow:0 4px 0 #d89b27}
+.modeSelect{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 18px}
+.modeSelect button{border:1px solid #dfe7d8;border-radius:13px;background:#f8faf5;color:#536b50;padding:9px 7px;font:900 12px Nunito,sans-serif;cursor:pointer}
+.modeSelect button small{display:block;margin-top:3px;font-size:9px;font-weight:700;color:#87937d}
+.modeSelect .selectedMode{border-color:#e5ad3d;background:#fff4d7;box-shadow:0 0 0 3px #f3c85d33}
+.gameFooter{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.status{margin:0;color:#55735b;font-weight:900}
+.controls{display:flex;gap:8px}
+.controls button{border:1px solid #dce6d7;background:#f8fbf5;color:#526d50;border-radius:999px;padding:8px 14px;font:800 12px Nunito,sans-serif;cursor:pointer}
+.controls button:disabled{opacity:.4;cursor:not-allowed}
+.instructions{max-width:1100px;margin:18px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.instructions>div{background:#ffffffb8;border:1px solid #e1e9da;border-radius:17px;padding:14px 16px}
+.instructions strong{color:#355d3d}
+.instructions p{margin:5px 0 0;color:#74806f;font-size:12px;line-height:1.5;font-weight:700}
+.note{text-align:center;color:#89977f;font-size:12px;font-weight:700;margin:16px 0 0}
+
+@media(max-width:640px){
+  .page{padding:14px 10px 28px}
+  .eyebrow{display:none}
+  .heading{align-items:flex-start}
+  .heading h1{font-size:29px}
+  .heading>div{min-width:0}
+  .heading :global(img){max-width:75px}
+  .hud>div{padding:9px 8px;display:block;text-align:center}
+  .hud span{display:block;font-size:8px}
+  .hud strong{font-size:20px}
+  .learningRibbon{grid-template-columns:auto 1fr;gap:10px;padding:10px}
+  .lessonBadge{gap:6px;padding-right:9px}
+  .lessonBadge span{max-width:55px;font-size:8px}
+  .lessonBadge strong{min-width:34px;height:36px;font-size:19px}
+  .learningCatch strong{font-size:16px}
+  .learningCatch small{font-size:9px}
+  .learnedCount{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;border-left:0;border-top:1px solid #e8e5d8;padding:7px 0 0}
+  .learnedCount strong{font-size:18px}
+  .farmSky{height:460px}
+  .nest{min-width:52px;padding:4px 5px}
+  .nestIcon{font-size:22px}
+  .nest small{font-size:8px}
+  .shelfLeftTop,.shelfLeftBottom,.shelfRightTop,.shelfRightBottom{width:30%}
+  .centerFox{width:100px;height:110px}
+  .foxBody :global(.mascot){--mascot-size:68px}
+  .basket{font-size:26px}
+  .gameFooter{align-items:flex-start;flex-direction:column}
+  .controls{width:100%}
+  .controls button{flex:1}
+  .instructions{grid-template-columns:1fr;gap:8px}
+  .instructions>div{padding:11px 14px}
+}
+@media(prefers-reduced-motion:reduce){
+  .egg,.overlayCard,.catchFlash{animation:none}
+  .nest,.centerFox,.foxBody,.basket{transition:none}
+}
