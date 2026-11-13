@@ -2,14 +2,12 @@
 
 // src/app/page.tsx — pagina principală (poarta de intrare).
 // Două plăci 3D, apăsabile:
-//   „EiC"   → /eic    (editorul, fostă pagină principală)
-//   „study" → /learn  (lecțiile / jocul)
+//   „EiC" și „Play" → același proces special de dispariție → /learn
 // Stilurile sunt locale (prefix .gw-) — nu ating globals.css.
 //
-// Flow: Play declanșează procesul special de dispariție (fost pe EiC).
-// EiC dispare încet (fade-out lin).
+// Flow: atât EiC cât și Play declanșează același proces special.
+// EiC dispare încet (fade-out lin); Play face animația dramatică.
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { STORAGE_KEY, type SavedProgress } from '@/lib/levels'
@@ -17,21 +15,21 @@ import { STORAGE_KEY, type SavedProgress } from '@/lib/levels'
 export default function Gateway() {
   const router = useRouter()
   const [done, setDone] = useState<boolean | null>(null)
-  const [fading, setFading] = useState(false)       // Play intră în procesul special
+  const [fading, setFading] = useState(false)       // procesul special de dispariție
   const [disappeared, setDisappeared] = useState(false)
   const [playIn, setPlayIn] = useState(false)       // gw-pop s-a terminat
   const [eicFading, setEicFading] = useState(false) // EiC dispare încet
 
-  // Apăsare pe Play → pornește procesul special (fost pe EiC)
-  function handlePlayPress(e: React.MouseEvent) {
+  // Apăsare pe Play SAU pe EiC → același proces special → /learn
+  function handleGatewayPress(e: React.MouseEvent) {
     e.preventDefault()
     if (fading || disappeared) return
     setFading(true)
-    setEicFading(true) // EiC începe să dispară încet
+    setEicFading(true)
     setTimeout(() => setDisappeared(true), 3000)
   }
 
-  // După ce Play a dispărut: redirect automat la /learn
+  // După dispariție: redirect automat la /learn
   useEffect(() => {
     if (!disappeared) return
     const t = setTimeout(() => router.push('/learn'), 400)
@@ -56,24 +54,25 @@ export default function Gateway() {
     <main className="gw-page">
       <style>{CSS}</style>
 
-      {/* EiC — dispare încet când se apasă Play */}
+      {/* EiC — același proces ca Play (dispariție + /learn) */}
       {disappeared ? (
         <div className="gw-tile gw-eic" style={{ visibility: 'hidden', pointerEvents: 'none' }} />
       ) : unlocked ? (
-        <Link
-          href="/eic"
+        <button
+          type="button"
           className={`gw-tile gw-eic${eicFading ? ' gw-eic-fade' : ''}`}
-          aria-label="EiC — editorul"
+          aria-label="EiC — study"
+          onClick={handleGatewayPress}
         >
           <span className="gw-band">EiC</span>
-        </Link>
+        </button>
       ) : (
         <div className="gw-eic-wrap">
           <button
             type="button"
             className={`gw-tile gw-eic gw-locked${eicFading ? ' gw-eic-fade' : ''}`}
-            aria-disabled="true"
-            aria-label="EiC — blocat până termini toate etapele din study"
+            aria-label="EiC — study"
+            onClick={handleGatewayPress}
           >
             <span className="gw-band">EiC</span>
             <span className="gw-lock" aria-hidden="true">
@@ -86,7 +85,7 @@ export default function Gateway() {
         </div>
       )}
 
-      {/* Play — acum are procesul special de dispariție */}
+      {/* Play — procesul special de dispariție */}
       {disappeared ? (
         <div className="gw-tile gw-study" style={{ visibility: 'hidden', pointerEvents: 'none' }} />
       ) : (
@@ -94,7 +93,7 @@ export default function Gateway() {
           type="button"
           className={`gw-tile gw-study${playIn ? ' gw-in' : ''}${fading ? ' gw-special-vanish' : ''}`}
           aria-label="Play — lecțiile"
-          onClick={handlePlayPress}
+          onClick={handleGatewayPress}
           onAnimationEnd={e => { if (e.animationName === 'gw-pop') setPlayIn(true) }}
         >
           <span className="gw-band">Play</span>
