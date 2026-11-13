@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+.page{min-height:100vh;padding:22px clamp(14px,4vw,48px) 42px;background:radial-gradient(ellipse at 50% 0%,#fff7dc 0,#f4f8ec 46%,#e9f3e8 100%);color:#26352c;font-family:Nunito,system-ui,sans-serif}
+.topbar{max-width:1100px;margin:0 auto 18px;display:flex;align-items:center;justify-content:space-between}
+.back{color:#55735b;text-decoration:none;font-weight:800}.back:hover{text-decoration:underline}
+.eyebrow,.kicker{font-size:11px;letter-spacing:.18em;font-weight:900;color:#8b9a76}
+.sound{border:0;background:#fff;border-radius:50%;width:42px;height:42px;font-size:19px;box-shadow:0 3px 10px #324b261a;cursor:pointer}
+.heading{max-width:1100px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.heading h1{font-size:clamp(28px,5vw,48px);line-height:1.05;margin:4px 0 8px;color:#244a35;letter-spacing:-.04em}
+.heading p:last-child{margin:0;color:#6c7b69;font-weight:700}
+.kicker{margin:0}
+.hud{max-width:1100px;margin:0 auto 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hud>div{background:#fff;border:1px solid #e4eadc;border-radius:16px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 14px #324b2609}
+.hud span{font-size:10px;letter-spacing:.1em;font-weight:900;color:#87937d}.hud strong{font-size:23px;color:#315b3e}.hud .misses{font-size:15px;letter-spacing:2px}
+.gameCard{max-width:1100px;margin:auto;background:#fff;border:1px solid #e1e9da;border-radius:26px;overflow:hidden;box-shadow:0 18px 55px #314d2515}
+.farmSky{height:510px;position:relative;overflow:hidden;background:linear-gradient(180deg,#bce9f3 0%,#e7f5d9 76%,#8fc46f 76%,#72ae5b 100%)}
+.sun{position:absolute;right:8%;top:7%;font-size:38px;filter:drop-shadow(0 3px 4px #e9b53c55)}
+.cloud{position:absolute;font-size:36px;opacity:.8}.cloudOne{left:14%;top:9%}.cloudTwo{left:62%;top:17%;font-size:28px}
+.fence{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:22px;opacity:.7}
+.nests{position:absolute;z-index:2;left:5%;right:5%;top:25%;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.nest{min-width:0;border:2px solid #fff9;border-radius:18px;background:#fff9;padding:8px 4px 7px;color:#35543a;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:.18s}
+.nest>span{font-size:27px}.nest small{font-size:10px;font-weight:900}.nest b{font-size:10px;background:#e7f1dd;border-radius:20px;padding:1px 9px}
+.selectedNest{border-color:#e8a52b;background:#fff;box-shadow:0 0 0 4px #f4c96d55,0 5px 14px #536b2b22;transform:translateY(-3px)}
+.chutes{position:absolute;top:42%;bottom:21%;left:9%;right:9%;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.chute{position:relative;border-left:3px dashed #a4b88c88;border-right:3px dashed #a4b88c88}
+.chuteLine{position:absolute;inset:0;background:linear-gradient(90deg,transparent,#ffffff26,transparent)}
+.egg{position:absolute;z-index:4;transform:translate(-50%,-50%);font-size:27px;filter:drop-shadow(0 4px 3px #52653b44);transition:top .045s linear;animation:eggWobble .5s ease-in-out infinite alternate}
+@keyframes eggWobble{from{rotate:-8deg}to{rotate:8deg}}
+.catcherRow{position:absolute;z-index:3;bottom:7%;left:7%;right:7%;height:95px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:end}
+.catcher{position:relative;height:90px;border:2px solid transparent;border-radius:18px;background:#ffffff38;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;gap:0;padding:0 0 2px;transition:.15s}
+.fox{position:absolute;top:-8px;font-size:39px;opacity:.32;transition:.15s}.basket{font-size:37px;filter:drop-shadow(0 3px 2px #455c3344)}
+.activeCatcher{background:#fff8;border-color:#f0b843;box-shadow:0 0 0 4px #f3c85d44}.activeCatcher .fox{opacity:1;transform:translateY(-5px) scale(1.1)}
+.catchFlash{animation:catch .26s ease-out}@keyframes catch{50%{background:#fff4b4;transform:scale(1.08)}}
+.grass{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:20px;opacity:.75}
+.overlay{position:absolute;z-index:5;inset:0;background:#183a2b55;display:grid;place-items:center;padding:18px;backdrop-filter:blur(3px)}
+.overlayCard{width:min(390px,100%);padding:26px 25px 24px;background:#fffdf5;border-radius:24px;text-align:center;box-shadow:0 15px 45px #142b1d44;animation:cardIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+.overlayIcon{font-size:40px}.overlayCard h2{margin:8px 0;color:#315b3e;font-size:24px}.overlayCard p{color:#71806d;font-weight:700;line-height:1.5}
+.primary{border:0;border-radius:999px;background:#f2b83e;color:#493512;padding:12px 27px;font:900 15px Nunito, sans-serif;cursor:pointer;box-shadow:0 4px 0 #d89b27}
+.gameFooter{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.status{margin:0;color:#55735b;font-weight:900}.controls{display:flex;gap:8px}.controls button{border:1px solid #dce6d7;background:#f8fbf5;color:#526d50;border-radius:999px;padding:8px 14px;font:800 12px Nunito,sans-serif;cursor:pointer}.controls button:disabled{opacity:.4;cursor:not-allowed}
+.instructions{max-width:1100px;margin:18px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.instructions>div{background:#ffffffb8;border:1px solid #e1e9da;border-radius:17px;padding:14px 16px}.instructions strong{color:#355d3d}.instructions p{margin:5px 0 0;color:#74806f;font-size:12px;line-height:1.5;font-weight:700}
+.note{text-align:center;color:#89977f;font-size:12px;font-weight:700;margin:16px 0 0}
+@media(max-width:640px){.page{padding:14px 10px 28px}.eyebrow{display:none}.heading{align-items:flex-start}.heading h1{font-size:29px}.heading>div{min-width:0}.heading :global(img){max-width:75px}.hud>div{padding:9px 8px;display:block;text-align:center}.hud span{display:block;font-size:8px}.hud strong{font-size:20px}.farmSky{height:450px}.nests{left:3%;right:3%;gap:5px}.nest{padding:6px 1px}.nest>span{font-size:22px}.nest small{font-size:8px}.chutes{left:5%;right:5%;gap:5px}.catcherRow{left:4%;right:4%;gap:5px}.catcher{height:80px}.fox{font-size:31px}.basket{font-size:31px}.gameFooter{align-items:flex-start;flex-direction:column}.controls{width:100%}.controls button{flex:1}.instructions{grid-template-columns:1fr;gap:8px}.instructions>div{padding:11px 14px}}
+@media(prefers-reduced-motion:reduce){.egg,.overlayCard,.catchFlash{animation:none}.nest,.catcher{transition:none}}
