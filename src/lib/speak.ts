@@ -57,18 +57,85 @@ let liveUtterance: SpeechSynthesisUtterance | null = null
 // nu sunt neapărat per-literă — de-aia apelantul trebuie să aibă un fallback
 // pe estimare (vezi estimateSpeechDurationMs mai jos) pentru cazul în care
 // nu vine niciun eveniment.
+// ── Înregistrări audio pre-înregistrate pentru sunete izolate (matchWord).
+//    Cheia = textul trecut la speakWord (ex. matchWord din levels.ts).
+//    Când există un fișier, se redă MP3-ul în loc de TTS — folosit la click
+//    pe litera din capul coloanei, ritualul 3× de la deschiderea coloanei,
+//    OnboardingSoundIntro și oriunde se apelează speakWord cu același text
+//    (inclusiv în joc când vulpea „pronunță" sunetul). ──
+const RECORDED_SAMPLES: Record<string, string> = {
+  ay: '/sounds/ay.mp3', // coloana /eɪ/ (letter eỷ) — matchWord: 'ay'
+}
+
+let liveAudio: HTMLAudioElement | null = null
+
+function playRecordedSample(src: string): { promise: Promise<void>; stop: () => void } {
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel()
+  }
+  if (liveAudio) {
+    try { liveAudio.pause() } catch { /* ignore */ }
+    liveAudio.src = ''
+    liveAudio = null
+  }
+
+  const audio = new Audio(src)
+  liveAudio = audio
+
+  let settled = false
+  let resolveFn: () => void = () => {}
+  const promise = new Promise<void>(resolve => { resolveFn = resolve })
+  const done = () => {
+    if (settled) return
+    settled = true
+    if (liveAudio === audio) liveAudio = null
+    resolveFn()
+  }
+
+  audio.addEventListener('ended', done, { once: true })
+  audio.addEventListener('error', done, { once: true })
+
+  void audio.play().catch(() => done())
+
+  return {
+    promise,
+    stop: () => {
+      try { audio.pause() } catch { /* ignore */ }
+      audio.src = ''
+      if (liveAudio === audio) liveAudio = null
+      done()
+    },
+  }
+}
+
 export interface SpeakOptions {
   onBoundary?: (charIndex: number, charLength: number) => void
   accent?: Accent   // implicit 'en-US' dacă lipsește
 }
 
 export function speakWord(word: string, options: SpeakOptions = {}): { promise: Promise<void>; stop: () => void } {
-  if (typeof window === 'undefined' || !window.speechSynthesis) {
+  if (typeof window === 'undefined') {
+    return { promise: Promise.resolve(), stop: () => {} }
+  }
+
+  // Preferă înregistrarea audio dacă există pentru acest text (sunet izolat)
+  const key = word.trim().toLowerCase()
+  const recorded = RECORDED_SAMPLES[key]
+  if (recorded) {
+    return playRecordedSample(recorded)
+  }
+
+  if (!window.speechSynthesis) {
     return { promise: Promise.resolve(), stop: () => {} }
   }
 
   const synth = window.speechSynthesis
   synth.cancel() // stop any word still being spoken
+  if (liveAudio) {
+    try { liveAudio.pause() } catch { /* ignore */ }
+    liveAudio.src = ''
+    liveAudio = null
+  }
 
   const accent = options.accent ?? 'en-US'
   const utterance = new SpeechSynthesisUtterance(word)
