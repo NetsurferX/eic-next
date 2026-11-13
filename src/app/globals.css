@@ -3146,13 +3146,14 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
 }
 
-/* Rândul activ: Aik stânga (mai jos / mai mic) + balon cu simbolul mai în dreapta */
+/* Rândul activ: Aik stânga + simbolul trecut de mijlocul paharului (în dreapta) */
 .aik-speech.is-active {
   justify-content: flex-start;
   align-items: flex-start;
+  width: 100%;
   padding-left: 0;
-  /* distanță clară între vulpe și simbolul pronunțat */
-  gap: 12px;
+  padding-right: 2px;
+  gap: 8px;
 }
 
 .aik-corner {
@@ -3160,9 +3161,9 @@ button, textarea, input { font-family: var(--font-sans); }
   flex: 0 0 30px;
   width: 30px;
   height: 30px;
-  /* mai jos + un pic în stânga; fără overlap pe balon */
+  /* mai jos + un pic în stânga */
   margin-top: 18px;
-  margin-left: -4px;
+  margin-left: -2px;
   margin-right: 0;
   z-index: 3;
   pointer-events: none;
@@ -3215,7 +3216,10 @@ button, textarea, input { font-family: var(--font-sans); }
 .aik-speech.is-active .aik-speech-bubble {
   border-color: var(--lesson-color);
   box-shadow: 0 2px 10px color-mix(in srgb, var(--lesson-color) 25%, transparent);
-  margin-left: 4px;
+  /* împinge simbolul în jumătatea dreaptă a coloanei, dincolo de axa paharului */
+  margin-left: auto;
+  margin-right: 0;
+  transform: translateX(6px);
 }
 
 .aik-speech.is-locked .aik-speech-bubble {
