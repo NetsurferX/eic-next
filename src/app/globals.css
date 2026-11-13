@@ -3156,30 +3156,30 @@ button, textarea, input { font-family: var(--font-sans); }
 
 .aik-corner {
   position: relative;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 36px;
-  /* mai jos față de simbol + un pic mai în stânga */
-  margin-top: 14px;
-  margin-left: -6px;
-  margin-right: -2px;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  /* mai jos + mai în stânga față de simbolul din balon */
+  margin-top: 18px;
+  margin-left: -10px;
+  margin-right: -4px;
   z-index: 3;
   pointer-events: none;
-  filter: drop-shadow(0 2px 4px rgba(20, 10, 0, .28));
+  filter: drop-shadow(0 2px 3px rgba(20, 10, 0, .26));
 }
 
 .aik-corner-head {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 20%;
+  object-position: center 18%;
   border-radius: 50%;
   display: block;
   background: var(--color-surface, #f8f7f4);
-  border: 2.5px solid #1a1917;
+  border: 2px solid #1a1917;
   box-shadow:
-    0 0 0 2px #fff,
-    0 2px 6px rgba(0, 0, 0, .18);
+    0 0 0 1.5px #fff,
+    0 2px 5px rgba(0, 0, 0, .16);
 }
 
 /* ── Simple message bubble — litera iese din gura lui Aik ── */
@@ -3228,13 +3228,13 @@ button, textarea, input { font-family: var(--font-sans); }
   display: none;
   position: absolute;
   left: -8px;
-  bottom: 12px;
+  bottom: 8px;
   width: 0;
   height: 0;
   z-index: 3;
   pointer-events: none;
   border-style: solid;
-  border-width: 6px 10px 6px 0;
+  border-width: 5px 9px 5px 0;
   border-color: transparent color-mix(in srgb, var(--lesson-color) 45%, #ccc) transparent transparent;
 }
 .aik-speech-tail::before {
@@ -3280,21 +3280,22 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* Vibrații mici continue cât timp se aude sunetul izolat */
 .lesson-letter.is-pulsing {
-  animation: letter-sound-vibrate 140ms ease-in-out infinite;
+  animation: letter-sound-vibrate 120ms ease-in-out infinite;
   transform-origin: center center;
+  will-change: transform;
 }
 @keyframes letter-sound-vibrate {
   0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  20% { transform: translate(-1.2px, 0.6px) rotate(-1.2deg) scale(1.03); }
-  40% { transform: translate(1.4px, -0.5px) rotate(1deg) scale(1.05); }
-  60% { transform: translate(-0.8px, 0.4px) rotate(-0.6deg) scale(1.02); }
-  80% { transform: translate(1px, -0.3px) rotate(0.8deg) scale(1.04); }
+  15% { transform: translate(-1.5px, 0.8px) rotate(-1.4deg) scale(1.04); }
+  35% { transform: translate(1.6px, -0.7px) rotate(1.2deg) scale(1.06); }
+  55% { transform: translate(-1px, 0.5px) rotate(-0.8deg) scale(1.03); }
+  75% { transform: translate(1.2px, -0.4px) rotate(1deg) scale(1.05); }
 }
 
 @media (max-width: 720px) {
   .aik-corner {
-    flex-basis: 30px; width: 30px; height: 30px;
-    margin-top: 12px; margin-left: -4px;
+    flex-basis: 26px; width: 26px; height: 26px;
+    margin-top: 16px; margin-left: -8px;
   }
   .aik-speech-bubble {
     min-width: 2.3em;
