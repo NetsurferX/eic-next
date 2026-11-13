@@ -17,11 +17,25 @@ type Phase = 'ready' | 'playing' | 'paused' | 'over'
 const inactiveLaneForA = (misses: number): Lane => ([2, 3, 0, 1][Math.min(3, Math.floor(misses))] as Lane)
 
 const LANES: { label: string; key: string; nest: string; side: 'left' | 'right'; height: 'top' | 'bottom' }[] = [
-  { label: 'Stânga sus', key: 'Q', nest: '🌿', side: 'left', height: 'top' },
-  { label: 'Dreapta sus', key: 'P', nest: '🌿', side: 'right', height: 'top' },
-  { label: 'Stânga jos', key: 'A', nest: '🌾', side: 'left', height: 'bottom' },
-  { label: 'Dreapta jos', key: 'L', nest: '🌾', side: 'right', height: 'bottom' },
+  { label: 'Stânga sus', key: 'Q', nest: '🐔', side: 'left', height: 'top' },
+  { label: 'Dreapta sus', key: 'P', nest: '🐔', side: 'right', height: 'top' },
+  { label: 'Stânga jos', key: 'A', nest: '🐔', side: 'left', height: 'bottom' },
+  { label: 'Dreapta jos', key: 'L', nest: '🐔', side: 'right', height: 'bottom' },
 ]
+
+/** Poziție pe polița înclinată: 0% = la cuib (margine), 100% = la punctul de prindere (centru) */
+function eggPosition(lane: Lane, progressPct: number) {
+  const meta = LANES[lane]
+  const t = Math.min(1, Math.max(0, progressPct / 100))
+  const startX = meta.side === 'left' ? 7 : 93
+  const endX = meta.side === 'left' ? 41 : 59
+  const startY = meta.height === 'top' ? 20 : 54
+  const endY = meta.height === 'top' ? 47 : 69
+  return {
+    left: `${startX + (endX - startX) * t}%`,
+    top: `${startY + (endY - startY) * t}%`,
+  }
+}
 
 export default function OuaVulpiiPage() {
   const [phase, setPhase] = useState<Phase>('ready')
@@ -30,7 +44,7 @@ export default function OuaVulpiiPage() {
   const [score, setScore] = useState(0)
   const [misses, setMisses] = useState(0)
   const [best, setBest] = useState(0)
-  const [message, setMessage] = useState('Alege un cuib și prinde ouăle!')
+  const [message, setMessage] = useState('Vulpea e în centru. Alege polița și prinde ouăle!')
   const [flash, setFlash] = useState<Lane | null>(null)
   const [soundOn, setSoundOn] = useState(true)
   const [mode, setMode] = useState<'A' | 'B'>('A')
@@ -169,33 +183,33 @@ export default function OuaVulpiiPage() {
   useEffect(() => {
     if (phase !== 'playing') return
     let frame = 0
-    let last = 0
-    const tick = (now: number) => {
-      if (phaseRef.current !== 'playing') return
-      if (!last) last = now
-      const elapsed = now - last
-      last = now
-      const baseInterval = modeRef.current === 'B' ? 1260 : 1510
-      const interval = Math.max(modeRef.current === 'B' ? 470 : 570, baseInterval - scoreRef.current * 3.5)
-      const maxEggsOnScreen = Math.min(modeRef.current === 'B' ? 10 : 8, 2 + Math.floor(scoreRef.current / 24))
-      if (now - lastSpawn.current > interval && eggsRef.current.length < maxEggsOnScreen) {
-        const inactive = modeRef.current === 'A' ? inactiveLaneForA(missesRef.current) : null
-        const availableLanes = LANES.map((_, index) => index).filter(index => index !== inactive)
-        const lane = availableLanes[Math.floor(Math.random() * availableLanes.length)] as Lane
-        if (!henVisibleRef.current && Math.random() < 0.11) {
-          henVisibleRef.current = true
-          henUntil.current = now + 5000
-          setHenVisible(true)
-        }
-        const word = learningWordsRef.current.length
-          ? learningWordsRef.current[Math.floor(Math.random() * learningWordsRef.current.length)]
+    const tick = () => {
+      const now = performance.now()
+      // spawn
+      const spawnGap = Math.max(420, 980 - scoreRef.current * 4.5)
+      if (now - lastSpawn.current > spawnGap) {
+        lastSpawn.current = now
+        const activeLanes: Lane[] = modeRef.current === 'B'
+          ? [0, 1, 2, 3]
+          : ([0, 1, 2, 3].filter(l => l !== inactiveLaneForA(missesRef.current)) as Lane[])
+        const lane = activeLanes[Math.floor(Math.random() * activeLanes.length)]
+        const duration = Math.max(1100, 2400 - scoreRef.current * 9)
+        const wordPool = learningWordsRef.current
+        const word = wordPool.length && Math.random() < 0.55
+          ? wordPool[Math.floor(Math.random() * wordPool.length)]
           : undefined
-        const egg: Egg = { id: nextId.current++, lane, born: now, duration: Math.max(1650, 4200 - scoreRef.current * 4.5), word }
+        const egg: Egg = { id: nextId.current++, lane, born: now, duration, word }
         eggsRef.current = [...eggsRef.current, egg]
         setEggs(eggsRef.current)
-        lastSpawn.current = now
       }
-      if (henVisibleRef.current && now >= henUntil.current) {
+      // hen
+      if (now > henUntil.current) {
+        if (Math.random() < 0.0035) {
+          henUntil.current = now + 2200
+          henVisibleRef.current = true
+          setHenVisible(true)
+        }
+      } else if (henVisibleRef.current && now > henUntil.current - 80) {
         henVisibleRef.current = false
         setHenVisible(false)
       }
@@ -275,7 +289,7 @@ export default function OuaVulpiiPage() {
         <div>
           <p className={styles.kicker}>JOC DE ATENȚIE ȘI REACȚIE</p>
           <h1>Vulpea și ouăle</h1>
-          <p>Patru cuiburi. Patru poziții. Un singur coș isteț.</p>
+          <p>Vulpea în centru. Ouăle se rostogolesc pe polițele înclinate din două părți.</p>
         </div>
         <Mascot state={phase === 'over' ? 'talking' : score > 0 ? 'cheering' : 'idle'} action={phase === 'playing' ? 'walking' : undefined} size={104} />
       </header>
@@ -310,49 +324,88 @@ export default function OuaVulpiiPage() {
         <div className={styles.farmSky}>
           <div className={styles.sun}>☀️</div>
           {henVisible && <div className={styles.hen} aria-label="Găina a apărut">🐔</div>}
-          <div className={`${styles.cloud} ${styles.cloudOne}`}>☁️</div><div className={`${styles.cloud} ${styles.cloudTwo}`}>☁️</div>
-          <div className={styles.fence}>🌳　🌼　🌳　🌼　🌳　🌼　🌳</div>
-          <div className={styles.nests}>
+          <div className={`${styles.cloud} ${styles.cloudOne}`}>☁️</div>
+          <div className={`${styles.cloud} ${styles.cloudTwo}`}>☁️</div>
+
+          {/* 4 polițe înclinate (doar vizual) */}
+          <div className={`${styles.shelf} ${styles.shelfLeftTop}`} aria-hidden />
+          <div className={`${styles.shelf} ${styles.shelfLeftBottom}`} aria-hidden />
+          <div className={`${styles.shelf} ${styles.shelfRightTop}`} aria-hidden />
+          <div className={`${styles.shelf} ${styles.shelfRightBottom}`} aria-hidden />
+
+          {/* Cuiburi / găini pe cele două laturi (câte două polițe) */}
+          <div className={styles.sideNests}>
             {LANES.map((lane, i) => (
-              <button key={lane.key} className={`${styles.nest} ${basket === i ? styles.selectedNest : ''}`} onClick={() => chooseLane(i as Lane)} aria-label={lane.label}>
-                <span>{lane.nest}</span><small>{lane.label}</small><b>{lane.key}</b>
+              <button
+                key={lane.key}
+                type="button"
+                className={`${styles.nest} ${styles[`nest${lane.side}${lane.height === 'top' ? 'Top' : 'Bottom'}`]} ${basket === i ? styles.selectedNest : ''}`}
+                onClick={() => chooseLane(i as Lane)}
+                aria-label={lane.label}
+              >
+                <span className={styles.nestIcon}>{lane.nest}</span>
+                <small>{lane.label}</small>
+                <b>{lane.key}</b>
               </button>
             ))}
           </div>
-          <div className={styles.chutes}>
-            {LANES.map((lane, i) => (
-              <div key={lane.key} className={styles.chute}>
-                <span className={styles.chuteLine} />
-                {eggs.filter(egg => egg.lane === i).map(egg => (
-                  <span key={egg.id} className={styles.egg} style={{ left: '50%', top: `${progress(egg)}%` }} aria-label="Ou în mișcare">
-                    <span className={styles.eggSymbol}>🥚</span>
-                    {egg.word && <span className={styles.eggWord}>{egg.word.text}</span>}
-                  </span>
-                ))}
-              </div>
-            ))}
+
+          {/* Ouăle se rostogolesc pe polițe de la margini spre centru */}
+          {eggs.map(egg => {
+            const pct = progress(egg)
+            const pos = eggPosition(egg.lane, pct)
+            return (
+              <span
+                key={egg.id}
+                className={styles.egg}
+                style={pos}
+                aria-label="Ou în mișcare"
+              >
+                <span className={styles.eggSymbol}>🥚</span>
+                {egg.word && <span className={styles.eggWord}>{egg.word.text}</span>}
+              </span>
+            )
+          })}
+
+          {/* Vulpea în centru – se orientează ușor spre polița activă */}
+          <div
+            className={`${styles.centerFox} ${flash === basket ? styles.catchFlash : ''}`}
+            data-side={LANES[basket].side}
+            data-height={LANES[basket].height}
+          >
+            <div className={styles.foxBody}>
+              <Mascot
+                state={flash === basket ? 'cheering' : phase === 'playing' ? 'idle' : 'idle'}
+                action={flash === basket ? 'celebrating' : phase === 'playing' ? 'walking' : undefined}
+                size={88}
+              />
+            </div>
+            <span className={styles.basket}>🧺</span>
+            <div className={styles.catchZones}>
+              {LANES.map((lane, i) => (
+                <button
+                  key={lane.key}
+                  type="button"
+                  className={`${styles.catchZone} ${basket === i ? styles.activeZone : ''}`}
+                  onClick={() => chooseLane(i as Lane)}
+                  aria-label={`Mută vulpea: ${lane.label}`}
+                />
+              ))}
+            </div>
           </div>
-          <div className={styles.catcherRow}>
-            {LANES.map((lane, i) => (
-              <button key={lane.key} onClick={() => chooseLane(i as Lane)} className={`${styles.catcher} ${basket === i ? styles.activeCatcher : ''} ${flash === i ? styles.catchFlash : ''}`} aria-label={`Mută vulpea: ${lane.label}`}>
-                <div className={styles.fox}>{basket === i
-                  ? <Mascot state={flash === i ? 'cheering' : 'idle'} action={flash === i ? 'celebrating' : undefined} size={72} />
-                  : '·'}</div>
-                <span className={styles.basket}>🧺</span>
-              </button>
-            ))}
-          </div>
+
           <div className={styles.grass}>🌱 🌷 🌱 🌼 🌱 🌷 🌱 🌼 🌱</div>
+
           {phase !== 'playing' && (
             <div className={styles.overlay}>
               <div className={styles.overlayCard}>
                 <span className={styles.overlayIcon}>{phase === 'over' ? '🏆' : phase === 'paused' ? '⏸️' : '🥚'}</span>
                 <h2>{phase === 'over' ? 'Runda s-a încheiat!' : phase === 'paused' ? 'Pauză de vulpe' : 'Ești gata de joacă?'}</h2>
-                <p>{phase === 'over' ? `Ai prins ${score} ouă. Mai încercăm?` : phase === 'paused' ? 'Ouăle așteaptă cuminți.' : 'Privește oul și mută vulpea în cuibul potrivit înainte să ajungă jos.'}</p>
+                <p>{phase === 'over' ? `Ai prins ${score} ouă. Mai încercăm?` : phase === 'paused' ? 'Ouăle așteaptă cuminți.' : 'Vulpea stă în centru. Ouăle se rostogolesc pe polițele înclinate din stânga și dreapta. Mută coșul la polița potrivită!'}</p>
                 {(phase === 'ready' || phase === 'over') && (
                   <div className={styles.modeSelect} aria-label="Alege modul">
-                    <button className={mode === 'A' ? styles.selectedMode : ''} onClick={() => setMode('A')}>GAME A <small>Clasic · 3 cuiburi active</small></button>
-                    <button className={mode === 'B' ? styles.selectedMode : ''} onClick={() => setMode('B')}>GAME B <small>Rapid · 4 cuiburi active</small></button>
+                    <button className={mode === 'A' ? styles.selectedMode : ''} onClick={() => setMode('A')}>GAME A <small>Clasic · 3 polițe active</small></button>
+                    <button className={mode === 'B' ? styles.selectedMode : ''} onClick={() => setMode('B')}>GAME B <small>Rapid · 4 polițe active</small></button>
                   </div>
                 )}
                 <button className={styles.primary} onClick={phase === 'paused' ? togglePause : start}>{phase === 'paused' ? 'Continuă' : phase === 'over' ? 'Joacă din nou' : 'Începe jocul'}</button>
@@ -370,7 +423,7 @@ export default function OuaVulpiiPage() {
       </section>
 
       <section className={styles.instructions}>
-        <div><strong>🎮 Cum joci</strong><p>Apasă Q, P, A sau L, ori atinge unul dintre cele patru coșuri. Vulpea noastră sare imediat în poziția aleasă.</p></div>
+        <div><strong>🎮 Cum joci</strong><p>Vulpea stă în centru. Ouăle se rostogolesc pe 4 polițe înclinate (câte două pe stânga și pe dreapta). Apasă Q / P / A / L sau atinge cuibul ca să muți coșul la polița potrivită.</p></div>
         <div><strong>🐔 Găina protectoare</strong><p>Când apare găina, o ratare valorează doar o jumătate de șansă.</p></div>
         <div><strong>❤️ Trei ratări</strong><p>Ai trei șanse. La 200 și 500 de ouă prinse, șansele se refac.</p></div>
       </section>
