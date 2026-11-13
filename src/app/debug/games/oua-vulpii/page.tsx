@@ -11,8 +11,10 @@ import styles from './page.module.css'
 
 type Lane = 0 | 1 | 2 | 3
 type CatchWord = { text: string; nodes?: RenderNode[]; accent: Accent }
-type Egg = { id: number; lane: Lane; born: number; duration: number; golden: boolean; word?: CatchWord }
+type Egg = { id: number; lane: Lane; born: number; duration: number; word?: CatchWord }
 type Phase = 'ready' | 'playing' | 'paused' | 'over'
+
+const inactiveLaneForA = (misses: number): Lane => ([2, 3, 0, 1][Math.min(3, Math.floor(misses))] as Lane)
 
 const LANES: { label: string; key: string; nest: string; side: 'left' | 'right'; height: 'top' | 'bottom' }[] = [
   { label: 'Stânga sus', key: 'Q', nest: '🌿', side: 'left', height: 'top' },
@@ -31,6 +33,8 @@ export default function OuaVulpiiPage() {
   const [message, setMessage] = useState('Alege un cuib și prinde ouăle!')
   const [flash, setFlash] = useState<Lane | null>(null)
   const [soundOn, setSoundOn] = useState(true)
+  const [mode, setMode] = useState<'A' | 'B'>('A')
+  const [henVisible, setHenVisible] = useState(false)
   const [lesson, setLesson] = useState<Lesson>(LEVELS[0].lessons[0])
   const [learningWords, setLearningWords] = useState<CatchWord[]>([])
   const [latestCaught, setLatestCaught] = useState<CatchWord | null>(null)
@@ -42,11 +46,17 @@ export default function OuaVulpiiPage() {
   const phaseRef = useRef<Phase>('ready')
   const scoreRef = useRef(0)
   const soundRef = useRef(true)
+  const modeRef = useRef<'A' | 'B'>('A')
+  const missesRef = useRef(0)
+  const henUntil = useRef(0)
+  const henVisibleRef = useRef(false)
 
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { eggsRef.current = eggs }, [eggs])
   useEffect(() => { scoreRef.current = score }, [score])
   useEffect(() => { soundRef.current = soundOn }, [soundOn])
+  useEffect(() => { modeRef.current = mode }, [mode])
+  useEffect(() => { missesRef.current = misses }, [misses])
 
   useEffect(() => {
     try { setBest(Number(localStorage.getItem('eic-fox-eggs-best') || 0)) } catch {}
@@ -130,7 +140,8 @@ export default function OuaVulpiiPage() {
   const start = useCallback(() => {
     setEggs([]); eggsRef.current = []
     setScore(0); scoreRef.current = 0
-    setMisses(0); setBasket(0); setLatestCaught(null)
+    setMisses(0); missesRef.current = 0; setBasket(0); setLatestCaught(null)
+    setHenVisible(false); henVisibleRef.current = false; henUntil.current = 0
     lastSpawn.current = performance.now()
     nextId.current = 1
     setMessage('Hai, vulpițo! Prinde ouăle!')
@@ -164,16 +175,28 @@ export default function OuaVulpiiPage() {
       if (!last) last = now
       const elapsed = now - last
       last = now
-      const interval = Math.max(570, 1450 - scoreRef.current * 13)
-      if (now - lastSpawn.current > interval && eggsRef.current.length < 5) {
-        const lane = Math.floor(Math.random() * 4) as Lane
-        const word = learningWordsRef.current.length
+      const baseInterval = modeRef.current === 'B' ? 1260 : 1510
+      const interval = Math.max(modeRef.current === 'B' ? 470 : 570, baseInterval - scoreRef.current * 3.5)
+      const maxEggsOnScreen = Math.min(modeRef.current === 'B' ? 10 : 8, 2 + Math.floor(scoreRef.current / 24))
+      if (now - lastSpawn.current > interval && eggsRef.current.length < maxEggsOnScreen) {
+        const inactive = modeRef.current === 'A' ? inactiveLaneForA(missesRef.current) : null
+        const availableLanes = LANES.map((_, index) => index).filter(index => index !== inactive)
+        const lane = availableLanes[Math.floor(Math.random() * availableLanes.length)] as Lane
+        if (!henVisibleRef.current && Math.random() < 0.11) {
+          henVisibleRef.current = true
+          henUntil.current = now + 2300
+          setHenVisible(true)
+        }        const word = learningWordsRef.current.length
           ? learningWordsRef.current[Math.floor(Math.random() * learningWordsRef.current.length)]
           : undefined
-        const egg: Egg = { id: nextId.current++, lane, born: now, duration: Math.max(2300, 3900 - scoreRef.current * 12), golden: Math.random() < 0.075, word }
+        const egg: Egg = { id: nextId.current++, lane, born: now, duration: Math.max(1650, 4200 - scoreRef.current * 4.5), word }
         eggsRef.current = [...eggsRef.current, egg]
         setEggs(eggsRef.current)
         lastSpawn.current = now
+      }
+      if (henVisibleRef.current && now >= henUntil.current) {
+        henVisibleRef.current = false
+        setHenVisible(false)
       }
       const remaining: Egg[] = []
       let caught = 0
@@ -181,7 +204,7 @@ export default function OuaVulpiiPage() {
       const caughtEggs: Egg[] = []
       for (const egg of eggsRef.current) {
         if (now - egg.born >= egg.duration) {
-          if (egg.lane === basket) { caught += egg.golden ? 5 : 1; caughtEggs.push(egg) }
+          if (egg.lane === basket) { caught += 1; caughtEggs.push(egg) }
           else missed += 1
         } else remaining.push(egg)
       }
@@ -192,20 +215,32 @@ export default function OuaVulpiiPage() {
           if (soundRef.current) speakWord(caughtWord.text, { accent: caughtWord.accent })
           setLearnedWords(previous => [...new Set([...previous, ...caughtEggs.flatMap(egg => egg.word ? [egg.word.text] : [])])])
         }
-        const total = scoreRef.current + caught
+        const previousScore = scoreRef.current
+        const total = previousScore + caught
         scoreRef.current = total; setScore(total)
-        setMessage(caughtWord
-          ? `Bravo! Ai prins și cuvântul „${caughtWord.text}”!`
-          : caught > 1 ? 'Uau! Ouă prinse!' : 'Bravo! Un ou în coș!')
+        const milestone = [200, 500].find(target => previousScore < target && total >= target)
+        if (milestone) {
+          missesRef.current = 0
+          setMisses(0)
+          setMessage(`Super! ${milestone} de ouă! Ai recâștigat toate șansele.`)
+        } else {
+          setMessage(caughtWord
+            ? `Bravo! Ai prins și cuvântul „${caughtWord.text}”!`
+            : caught > 1 ? 'Uau! Ouă prinse!' : 'Bravo! Un ou în coș!')
+        }
         chirp(760 + Math.min(total, 20) * 15, 0.11)
         setFlash(basket); window.setTimeout(() => setFlash(null), 260)
       }
       if (missed) {
+        const penalty = henVisibleRef.current ? 0.5 : 1
         setMisses(value => {
-          const next = value + missed
-          setMessage('Ups! Un ou a căzut. Fii atentă!')
+          const next = value + missed * penalty
+          missesRef.current = next
+          setMessage(penalty === 0.5
+            ? 'Găina te-a privit: oul scăpat valorează doar o jumătate de ratare!'
+            : 'Ups! Un ou a căzut. Fii atentă!')
           chirp(170, 0.2)
-          if (next >= 5) {
+          if (next >= 3) {
             setPhase('over'); phaseRef.current = 'over'
             setMessage('S-a terminat runda! Vulpea mai vrea o încercare.')
             const record = Math.max(scoreRef.current, best)
@@ -247,7 +282,7 @@ export default function OuaVulpiiPage() {
       <section className={styles.hud} aria-label="Scor">
         <div><span>OUĂ PRINSE</span><strong>{score.toString().padStart(2, '0')}</strong></div>
         <div><span>RECORD</span><strong>{Math.max(best, score).toString().padStart(2, '0')}</strong></div>
-        <div><span>OUĂ SCĂPATE</span><strong className={styles.misses}>{'🥚'.repeat(Math.max(0, 5 - misses))}{'💔'.repeat(Math.min(5, misses))}</strong></div>
+        <div><span>ȘANSE RĂMASE</span><strong className={styles.misses}>{Math.max(0, 3 - misses).toFixed(misses % 1 ? 1 : 0)} / 3</strong></div>
       </section>
 
       <section className={styles.learningRibbon} aria-label="Învățare EiC în joc">
@@ -273,6 +308,7 @@ export default function OuaVulpiiPage() {
       <section className={styles.gameCard}>
         <div className={styles.farmSky}>
           <div className={styles.sun}>☀️</div>
+          {henVisible && <div className={styles.hen} aria-label="Găina a apărut">🐔</div>}
           <div className={`${styles.cloud} ${styles.cloudOne}`}>☁️</div><div className={`${styles.cloud} ${styles.cloudTwo}`}>☁️</div>
           <div className={styles.fence}>🌳　🌼　🌳　🌼　🌳　🌼　🌳</div>
           <div className={styles.nests}>
@@ -288,7 +324,7 @@ export default function OuaVulpiiPage() {
                 <span className={styles.chuteLine} />
                 {eggs.filter(egg => egg.lane === i).map(egg => (
                   <span key={egg.id} className={styles.egg} style={{ left: '50%', top: `${progress(egg)}%` }} aria-label="Ou în mișcare">
-                    <span className={styles.eggSymbol}>{egg.golden ? '🌟' : '🥚'}</span>
+                    <span className={styles.eggSymbol}>🥚</span>
                     {egg.word && <span className={styles.eggWord}>{egg.word.text}</span>}
                   </span>
                 ))}
@@ -312,6 +348,12 @@ export default function OuaVulpiiPage() {
                 <span className={styles.overlayIcon}>{phase === 'over' ? '🏆' : phase === 'paused' ? '⏸️' : '🥚'}</span>
                 <h2>{phase === 'over' ? 'Runda s-a încheiat!' : phase === 'paused' ? 'Pauză de vulpe' : 'Ești gata de joacă?'}</h2>
                 <p>{phase === 'over' ? `Ai prins ${score} ouă. Mai încercăm?` : phase === 'paused' ? 'Ouăle așteaptă cuminți.' : 'Privește oul și mută vulpea în cuibul potrivit înainte să ajungă jos.'}</p>
+                {phase === 'ready' && (
+                  <div className={styles.modeSelect} aria-label="Alege modul">
+                    <button className={mode === 'A' ? styles.selectedMode : ''} onClick={() => setMode('A')}>GAME A <small>Clasic · 3 cuiburi active</small></button>
+                    <button className={mode === 'B' ? styles.selectedMode : ''} onClick={() => setMode('B')}>GAME B <small>Rapid · 4 cuiburi active</small></button>
+                  </div>
+                )}
                 <button className={styles.primary} onClick={phase === 'paused' ? togglePause : start}>{phase === 'paused' ? 'Continuă' : phase === 'over' ? 'Joacă din nou' : 'Începe jocul'}</button>
               </div>
             </div>
@@ -328,8 +370,8 @@ export default function OuaVulpiiPage() {
 
       <section className={styles.instructions}>
         <div><strong>🎮 Cum joci</strong><p>Apasă Q, P, A sau L, ori atinge unul dintre cele patru coșuri. Vulpea noastră sare imediat în poziția aleasă.</p></div>
-        <div><strong>🌟 Ou auriu</strong><p>Un ou magic valorează 5 puncte. Prinde-l pentru un bonus!</p></div>
-        <div><strong>❤️ Cinci șanse</strong><p>Ai cinci ouă de rezervă. La fiecare ou scăpat pierzi o șansă.</p></div>
+        <div><strong>🐔 Găina protectoare</strong><p>Când apare găina, o ratare valorează doar o jumătate de șansă.</p></div>
+        <div><strong>❤️ Trei ratări</strong><p>Ai trei șanse. La 200 și 500 de ouă prinse, șansele se refac.</p></div>
       </section>
       <p className={styles.note}>Ritmul crește treptat. Cuvintele provin din coloana EiC activă; prinderea lor declanșează pronunția și colorarea reală a motorului. Jocul nu modifică automat stelele sau nivelul de competență.</p>
     </main>
