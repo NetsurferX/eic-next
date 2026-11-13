@@ -178,7 +178,7 @@ export default function OuaVulpiiPage() {
       <section className={styles.gameCard}>
         <div className={styles.farmSky}>
           <div className={styles.sun}>☀️</div>
-          <div className={styles.cloud cloudOne}>☁️</div><div className={styles.cloud cloudTwo}>☁️</div>
+          <div className={`${styles.cloud} ${styles.cloudOne}`}>☁️</div><div className={`${styles.cloud} ${styles.cloudTwo}`}>☁️</div>
           <div className={styles.fence}>🌳　🌼　🌳　🌼　🌳　🌼　🌳</div>
           <div className={styles.nests}>
             {LANES.map((lane, i) => (
