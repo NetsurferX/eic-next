@@ -262,7 +262,7 @@ export default function OuaVulpiiPage() {
               ? <WordRenderer nodes={latestCaught.nodes} wordStr={latestCaught.text} />
               : latestCaught.text
             : lesson.words.slice(0, 3).map(word => word.text).join(' · ')}</strong>
-          <small>{latestCaught ? 'Ascultă pronunția și observă culorile EiC.' : 'Le vei descoperi firesc, fără să oprești jocul.'}</small>
+          <small>{latestCaught ? 'Ascultă pronunția și observă culorile EiC.' : `${learningWords.length} cuvinte din lecția ta apar firesc în joc.`}</small>
         </div>
         <div className={styles.learnedCount}>
           <strong>{learnedWords.length}</strong>
@@ -298,9 +298,9 @@ export default function OuaVulpiiPage() {
           <div className={styles.catcherRow}>
             {LANES.map((lane, i) => (
               <button key={lane.key} onClick={() => chooseLane(i as Lane)} className={`${styles.catcher} ${basket === i ? styles.activeCatcher : ''} ${flash === i ? styles.catchFlash : ''}`} aria-label={`Mută vulpea: ${lane.label}`}>
-                <span className={styles.fox}>{basket === i
+                <div className={styles.fox}>{basket === i
                   ? <Mascot state={flash === i ? 'cheering' : 'idle'} action={flash === i ? 'celebrating' : 'watching'} size={72} />
-                  : '·'}</span>
+                  : '·'}</div>
                 <span className={styles.basket}>🧺</span>
               </button>
             ))}
