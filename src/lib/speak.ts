@@ -64,7 +64,8 @@ let liveUtterance: SpeechSynthesisUtterance | null = null
 //    OnboardingSoundIntro și oriunde se apelează speakWord cu același text
 //    (inclusiv în joc când vulpea „pronunță" sunetul). ──
 const RECORDED_SAMPLES: Record<string, string> = {
-  ay: '/sounds/ay.mp3', // coloana /eɪ/ (letter eỷ) — matchWord: 'ay'
+  // coloana /eỷ/ (/eɪ/) — matchWord din levels.ts
+  'eỷ': '/sounds/ey.mp3',
 }
 
 let liveAudio: HTMLAudioElement | null = null
