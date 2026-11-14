@@ -3146,14 +3146,16 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
 }
 
-/* Rândul activ: Aik stânga + simbolul trecut de mijlocul paharului (în dreapta) */
+/* Rândul activ: Aik stânga; simbolul aproape de axa paharului, dar cu
+   centrul un pic mai în dreapta decât jumătatea cupei */
 .aik-speech.is-active {
   justify-content: flex-start;
   align-items: flex-start;
+  position: relative;
   width: 100%;
   padding-left: 0;
   padding-right: 2px;
-  gap: 8px;
+  gap: 0;
 }
 
 .aik-corner {
@@ -3216,10 +3218,14 @@ button, textarea, input { font-family: var(--font-sans); }
 .aik-speech.is-active .aik-speech-bubble {
   border-color: var(--lesson-color);
   box-shadow: 0 2px 10px color-mix(in srgb, var(--lesson-color) 25%, transparent);
-  /* împinge simbolul în jumătatea dreaptă a coloanei, dincolo de axa paharului */
-  margin-left: auto;
+  /* centrul balonului = ~56% din lățimea coloanei → jumătatea simbolului
+     e mai în dreapta decât jumătatea paharului (50%), fără a fi lipit de margine */
+  position: absolute;
+  left: 56%;
+  top: 0;
+  transform: translateX(-50%);
+  margin-left: 0;
   margin-right: 0;
-  transform: translateX(6px);
 }
 
 .aik-speech.is-locked .aik-speech-bubble {
