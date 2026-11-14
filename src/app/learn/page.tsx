@@ -821,7 +821,8 @@ export default function LearnPage() {
       if (autoCancel.current) break
     }
     setIsPlayingRep(false)
-    if (autoCancel.current) return
+    // Omite în timpul RE-PLAY: oprește restul repetărilor și tot trece la subjoc
+    // (ca „Omite" de la prima deblocare → jocul dintre coloane).
     pendingAdvanceRef.current = null
     setBuleleVulpiiConfig({
       lesson: replayLesson,
@@ -829,6 +830,15 @@ export default function LearnPage() {
       nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
     })
   }, [isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, levelIndex, active, lesson, playColumnOnce])
+
+  // ── Omite în secțiunea RE-PLAY: oprește audio-ul / bucla; handleReplay
+  //   termină și deschide subjocul (vezi mai sus). ──
+  const handleReplayOmite = useCallback(() => {
+    if (!isPlayingRep) return
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    letterSoundStopRef.current?.()
+  }, [isPlayingRep])
 
   const selectColumn = useCallback((i: number) => {
     if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
@@ -1176,7 +1186,7 @@ export default function LearnPage() {
               )}
 
               {isActive && isUnlocked && trophyEarned && !buleleVulpiiConfig ? (
-                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%', margin: '6px 0' }}>
                   <button
                     type="button"
                     className="lesson-replay-btn"
@@ -1196,6 +1206,19 @@ export default function LearnPage() {
                   >
                     <span aria-hidden="true">↻</span> RE-PLAY
                   </button>
+                  {/* Omite în timpul RE-PLAY — ca la prima deblocare: sare restul și trece la subjoc */}
+                  {isPlayingRep && (
+                    <div className="lesson-col-btn-wrap">
+                      <button
+                        type="button"
+                        className="lesson-col-btn"
+                        onClick={(e) => { e.stopPropagation(); handleReplayOmite() }}
+                        style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                      >
+                        Omite
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
