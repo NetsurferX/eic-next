@@ -20,6 +20,7 @@ export const CONSONANT_BLACK = '#000000'
 
 // Înlocuiri de text (cheie = lesson.id). Orice id lipsă → lesson.letter ca până acum.
 const TEXT_BY_ID: Record<string, string> = {
+  ae: '\u2091a',          // /æ/ → ₑa (e subscript + a normal)
   au: 'aw',
   u: 'u',
   ou: 'ə\u200Dw',          // schwa + U+200D (SYLLABIC_MARKER) + w — ca la əʊ

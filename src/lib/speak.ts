@@ -66,6 +66,9 @@ let liveUtterance: SpeechSynthesisUtterance | null = null
 const RECORDED_SAMPLES: Record<string, string> = {
   // coloana /eỷ/ (/eɪ/) — matchWord din levels.ts
   'eỷ': '/sounds/ey.mp3',
+  // coloana /æ/ — simbol afișat ₑa; matchWord 'æ'
+  'æ': '/sounds/ae.mp3',
+  'ae': '/sounds/ae.mp3',
 }
 
 let liveAudio: HTMLAudioElement | null = null
