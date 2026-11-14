@@ -3219,11 +3219,13 @@ button, textarea, input { font-family: var(--font-sans); }
   border-color: var(--lesson-color);
   box-shadow: 0 2px 10px color-mix(in srgb, var(--lesson-color) 25%, transparent);
   /* centrul balonului = ~56% din lățimea coloanei → jumătatea simbolului
-     e mai în dreapta decât jumătatea paharului (50%), fără a fi lipit de margine */
+     e mai în dreapta decât jumătatea paharului (50%), fără a fi lipit de margine.
+     Folosim `translate` (nu `transform`) ca animațiile de scale să nu-l mute din loc. */
   position: absolute;
   left: 56%;
   top: 0;
-  transform: translateX(-50%);
+  translate: -50% 0;
+  transform: none;
   margin-left: 0;
   margin-right: 0;
 }
@@ -3274,8 +3276,9 @@ button, textarea, input { font-family: var(--font-sans); }
   justify-content: center;
 }
 
+/* Balonul stă pe loc — doar litera se umflă/desumflă (vezi letter-sound-inflate) */
 .aik-speech.is-speaking .aik-speech-bubble {
-  animation: aik-bubble-pop 420ms cubic-bezier(.34, 1.56, .64, 1);
+  animation: none;
 }
 .aik-speech.is-speaking .aik-corner {
   animation: aik-corner-bounce 420ms cubic-bezier(.34, 1.56, .64, 1);
@@ -3285,21 +3288,18 @@ button, textarea, input { font-family: var(--font-sans); }
   0%, 100% { transform: scale(1); }
   40% { transform: scale(1.08); }
 }
-@keyframes aik-bubble-pop {
-  0%, 100% { transform: scale(1); }
-  40% { transform: scale(1.08); }
-}
 
 /* Umflare rapidă + desumflare lentă cât timp se aude sunetul izolat */
 .lesson-letter.is-pulsing {
   animation: letter-sound-inflate 1.7s cubic-bezier(0.22, 0.85, 0.28, 1) infinite;
   transform-origin: center center;
   will-change: transform;
+  /* doar scale — fără translate/rotate, stă pe loc */
 }
 @keyframes letter-sound-inflate {
   0%   { transform: scale(1); }
-  16%  { transform: scale(1.2); }  /* umflare încă relativ scurtă */
-  100% { transform: scale(1); }   /* desumflare mai lentă pe ciclu lung */
+  16%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 @media (max-width: 720px) {
