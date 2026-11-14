@@ -299,6 +299,8 @@ export default function LearnPage() {
   // (ex. "the" poate apărea în mai multe lecții).
   const [playingColId, setPlayingColId]     = useState<string | null>(null)
   const [isPlayingRep, setIsPlayingRep]     = useState(false)
+  // Câte treceri complete pe coloană în RE-PLAY curent — Omite apare după prima (ca stars >= 1)
+  const [replayPassesDone, setReplayPassesDone] = useState(0)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
   const [freePracticeCount, setFreePracticeCount] = useState(0)
@@ -813,14 +815,17 @@ export default function LearnPage() {
     const replayLesson = lesson
     const flatIdx = flatIndexOf(levelIndex, active)
     autoCancel.current = false
+    setReplayPassesDone(0)
     setIsPlayingRep(true)
     for (let r = 0; r < REPS_PER_LESSON; r++) {
       await playColumnOnce(replayLesson)
       if (autoCancel.current) break
+      setReplayPassesDone(r + 1) // după prima redare a coloanei → Omite (identic cu stars >= 1)
       if (r < REPS_PER_LESSON - 1) await new Promise(res => setTimeout(res, REPLAY_GAP_MS))
       if (autoCancel.current) break
     }
     setIsPlayingRep(false)
+    setReplayPassesDone(0)
     // Omite în timpul RE-PLAY: oprește restul repetărilor și tot trece la subjoc
     // (ca „Omite" de la prima deblocare → jocul dintre coloane).
     pendingAdvanceRef.current = null
@@ -1186,7 +1191,7 @@ export default function LearnPage() {
               )}
 
               {isActive && isUnlocked && trophyEarned && !buleleVulpiiConfig ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%', margin: '6px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
                   <button
                     type="button"
                     className="lesson-replay-btn"
@@ -1206,19 +1211,6 @@ export default function LearnPage() {
                   >
                     <span aria-hidden="true">↻</span> RE-PLAY
                   </button>
-                  {/* Omite în timpul RE-PLAY — ca la prima deblocare: sare restul și trece la subjoc */}
-                  {isPlayingRep && (
-                    <div className="lesson-col-btn-wrap">
-                      <button
-                        type="button"
-                        className="lesson-col-btn"
-                        onClick={(e) => { e.stopPropagation(); handleReplayOmite() }}
-                        style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
-                      >
-                        Omite
-                      </button>
-                    </div>
-                  )}
                 </div>
               ) : (
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
@@ -1263,13 +1255,21 @@ export default function LearnPage() {
                 })}
               </div>
 
-              {/* Omite: apare in locul fostului buton Repetă, abia după
-                  prima repetare; trece direct la jocul dintre coloane. */}
-              {isActive && isUnlocked && stars >= 1 && !trophyEarned && (
+              {/* Omite: același loc/formă — după prima redare a coloanei
+                  (stars >= 1 la deblocare SAU prima trecere în RE-PLAY). */}
+              {isActive && isUnlocked && !buleleVulpiiConfig && (
+                (stars >= 1 && !trophyEarned) ||
+                (trophyEarned && isPlayingRep && replayPassesDone >= 1)
+              ) && (
                 <div className="lesson-col-btn-wrap">
                   <button
+                    type="button"
                     className="lesson-col-btn"
-                    onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (trophyEarned) handleReplayOmite()
+                      else handleStudiedButton()
+                    }}
                     style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
                   >
                     Omite
