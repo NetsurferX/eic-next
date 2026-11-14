@@ -3292,14 +3292,14 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* Umflare rapidă + desumflare lentă cât timp se aude sunetul izolat */
 .lesson-letter.is-pulsing {
-  animation: letter-sound-inflate 900ms cubic-bezier(0.22, 0.9, 0.25, 1) infinite;
+  animation: letter-sound-inflate 1.7s cubic-bezier(0.22, 0.85, 0.28, 1) infinite;
   transform-origin: center center;
   will-change: transform;
 }
 @keyframes letter-sound-inflate {
   0%   { transform: scale(1); }
-  18%  { transform: scale(1.22); } /* se umflă repede */
-  100% { transform: scale(1); }    /* se desumflă mai lent pe restul ciclului */
+  16%  { transform: scale(1.2); }  /* umflare încă relativ scurtă */
+  100% { transform: scale(1); }   /* desumflare mai lentă pe ciclu lung */
 }
 
 @media (max-width: 720px) {
