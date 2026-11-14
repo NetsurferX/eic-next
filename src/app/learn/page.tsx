@@ -1147,7 +1147,9 @@ export default function LearnPage() {
                           : { color: symbolView(l).color })
                         : undefined}
                     >
-                      {symbolView(l).text}
+                      <span className={letterPulseId === l.id ? 'letter-inflate' : undefined}>
+                        {symbolView(l).text}
+                      </span>
                     </div>
                   </div>
                 </div>

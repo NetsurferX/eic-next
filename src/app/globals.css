@@ -3218,13 +3218,12 @@ button, textarea, input { font-family: var(--font-sans); }
 .aik-speech.is-active .aik-speech-bubble {
   border-color: var(--lesson-color);
   box-shadow: 0 2px 10px color-mix(in srgb, var(--lesson-color) 25%, transparent);
-  /* centrul balonului = ~56% din lățimea coloanei → jumătatea simbolului
-     e mai în dreapta decât jumătatea paharului (50%), fără a fi lipit de margine.
-     Folosim `translate` (nu `transform`) ca animațiile de scale să nu-l mute din loc. */
+  /* Ancorat pe axă fără translate/transform — centrul ~56% (dreapta față de cupă).
+     left compensat cu ~jumătate din min-width (2.6em) ca balonul să nu sară la scale. */
   position: absolute;
-  left: 56%;
+  left: calc(56% - 1.3em);
   top: 0;
-  translate: -50% 0;
+  translate: none;
   transform: none;
   margin-left: 0;
   margin-right: 0;
@@ -3276,25 +3275,25 @@ button, textarea, input { font-family: var(--font-sans); }
   justify-content: center;
 }
 
-/* Balonul stă pe loc — doar litera se umflă/desumflă (vezi letter-sound-inflate) */
-.aik-speech.is-speaking .aik-speech-bubble {
+/* Nici balonul, nici medalionul nu se mișcă în timpul sunetului */
+.aik-speech.is-speaking .aik-speech-bubble,
+.aik-speech.is-speaking .aik-corner {
+  animation: none !important;
+}
+
+/* Umflare pe un span interior — cutia .lesson-letter rămâne fixă în layout */
+.lesson-letter {
+  display: inline-block;
+}
+.lesson-letter.is-pulsing {
+  /* fără animație pe container — evită orice deplasare a cutiei */
   animation: none;
 }
-.aik-speech.is-speaking .aik-corner {
-  animation: aik-corner-bounce 420ms cubic-bezier(.34, 1.56, .64, 1);
-}
-
-@keyframes aik-corner-bounce {
-  0%, 100% { transform: scale(1); }
-  40% { transform: scale(1.08); }
-}
-
-/* Umflare rapidă + desumflare lentă cât timp se aude sunetul izolat */
-.lesson-letter.is-pulsing {
+.letter-inflate {
+  display: inline-block;
+  transform-origin: 50% 50%;
   animation: letter-sound-inflate 1.7s cubic-bezier(0.22, 0.85, 0.28, 1) infinite;
-  transform-origin: center center;
   will-change: transform;
-  /* doar scale — fără translate/rotate, stă pe loc */
 }
 @keyframes letter-sound-inflate {
   0%   { transform: scale(1); }
@@ -3321,7 +3320,8 @@ button, textarea, input { font-family: var(--font-sans); }
 @media (prefers-reduced-motion: reduce) {
   .aik-speech.is-speaking .aik-corner,
   .aik-speech.is-speaking .aik-speech-bubble,
-  .lesson-letter.is-pulsing { animation: none !important; }
+  .lesson-letter.is-pulsing,
+  .letter-inflate { animation: none !important; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
