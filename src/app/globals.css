@@ -2167,98 +2167,50 @@ button, textarea, input { font-family: var(--font-sans); }
 .welcome-page {
   padding: 2rem 1rem 3rem;
 }
-/* BEAUTIFUL LESSON GLOW */
+/* Coloane: fundal alb curat — fără ceață / halo / gradient colorat */
 .lesson-col {
   position: relative;
   isolation: isolate;
   overflow: visible;
-  transition: border-color .35s ease, outline-color .35s ease, background .3s ease, box-shadow .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
+  background: #ffffff;
+  transition: border-color .35s ease, outline-color .35s ease, box-shadow .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
 }
-.lesson-col::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-  z-index: -2;
-  border-radius: calc(var(--radius-lg) + 10px);
-  background: radial-gradient(ellipse at center,
-    color-mix(in srgb, var(--lesson-color) 28%, transparent) 0%,
-    color-mix(in srgb, var(--lesson-color) 12%, transparent) 38%,
-    transparent 72%);
-  opacity: 0;
-  transform: scale(.94);
-  filter: blur(12px);
-  transition: opacity .4s ease, transform .4s ease;
-  pointer-events: none;
-}
+.lesson-col::before,
 .lesson-col::after {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  z-index: -1;
-  border-radius: calc(var(--radius-lg) - 1px);
-  background: linear-gradient(135deg,
-    color-mix(in srgb, #fff 72%, transparent) 0%,
-    transparent 28%, transparent 100%);
-  opacity: .55;
-  pointer-events: none;
+  content: none;
+  display: none;
 }
 .lesson-col.is-unlocked {
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--lesson-color) 7%, transparent),
-              0 8px 22px color-mix(in srgb, var(--lesson-color) 5%, transparent);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
 }
 .lesson-col.is-unlocked:hover {
   transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--lesson-color) 62%, var(--color-border));
-  box-shadow: 0 5px 12px color-mix(in srgb, var(--lesson-color) 12%, transparent),
-              0 12px 30px color-mix(in srgb, var(--lesson-color) 14%, transparent),
-              0 0 0 1px color-mix(in srgb, var(--lesson-color) 18%, transparent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
 }
-.lesson-col.is-unlocked:hover::before { opacity: .95; transform: scale(1); }
-/* ── Coloana activă — contur dublu (border + outline) și 5-10% mai mare,
-   ca să se distingă limpede care coloană se studiază acum. `transform: scale`
-   de aici intră în conflict cu `translateY(-3px)` de pe :hover (mai jos) —
-   regula .is-active.is-unlocked:hover combină manual cele două, ca hover-ul
-   să funcționeze și pe coloana activă. ── */
+/* Coloana activă: contur colorat + ușor mai mare; fără glow colorat pe fundal */
 .lesson-col.is-active {
   border-color: var(--lesson-color);
   outline-color: var(--lesson-color);
   transform: scale(1.07);
   z-index: 2;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color) 18%, transparent),
-              0 5px 14px color-mix(in srgb, var(--lesson-color) 16%, transparent),
-              0 12px 34px color-mix(in srgb, var(--lesson-color) 14%, transparent),
-              0 0 42px color-mix(in srgb, var(--lesson-color) 10%, transparent);
-  animation: lesson-card-glow 3.2s ease-in-out infinite;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  animation: none;
 }
 .lesson-col.is-active.is-unlocked:hover { transform: scale(1.07) translateY(-3px); }
-.lesson-col.is-active::before {
-  opacity: .9;
-  animation: lesson-aura-breathe 3.2s ease-in-out infinite;
-}
-@keyframes lesson-card-glow {
-  0%,100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color) 14%, transparent), 0 5px 14px color-mix(in srgb, var(--lesson-color) 13%, transparent), 0 12px 30px color-mix(in srgb, var(--lesson-color) 11%, transparent), 0 0 34px color-mix(in srgb, var(--lesson-color) 8%, transparent); }
-  50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--lesson-color) 28%, transparent), 0 6px 16px color-mix(in srgb, var(--lesson-color) 19%, transparent), 0 14px 38px color-mix(in srgb, var(--lesson-color) 17%, transparent), 0 0 52px color-mix(in srgb, var(--lesson-color) 14%, transparent); }
-}
-@keyframes lesson-aura-breathe {
-  0%,100% { opacity: .62; transform: scale(.94); }
-  50% { opacity: 1; transform: scale(1.02); }
-}
 .lesson-col.is-active .lesson-letter {
-  text-shadow: 0 0 5px color-mix(in srgb, var(--lesson-color) 45%, transparent),
-               0 0 12px color-mix(in srgb, var(--lesson-color) 28%, transparent);
+  text-shadow: none;
 }
 .lesson-col.is-active .lesson-word {
-  box-shadow: 0 1px 5px color-mix(in srgb, var(--lesson-color) 7%, transparent);
+  box-shadow: none;
 }
 .lesson-col.is-active .lesson-word:hover {
-  box-shadow: 0 3px 12px color-mix(in srgb, var(--lesson-color) 18%, transparent),
-              0 0 0 1px color-mix(in srgb, var(--lesson-color) 12%, transparent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
 }
-.lesson-col.is-locked::before,
-.lesson-col.is-locked::after { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .lesson-col.is-active, .lesson-col.is-active::before { animation: none; }
-  .lesson-col, .lesson-col::before { transition: none; }
+  .lesson-col { transition: none; }
 }
 
 /* ── Telefon: o singură coloană pe rând, deci scale(1.07) + outline împingeau
