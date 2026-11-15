@@ -1177,12 +1177,23 @@ button, textarea, input { font-family: var(--font-sans); }
 .fill-cup {
   position: relative;
   margin: 0 auto .4rem;
-  transition: filter .4s ease;
+  transition: none;
+  filter: none !important; /* zero ceață / halo */
+}
+.fill-cup.is-full,
+.fill-cup.is-active-pulse,
+.fill-cup.is-celebrating,
+.fill-cup.is-emptying,
+.fill-cup-svg,
+.fill-cup-ring,
+.lesson-cup-wrap,
+.lesson-cup-wrap * {
+  filter: none !important; /* zero ceață / halo în jurul cupei */
 }
 /* wrapper doar pentru a putea citi poziția reală a cupei prin
    getBoundingClientRect (vezi handleMainButton) — nu schimbă vizual nimic,
    cupa se centrează la fel prin margin:auto ca înainte */
-.lesson-cup-wrap { display: block; width: 100%; }
+.lesson-cup-wrap { display: block; width: 100%; background: #ffffff; }
 .fill-cup-svg { width: 100%; height: 100%; display: block; animation: cup-breathe 4s ease-in-out infinite; }
 @keyframes cup-breathe {
   0%, 100% { transform: scale(1); }
@@ -1202,16 +1213,16 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .fill-cup.is-full .fill-cup-outline      { opacity: .8; }
 .fill-cup.is-full .fill-cup-outline-fill { opacity: .8; }
-/* premium golden glow once a cup is completely full */
-.fill-cup.is-full { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--cup-color) 60%, transparent)); }
+/* zero glow — fără drop-shadow pe cupa plină */
+.fill-cup.is-full { filter: none !important; }
 .fill-cup-liquid { transition: y .6s ease, height .6s ease; }
 .fill-cup.is-celebrating { animation: fill-cup-bounce 900ms ease; }
 
-/* ── Halo cald, pulsând — semnalizează cupa coloanei aflate curent în lucru ── */
-.fill-cup.is-active-pulse { animation: cup-active-halo 1.7s ease-in-out infinite; }
+/* ── Halo cald dezactivat (zero glow) ── */
+.fill-cup.is-active-pulse { animation: none; }
 @keyframes cup-active-halo {
-  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
-  50%      { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--cup-color) 60%, transparent)); }
+  0%, 100% { filter: none; }
+  50%      { filter: none; }
 }
 
 /* ── Inelul de progres — un arc circular animat în jurul cupei principale
@@ -1229,7 +1240,7 @@ button, textarea, input { font-family: var(--font-sans); }
   stroke-dasharray: 301.6;
   stroke-dashoffset: calc(301.6 - (301.6 * var(--ring-pct, 0) / 100));
   transition: stroke-dashoffset .7s cubic-bezier(.3,.9,.3,1);
-  filter: drop-shadow(0 0 3px var(--cup-color));
+  filter: none !important; /* zero glow */
 }
 
 @keyframes fill-cup-bounce {
@@ -1412,12 +1423,12 @@ button, textarea, input { font-family: var(--font-sans); }
   border: 3px solid var(--color-border);
   outline: 2px solid transparent;
   outline-offset: 3px;
-  background: #ffffff;
+  background: #ffffff; /* alb 100% */
   padding: 1.1rem 0.9rem 1.25rem;
   transition: border-color .35s ease, outline-color .35s ease, background .2s, opacity .2s;
 }
 .lesson-col.is-unlocked {
-  background: #ffffff;
+  background: #ffffff; /* alb 100% */
   border-color: color-mix(in srgb, var(--lesson-color) 30%, var(--color-border));
 }
 .lesson-col.is-active {
@@ -1494,7 +1505,7 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .lesson-star-slot.is-filled .lesson-star-icon {
   color: var(--lesson-color);
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--lesson-color) 70%, transparent));
+  filter: none; /* zero glow */
   animation: star-twinkle 2.4s ease-in-out infinite;
 }
 @keyframes star-twinkle {
@@ -1649,7 +1660,7 @@ button, textarea, input { font-family: var(--font-sans); }
   transform: scale(1.6);
 }
 .lesson-word.is-playing .lesson-word-mark {
-  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px currentColor);
+  filter: none; /* zero glow */
 }
 
 /* ── Butonul principal — trăiește acum ÎN coloana activă (sub cuvinte),
@@ -2167,12 +2178,12 @@ button, textarea, input { font-family: var(--font-sans); }
 .welcome-page {
   padding: 2rem 1rem 3rem;
 }
-/* Coloane: fundal alb curat — fără ceață / halo / gradient colorat */
+/* Coloane: fundal alb 100% — fără ceață / halo / gradient colorat */
 .lesson-col {
   position: relative;
   isolation: isolate;
   overflow: visible;
-  background: #ffffff;
+  background: #ffffff; /* alb 100% */
   transition: border-color .35s ease, outline-color .35s ease, box-shadow .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
 }
 .lesson-col::before,
@@ -2181,7 +2192,7 @@ button, textarea, input { font-family: var(--font-sans); }
   display: none;
 }
 .lesson-col.is-unlocked {
-  background: #ffffff;
+  background: #ffffff; /* alb 100% */
   box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
 }
 .lesson-col.is-unlocked:hover {
@@ -2189,13 +2200,13 @@ button, textarea, input { font-family: var(--font-sans); }
   border-color: color-mix(in srgb, var(--lesson-color) 62%, var(--color-border));
   box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
 }
-/* Coloana activă: contur colorat + ușor mai mare; fără glow colorat pe fundal */
+/* Coloana activă: contur colorat + ușor mai mare; fundal alb 100% */
 .lesson-col.is-active {
   border-color: var(--lesson-color);
   outline-color: var(--lesson-color);
   transform: scale(1.07);
   z-index: 2;
-  background: #ffffff;
+  background: #ffffff; /* alb 100% */
   box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
   animation: none;
 }
@@ -2257,28 +2268,28 @@ button, textarea, input { font-family: var(--font-sans); }
   height: 100%;
 }
 
-/* ── glow cald pe două straturi în spatele vulpii — un inel exterior auriu,
-   difuz, care respiră lent, și unul interior portocaliu, mai concentrat,
-   care pulsează puțin mai rapid și defazat — suprapunerea lor dă senzația
-   de lumină reală în volum, nu un cerc plat ── */
+/* ── glow cald dezactivat (zero glow) ── */
 .mascot-glow {
   position: absolute;
   left: 50%;
   top: 46%;
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(1);
+  display: none;
 }
 .mascot-glow-outer {
   width: 108%;
   height: 108%;
-  background: radial-gradient(circle, rgba(255, 200, 90, .28) 0%, rgba(255, 200, 90, .1) 50%, rgba(255, 200, 90, 0) 74%);
-  animation: mascot-glow-outer-pulse 3.4s ease-in-out infinite;
+  background: none;
+  animation: none;
+  display: none;
 }
 .mascot-glow-inner {
   width: 80%;
   height: 80%;
-  background: radial-gradient(circle, rgba(255, 138, 46, .42) 0%, rgba(255, 138, 46, .18) 48%, rgba(255, 138, 46, 0) 72%);
-  animation: mascot-glow-inner-pulse 2.2s ease-in-out infinite;
+  background: none;
+  animation: none;
+  display: none;
 }
 @keyframes mascot-glow-outer-pulse {
   0%, 100% { opacity: .65; transform: translate(-50%, -50%) scale(.96); }
@@ -2389,11 +2400,8 @@ button, textarea, input { font-family: var(--font-sans); }
   max-height: 100%;
   object-fit: contain;
   display: block;
-  /* culori mai vii + umbră colorată caldă sub siluetă, ca un "glow" de contur */
-  filter:
-    saturate(1.18) contrast(1.05)
-    drop-shadow(0 7px 8px rgba(200, 80, 10, .38))
-    drop-shadow(0 2px 3px rgba(20, 10, 0, .28));
+  /* zero glow — doar saturare + contrast, fără drop-shadow */
+  filter: saturate(1.18) contrast(1.05);
 }
 
 /* ── luciu periodic, mascat exact pe silueta cadrului curent (folosind
@@ -2508,9 +2516,9 @@ button, textarea, input { font-family: var(--font-sans); }
 .mascot.state-cheering .mascot-fox-anchor,
 .mascot.mascot-celebrating .mascot-fox-anchor { animation: mascot-cheer-jump 700ms ease-in-out infinite; }
 .mascot.state-cheering .mascot-glow-outer,
-.mascot.mascot-celebrating .mascot-glow-outer { animation: mascot-glow-outer-pulse 700ms ease-in-out infinite; }
+.mascot.mascot-celebrating .mascot-glow-outer { animation: none; }
 .mascot.state-cheering .mascot-glow-inner,
-.mascot.mascot-celebrating .mascot-glow-inner { animation: mascot-glow-inner-pulse 350ms ease-in-out infinite; }
+.mascot.mascot-celebrating .mascot-glow-inner { animation: none; }
 .mascot.state-cheering .mascot-shadow,
 .mascot.mascot-celebrating .mascot-shadow { animation: mascot-cheer-shadow 700ms ease-in-out infinite; }
 .mascot.mascot-celebrating .mascot-impact-ring { animation: mascot-impact-pulse 700ms ease-out infinite; }
@@ -3121,7 +3129,11 @@ button, textarea, input { font-family: var(--font-sans); }
   margin-right: 0;
   z-index: 3;
   pointer-events: none;
-  filter: drop-shadow(0 2px 3px rgba(20, 10, 0, .26));
+  filter: none !important; /* zero ceață în jurul medalionului */
+}
+.aik-corner,
+.aik-corner * {
+  filter: none !important;
 }
 
 .aik-corner-head {
@@ -3131,11 +3143,10 @@ button, textarea, input { font-family: var(--font-sans); }
   object-position: center 18%;
   border-radius: 50%;
   display: block;
-  background: var(--color-surface, #f8f7f4);
+  background: #ffffff; /* alb 100% */
   border: 2px solid #1a1917;
-  box-shadow:
-    0 0 0 1.5px #fff,
-    0 2px 5px rgba(0, 0, 0, .16);
+  box-shadow: 0 0 0 1.5px #fff; /* fără umbră difuză / ceață */
+  filter: none !important;
 }
 
 /* ── Simple message bubble — litera iese din gura lui Aik ── */
@@ -3147,11 +3158,16 @@ button, textarea, input { font-family: var(--font-sans); }
   min-width: 2.6em;
   min-height: 2.3em;
   padding: .4em .65em .45em;
-  background: #fff;
+  background: #ffffff; /* alb 100% */
   border: 2px solid color-mix(in srgb, var(--lesson-color) 45%, #ccc);
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  box-shadow: none !important; /* zero ceață în jurul simbolului */
+  filter: none !important;
   z-index: 2;
+}
+.aik-speech,
+.aik-speech * {
+  filter: none !important; /* zero ceață pe zona simbolului */
 }
 
 .aik-speech-bubble::before,
@@ -3169,7 +3185,7 @@ button, textarea, input { font-family: var(--font-sans); }
 
 .aik-speech.is-active .aik-speech-bubble {
   border-color: var(--lesson-color);
-  box-shadow: 0 2px 10px color-mix(in srgb, var(--lesson-color) 25%, transparent);
+  box-shadow: none !important; /* zero ceață */
   /* Mai în stânga decât înainte; centrul balonului ~51% (încă un pic în dreapta
      față de axa paharului la 50%). Fără translate — scale din centrul geometric. */
   position: absolute;
@@ -3184,7 +3200,7 @@ button, textarea, input { font-family: var(--font-sans); }
 
 .aik-speech.is-locked .aik-speech-bubble {
   border-color: #ddd;
-  background: #fafafa;
+  background: #ffffff; /* alb 100% */
   box-shadow: none;
   opacity: .7;
 }
