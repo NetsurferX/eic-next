@@ -1289,13 +1289,6 @@ export default function LearnPage() {
           ↺ Reia de la început
         </button>
 
-        <div className="lesson-progress-inline">
-          <Cup ref={bigCupRef} progressPct={progressPct} size={48} color="#FFB300" allFull={levelMastered} idSuffix="master" className="lesson-progress-cup" showBubbles ring />
-          <p className="lesson-progress-caption">
-            {levelMastered ? '🎉 Cupa e plină!' : `${totalLevelStars} / ${maxLevelStars} — scopul: umple cupa`}
-          </p>
-        </div>
-
         <p className="lesson-subhead">
           {allDone ? 'Repetă cuvintele cu voce tare' : 'Ascultă coloana de 3 ori și repetă fiecare cuvânt cu voce tare'}
         </p>
@@ -1348,22 +1341,6 @@ export default function LearnPage() {
           />
         </div>
 
-        {reviewWords.length > 0 && (
-          <div className="review-panel">
-            <p className="review-title">Cuvinte de exersat</p>
-            <div className="review-words">
-              {reviewWords.map(({ word, colId, accent }) => (
-                <button
-                  key={`${colId}-${word}`}
-                  className="review-word-btn"
-                  onClick={() => void playWord(word, colId, accent)}
-                >
-                  {word}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </aside>
       </div>
 
