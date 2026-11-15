@@ -230,7 +230,7 @@ export const LEVELS: Level[] = [
     // corespondent în colors.ts).
     lessons: [
       {
-        id: 'sh', letter: 'ʃ', color: '#7030A0', tabLabel: 'Mov',
+        id: 'sh', letter: 'ʃ', color: '#7030A0', tabLabel: 'Mov', matchWord: 'ʃ',
         words: [
           { text: 'shoe',   mark: 'sh' },
           { text: 'fish',   mark: 'sh' },

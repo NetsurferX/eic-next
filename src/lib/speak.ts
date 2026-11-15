@@ -72,6 +72,9 @@ const RECORDED_SAMPLES: Record<string, string> = {
   // coloana /u/ (uː) — close back rounded vowel
   'u': '/sounds/u.mp3',
   'ooh': '/sounds/u.mp3',
+  // coloana /ʃ/ (sh) — voiceless postalveolar fricative
+  'ʃ': '/sounds/sh.mp3',
+  'sh': '/sounds/sh.mp3',
 }
 
 let liveAudio: HTMLAudioElement | null = null
