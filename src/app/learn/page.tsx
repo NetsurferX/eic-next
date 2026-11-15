@@ -1285,30 +1285,6 @@ export default function LearnPage() {
       <aside className="lesson-header lesson-sidebar">
         <h1 className="lesson-title">EiC · English in Colours</h1>
 
-        <div className="lesson-stepper" aria-label="Niveluri">
-          {LEVELS.map((lv, i) => {
-            const done    = isLevelDone(i)
-            const locked  = !unlockedLevels[i]
-            const viewing = i === levelIndex
-            const canVisit = !locked && !viewing
-            const pillStyle = { '--pill-color': lv.lessons[0].color } as CSSProperties
-            return (
-              <button
-                type="button"
-                key={lv.id}
-                className={`lesson-stepper-pill ${done ? 'is-done' : ''} ${viewing ? 'is-current' : ''} ${locked ? 'is-locked' : ''} ${canVisit ? 'is-visitable' : ''}`}
-                style={pillStyle}
-                title={canVisit ? `Revezi ${lv.name}` : lv.name}
-                onClick={canVisit ? () => visitLevel(i) : undefined}
-                disabled={!canVisit}
-              >
-                <span className="lesson-stepper-dot" aria-hidden="true">{done ? '✓' : locked ? '🔒' : i + 1}</span>
-                <span className="lesson-stepper-label">{lv.name.replace(/^Nivelul \d+ · /, '')}</span>
-              </button>
-            )
-          })}
-        </div>
-
         <button type="button" className="lesson-reset-btn lesson-reset-btn-sidebar" onClick={() => setShowResetConfirm(true)}>
           ↺ Reia de la început
         </button>
