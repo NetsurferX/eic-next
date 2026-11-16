@@ -3348,3 +3348,97 @@ button, textarea, input { font-family: var(--font-sans); }
 @media (prefers-reduced-motion: reduce) {
   .sound-match-phoneme, .sound-match-square { animation: none; }
 }
+
+/* ── Bara permanentă de simboluri (selectare + antrenament) ── */
+.symbol-bar-wrap {
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.symbol-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  min-width: min-content;
+  padding: 6px 4px 10px;
+}
+.symbol-btn {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 10px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease;
+  user-select: none;
+}
+.symbol-btn.is-group-start {
+  margin-left: 14px;
+}
+.symbol-btn.is-unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14);
+}
+.symbol-btn.is-unlocked:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+.symbol-btn.is-selected {
+  outline: 3px solid #1a1917;
+  outline-offset: 2px;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px rgba(0, 0, 0, 0.06);
+}
+.symbol-btn.is-locked {
+  cursor: not-allowed;
+  opacity: 0.72;
+  filter: grayscale(0.35);
+}
+.symbol-btn.is-locked .symbol-btn-text {
+  opacity: 0.55;
+}
+.symbol-lock {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.85rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+  pointer-events: none;
+}
+.symbol-btn-text {
+  position: relative;
+  z-index: 1;
+}
+.lesson-grid.lesson-grid-single {
+  grid-template-columns: 1fr;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (max-width: 720px) {
+  .symbol-btn {
+    min-width: 2.4rem;
+    height: 2.4rem;
+    font-size: 1.05rem;
+    padding: 0 8px;
+  }
+  .symbol-btn.is-group-start {
+    margin-left: 10px;
+  }
+}

@@ -124,6 +124,17 @@ function flatIndexOf(levelIdx: number, columnIdx: number): number {
   for (let i = 0; i < levelIdx; i++) idx += LEVELS[i].lessons.length
   return idx + columnIdx
 }
+
+// ── Inventar plat al tuturor simbolurilor (lecțiilor) cu poziția lor în
+//   LEVELS — folosit exclusiv de bara permanentă de selectare a simbolurilor.
+//   Ordinea = ordinea de deblocare; gruparea vizuală „câte patru” se face
+//   în UI (gap la fiecare 4 indici). Nu modifică inventarul și nu inventează
+//   simboluri. ──
+const ALL_SYMBOLS: { lesson: Lesson; levelIdx: number; colIdx: number }[] =
+  LEVELS.flatMap((lvl, levelIdx) =>
+    lvl.lessons.map((lesson, colIdx) => ({ lesson, levelIdx, colIdx }))
+  )
+
 // Accentul de COLORARE per cuvânt (nu doar audio) — până acum `resolveAccent`
 // alimenta doar redarea vocală (speak.ts); fără el trecut și la /api/words,
 // motorul alegea mereu implicit varianta US pentru colorare (regulă corectă
@@ -850,6 +861,40 @@ export default function LearnPage() {
     setActive(i)
   }, [isPlayingRep, colUnlocked, levelIndex, active])
 
+  // ── Selectare simbol din bara superioară (toate simbolurile, inclusiv
+  //   blocate vizibile). Doar cele deblocate pot fi selectate. Oprește
+  //   Replay-ul anterior, mută levelIndex+active pe simbolul ales, afișează
+  //   exclusiv coloana lui și lasă mecanismul existent de antrenament /
+  //   RE-PLAY să pornească automat (useEffect + handleReplay pentru
+  //   coloanele deja terminate). Nu atinge colUnlocked / starsEarned. ──
+  const pendingAutoReplayRef = useRef(false)
+  const selectSymbol = useCallback((levelIdx: number, colIdx: number) => {
+    if (!colUnlocked[levelIdx]?.[colIdx]) return
+    // Oprește orice redare în curs (mecanismul existent: autoCancel + audio)
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    cancelMascotReward()
+    setEmptyingColumnId(null)
+    const alreadySelected = levelIdx === levelIndex && colIdx === active
+    if (!alreadySelected) {
+      setLevelIndex(levelIdx)
+      setActive(colIdx)
+    }
+    // Coloană deja terminată → pornește RE-PLAY după ce state-ul s-a așezat
+    const stars = starsEarned[levelIdx]?.[colIdx] ?? 0
+    if (stars >= REPS_PER_LESSON) {
+      pendingAutoReplayRef.current = true
+    }
+  }, [colUnlocked, levelIndex, active, starsEarned, cancelMascotReward])
+
+  useEffect(() => {
+    if (!pendingAutoReplayRef.current) return
+    if (isPlayingRep || buleleVulpiiConfig || showLevelOverlay || introLesson) return
+    if ((starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON) return
+    pendingAutoReplayRef.current = false
+    void handleReplay()
+  }, [levelIndex, active, isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, handleReplay])
+
   // ── "Hover intent" — la trecerea rapidă a mouse-ului peste mai multe
   //   coloane (spre ex. când cursorul doar traversează grila spre alt
   //   punct), nu vrem să se activeze fiecare coloană atinsă în trecere,
@@ -1105,11 +1150,61 @@ export default function LearnPage() {
         </div>
       </div>
 
+      {/* ── Linia permanentă cu TOATE simbolurile (deblocate + blocate).
+          Grupate vizual câte 4 (gap mai mare la fiecare 4). Derulare
+          orizontală dacă nu încap. Selectarea unui simbol deblocat
+          afișează exclusiv coloana lui și pornește antrenamentul. ── */}
+      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare simbol">
+        <div className="symbol-bar">
+          {ALL_SYMBOLS.map((item, flatIdx) => {
+            const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
+            const selected = levelIndex === item.levelIdx && active === item.colIdx
+            const sv = symbolView(item.lesson)
+            const isTricolorSym = item.lesson.id === 'ou'
+            const groupStart = flatIdx > 0 && flatIdx % 4 === 0
+            return (
+              <button
+                key={item.lesson.id}
+                type="button"
+                className={[
+                  'symbol-btn',
+                  unlocked ? 'is-unlocked' : 'is-locked',
+                  selected ? 'is-selected' : '',
+                  groupStart ? 'is-group-start' : '',
+                ].filter(Boolean).join(' ')}
+                style={{
+                  ...(unlocked
+                    ? (isTricolorSym
+                        ? { background: TRICOLOR_CSS_HORIZONTAL, color: '#fff' }
+                        : sv.whiteOutlined
+                          ? { background: '#111', color: '#fff', WebkitTextStroke: '1px #000' }
+                          : { background: sv.color, color: '#fff' })
+                    : { background: '#e8e6e1', color: '#666' }),
+                }}
+                disabled={!unlocked}
+                aria-pressed={selected}
+                aria-label={unlocked
+                  ? `Simbol ${sv.text}${selected ? ' (selectat)' : ''}`
+                  : `Simbol ${sv.text} (blocat)`}
+                onClick={() => selectSymbol(item.levelIdx, item.colIdx)}
+              >
+                {!unlocked && <span className="symbol-lock" aria-hidden="true">🔒</span>}
+                <span className="symbol-btn-text" style={unlocked && sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>
+                  {sv.text}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <div className="lesson-layout">
-      <div className="lesson-grid">
+      <div className="lesson-grid lesson-grid-single">
         {level.lessons.map((l, i) => {
+          // Afișăm exclusiv coloana asociată simbolului selectat
+          if (i !== active) return null
           const isUnlocked   = colUnlocked[levelIndex][i]
-          const isActive     = active === i
+          const isActive     = true
           const stars        = starsEarned[levelIndex][i]
           const trophyEarned = stars >= REPS_PER_LESSON
           const isNextUp     = i === nextUpIndex
