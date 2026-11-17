@@ -1711,6 +1711,78 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-col-btn-wrap.lesson-col-btn-split { display: flex; gap: 8px; }
 .lesson-col-btn-wrap.lesson-col-btn-split .lesson-col-btn { flex: 1 1 0; min-width: 0; }
 .lesson-col-btn-wrap.lesson-col-btn-split .lesson-col-btn:disabled { cursor: not-allowed; }
+
+/* ── REPEAT / STOP — doar chenar colorat; se umple încet cu culoarea coloanei
+   pe măsură ce coloana e citită (--rp-pct, 0–100%). Chenarul e desenat cu mască
+   ca să meargă și pe fundalul tricolor (gradient). ── */
+.lesson-replay-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 22px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.lesson-replay-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 2px;
+  border-radius: inherit;
+  background: var(--rp-bg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.lesson-replay-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--rp-bg);
+  clip-path: inset(0 calc(100% - var(--rp-pct, 0%)) 0 0);
+}
+.lesson-replay-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rp-bg);
+}
+.lesson-replay-btn.is-tricolor .lesson-replay-label:not(.lesson-replay-label-on) {
+  background: var(--rp-bg);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* aceeași etichetă, albă, vizibilă doar peste partea umplută */
+.lesson-replay-label-on {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  justify-content: center;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  clip-path: inset(0 calc(100% - var(--rp-pct, 0%)) 0 0);
+}
+.lesson-replay-btn.is-running .lesson-replay-fill,
+.lesson-replay-btn.is-running .lesson-replay-label-on {
+  transition: clip-path 1100ms linear;
+}
+.lesson-replay-btn:hover { filter: brightness(.96); }
 .lesson-col-btn-star {
   position: absolute;
   top: -8px; right: -6px;

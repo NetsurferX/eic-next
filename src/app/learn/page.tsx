@@ -326,6 +326,8 @@ export default function LearnPage() {
   const [replayPassesDone, setReplayPassesDone] = useState(0)
   // true când RE-PLAY a fost oprit cu „Stop" (nu se deschide subjocul); „Skip" lasă false
   const replayStopRef = useRef(false)
+  // 0–100: cât din repetarea curentă (toate trecerile) a fost citit — umple butonul REPEAT/STOP
+  const [replayProgress, setReplayProgress] = useState(0)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
   const [freePracticeCount, setFreePracticeCount] = useState(0)
@@ -629,11 +631,12 @@ export default function LearnPage() {
   // ── Plays every word in a column exactly once, in order, cu pauza dintre
   //   cuvinte controlată de slider-ul de viteză (autoDelayMs) și accentul
   //   fiecărui cuvânt rezolvat individual (word.accent > lesson.accent). ──
-  const playColumnOnce = useCallback(async (l: Lesson) => {
+  const playColumnOnce = useCallback(async (l: Lesson, onWordDone?: (wi: number) => void) => {
     for (let wi = 0; wi < l.words.length; wi++) {
       if (autoCancel.current) break
       await playWord(l.words[wi].text, l.id, resolveAccent(l.words[wi], l))
       if (autoCancel.current) break
+      onWordDone?.(wi)
       if (wi < l.words.length - 1) {
         await new Promise(res => setTimeout(res, autoDelayMs))
       }
@@ -842,9 +845,12 @@ export default function LearnPage() {
     autoCancel.current = false
     replayStopRef.current = false
     setReplayPassesDone(0)
+    setReplayProgress(0)
     setIsPlayingRep(true)
+    const nWords = Math.max(1, replayLesson.words.length)
     for (let r = 0; r < REPS_PER_LESSON; r++) {
-      await playColumnOnce(replayLesson)
+      await playColumnOnce(replayLesson, (wi) =>
+        setReplayProgress(((r * nWords + wi + 1) / (REPS_PER_LESSON * nWords)) * 100))
       if (autoCancel.current) break
       setReplayPassesDone(r + 1) // după prima redare a coloanei → Omite (identic cu stars >= 1)
       if (r < REPS_PER_LESSON - 1) await new Promise(res => setTimeout(res, REPLAY_GAP_MS))
@@ -852,6 +858,7 @@ export default function LearnPage() {
     }
     setIsPlayingRep(false)
     setReplayPassesDone(0)
+    setReplayProgress(0)
     // Stop în timpul RE-PLAY: oprește tot, fără subjoc.
     if (replayStopRef.current) {
       replayStopRef.current = false
@@ -1003,6 +1010,10 @@ export default function LearnPage() {
     setActive(tgt.ci)
     armAutoReplay(tgt.li, tgt.ci)
   }, [isPlayingRep, showLevelOverlay, introLesson, buleleVulpiiConfig, stepTarget, levelIndex, cancelMascotReward, armAutoReplay])
+
+  const repeatLabel = isPlayingRep
+    ? <><span aria-hidden="true">■</span> STOP</>
+    : <><span aria-hidden="true">↻</span> REPEAT</>
 
   // ── NEXT: următoarea coloană (la ultima coloană a nivelului → prima coloană
   //   deblocată din nivelul următor). Oprește repetarea în curs fără să deschidă
@@ -1353,23 +1364,17 @@ export default function LearnPage() {
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
                   <button
                     type="button"
-                    className="lesson-replay-btn"
+                    className={`lesson-replay-btn${isPlayingRep ? ' is-running' : ''}${isTricolor ? ' is-tricolor' : ''}`}
                     onClick={(e) => { e.stopPropagation(); if (isPlayingRep) handleReplayStop(); else void handleReplay() }}
                     aria-label={isPlayingRep ? 'Stop: oprește repetarea' : 'Repeat: repetă coloana'}
                     style={{
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      border: '2px solid rgba(0,0,0,.18)', borderRadius: 999, padding: '7px 20px',
-                      background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color,
-                      color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.45)',
-                      boxShadow: '0 3px 0 rgba(0,0,0,.22), 0 4px 10px rgba(0,0,0,.12)',
-                      fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 800,
-                      fontSize: '1.05rem', letterSpacing: '.04em', whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                    }}
+                      '--rp-bg': isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color,
+                      '--rp-pct': `${isPlayingRep ? replayProgress : 0}%`,
+                    } as CSSProperties}
                   >
-                    {isPlayingRep
-                      ? <><span aria-hidden="true">■</span> STOP</>
-                      : <><span aria-hidden="true">↻</span> REPEAT</>}
+                    <span className="lesson-replay-fill" aria-hidden="true" />
+                    <span className="lesson-replay-label">{repeatLabel}</span>
+                    <span className="lesson-replay-label lesson-replay-label-on" aria-hidden="true">{repeatLabel}</span>
                   </button>
                 </div>
               ) : (
