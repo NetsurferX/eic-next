@@ -3365,9 +3365,9 @@ button, textarea, input { font-family: var(--font-sans); }
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   min-width: min-content;
-  padding: 6px 4px 10px;
+  padding: 3px 2px 5px;
 }
 .symbol-btn {
   position: relative;
@@ -3375,19 +3375,19 @@ button, textarea, input { font-family: var(--font-sans); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.6rem;
-  height: 2.6rem;
-  padding: 0 8px;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 4px;
   background: #fff;
-  border: 2px solid color-mix(in srgb, var(--lesson-color) 45%, #ccc);
-  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--lesson-color) 45%, #ccc);
+  border-radius: 8px;
   cursor: pointer;
   box-shadow: none;
   transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease;
   user-select: none;
 }
-.symbol-btn.is-group-start {
-  margin-left: 14px;
+ .symbol-btn.is-group-start {
+  margin-left: 7px;
 }
 .symbol-btn.is-unlocked:hover {
   transform: translateY(-2px);
@@ -3397,11 +3397,11 @@ button, textarea, input { font-family: var(--font-sans); }
   transform: translateY(1px);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
 }
-.symbol-btn.is-selected {
-  outline: 3px solid #1a1917;
-  outline-offset: 2px;
+ .symbol-btn.is-selected {
+  outline: 1.5px solid #1a1917;
+  outline-offset: 1px;
   transform: translateY(-1px);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.18), 0 0 0 2px rgba(0, 0, 0, 0.06);
 }
 .symbol-btn.is-locked {
   cursor: not-allowed;
@@ -3413,9 +3413,9 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .symbol-lock {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  font-size: 0.85rem;
+  top: -3px;
+  right: -3px;
+  font-size: 0.425rem;
   line-height: 1;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
   pointer-events: none;
@@ -3426,7 +3426,7 @@ button, textarea, input { font-family: var(--font-sans); }
   font-family: var(--font-sans);
   font-style: italic;
   font-weight: 700;
-  font-size: 1.75rem;
+  font-size: 0.875rem;
   line-height: 1;
 }
 .lesson-grid.lesson-grid-single {
@@ -3437,12 +3437,11 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 @media (max-width: 720px) {
   .symbol-btn {
-    min-width: 2.4rem;
-    height: 2.4rem;
-    font-size: 1.05rem;
-    padding: 0 8px;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    padding: 0 4px;
   }
   .symbol-btn.is-group-start {
-    margin-left: 10px;
+    margin-left: 5px;
   }
 }
