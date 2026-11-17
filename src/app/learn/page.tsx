@@ -1189,7 +1189,6 @@ export default function LearnPage() {
             const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
             const selected = levelIndex === item.levelIdx && active === item.colIdx
             const sv = symbolView(item.lesson)
-            const isTricolorSym = item.lesson.id === 'ou'
             const groupStart = flatIdx > 0 && flatIdx % 4 === 0
             return (
               <button
