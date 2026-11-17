@@ -3442,6 +3442,54 @@ button, textarea, input { font-family: var(--font-sans); }
   min-width: min-content;
   padding: 3px 2px 5px;
 }
+
+/* Un singur buton compact pentru fiecare grup de patru simboluri. */
+.symbol-group-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .38rem;
+  min-height: 1.55rem;
+  padding: .12rem .42rem;
+  background: #fff;
+  border: 1px solid #c9c9c9;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: none;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.symbol-group-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 0 rgba(0,0,0,.13);
+}
+.symbol-group-btn.is-selected {
+  border: 1.5px solid #1a1917;
+  outline: 1px solid rgba(0,0,0,.12);
+  outline-offset: 1px;
+}
+.symbol-group-btn:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+.symbol-group-symbol {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: .85rem;
+}
+.symbol-group-lock {
+  position: absolute;
+  z-index: 2;
+  top: -.34rem;
+  right: -.3rem;
+  font-size: .43rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+  pointer-events: none;
+}
+
 .symbol-btn {
   position: relative;
   flex: 0 0 auto;
