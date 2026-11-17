@@ -211,10 +211,26 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
   // gradient pe ambele litere). Coloanele blocate rămân pe stilul vechi
   // (culoare plată, estompată de CSS) ca să nu se "trădeze" prin gradient.
   const isTricolorLesson = lessonId === 'ou' && !isLocked
+  // În „mercy”, litera e are un underscore negru, separat de marcajul c → /s/.
+  const underlineMercyE = text.toLowerCase() === 'mercy' && mark.toLowerCase() === 'c'
 
   return (
     <>
-      {before}
+      {underlineMercyE
+        ? [...before].map((ch, i) => (
+            <span
+              key={i}
+              style={i === 1 ? {
+                textDecoration: 'underline',
+                textDecorationColor: '#000',
+                textUnderlineOffset: '4.7px',
+                textDecorationThickness: '2px',
+              } : undefined}
+            >
+              {ch}
+            </span>
+          ))
+        : before}
       {[...markText].map((ch, i) => {
         const vowelLike = isVowelLike(ch)
 
