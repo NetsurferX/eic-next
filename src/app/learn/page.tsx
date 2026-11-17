@@ -1199,12 +1199,10 @@ export default function LearnPage() {
       </div>
 
       <div className="lesson-layout">
-      <div className="lesson-grid lesson-grid-single">
+      <div className="lesson-grid">
         {level.lessons.map((l, i) => {
-          // Afișăm exclusiv coloana asociată simbolului selectat
-          if (i !== active) return null
           const isUnlocked   = colUnlocked[levelIndex][i]
-          const isActive     = true
+          const isActive     = active === i
           const stars        = starsEarned[levelIndex][i]
           const trophyEarned = stars >= REPS_PER_LESSON
           const isNextUp     = i === nextUpIndex
