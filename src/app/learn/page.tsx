@@ -885,10 +885,19 @@ export default function LearnPage() {
     letterSoundStopRef.current?.()
   }, [isPlayingRep])
 
-  const selectColumn = useCallback((i: number) => {
+  // RE-PLAY automat după navigare: se armează doar dacă ținta e o coloană
+  //   deja terminată; useEffect-ul de mai jos pornește apoi handleReplay.
+  const pendingAutoReplayRef = useRef(false)
+  const armAutoReplay = useCallback((li: number, ci: number) => {
+    if ((starsEarned[li]?.[ci] ?? 0) >= REPS_PER_LESSON) pendingAutoReplayRef.current = true
+  }, [starsEarned])
+
+  // autoReplay=true doar la click (nu la hover, ca să nu pornească audio din trecerea mouse-ului)
+  const selectColumn = useCallback((i: number, autoReplay = false) => {
     if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
     setActive(i)
-  }, [isPlayingRep, colUnlocked, levelIndex, active])
+    if (autoReplay) armAutoReplay(levelIndex, i)
+  }, [isPlayingRep, colUnlocked, levelIndex, active, armAutoReplay])
 
   // ── Selectare simbol din bara superioară (toate simbolurile, inclusiv
   //   blocate vizibile). Doar cele deblocate pot fi selectate. Oprește
@@ -896,7 +905,6 @@ export default function LearnPage() {
   //   exclusiv coloana lui și lasă mecanismul existent de antrenament /
   //   RE-PLAY să pornească automat (useEffect + handleReplay pentru
   //   coloanele deja terminate). Nu atinge colUnlocked / starsEarned. ──
-  const pendingAutoReplayRef = useRef(false)
   const selectSymbol = useCallback((levelIdx: number, colIdx: number) => {
     if (!colUnlocked[levelIdx]?.[colIdx]) return
     // Oprește orice redare în curs (mecanismul existent: autoCancel + audio)
@@ -910,11 +918,8 @@ export default function LearnPage() {
       setActive(colIdx)
     }
     // Coloană deja terminată → pornește RE-PLAY după ce state-ul s-a așezat
-    const stars = starsEarned[levelIdx]?.[colIdx] ?? 0
-    if (stars >= REPS_PER_LESSON) {
-      pendingAutoReplayRef.current = true
-    }
-  }, [colUnlocked, levelIndex, active, starsEarned, cancelMascotReward])
+    armAutoReplay(levelIdx, colIdx)
+  }, [colUnlocked, levelIndex, active, cancelMascotReward, armAutoReplay])
 
   useEffect(() => {
     if (!pendingAutoReplayRef.current) return
@@ -950,8 +955,10 @@ export default function LearnPage() {
     setEmptyingColumnId(null)
     setLevelIndex(i)
     const firstUnlockedCol = colUnlocked[i].findIndex(Boolean)
-    setActive(firstUnlockedCol === -1 ? 0 : firstUnlockedCol)
-  }, [isPlayingRep, unlockedLevels, levelIndex, colUnlocked, cancelMascotReward])
+    const targetCol = firstUnlockedCol === -1 ? 0 : firstUnlockedCol
+    setActive(targetCol)
+    armAutoReplay(i, targetCol)
+  }, [isPlayingRep, unlockedLevels, levelIndex, colUnlocked, cancelMascotReward, armAutoReplay])
 
   // ── Navigare lecție anterioară / următoare (săgeți pe ecran + tastele ←/→).
   //   Merge în ordinea plată a parcursului (FLAT_LESSONS), peste granița
@@ -975,7 +982,8 @@ export default function LearnPage() {
     setEmptyingColumnId(null)
     if (tgt.li !== levelIndex) setLevelIndex(tgt.li)
     setActive(tgt.ci)
-  }, [isPlayingRep, showLevelOverlay, introLesson, buleleVulpiiConfig, stepTarget, levelIndex, cancelMascotReward])
+    armAutoReplay(tgt.li, tgt.ci)
+  }, [isPlayingRep, showLevelOverlay, introLesson, buleleVulpiiConfig, stepTarget, levelIndex, cancelMascotReward, armAutoReplay])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1235,7 +1243,7 @@ export default function LearnPage() {
               ref={(el) => { colRefs.current[l.id] = el }}
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
-              onClick={() => selectColumn(i)}
+              onClick={() => selectColumn(i, true)}
               onMouseEnter={() => hoverSelectColumn(i)}
               onMouseLeave={cancelHoverSelectColumn}
             >
