@@ -885,6 +885,25 @@ export default function LearnPage() {
     letterSoundStopRef.current?.()
   }, [isPlayingRep])
 
+  // ── PLAY: duce la joc (Bulele Vulpii). În timpul repetării oprește bucla
+  //   (handleReplay deschide apoi jocul); în repaus deschide jocul direct.
+  //   Nu atinge progresul (pendingAdvanceRef = null). ──
+  const handleReplayPlay = useCallback(() => {
+    if (buleleVulpiiConfig || showLevelOverlay || introLesson) return
+    if (isPlayingRep) { handleReplayOmite(); return }
+    if (starsEarned[levelIndex][active] < REPS_PER_LESSON) return
+    const flatIdx = flatIndexOf(levelIndex, active)
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    letterSoundStopRef.current?.()
+    pendingAdvanceRef.current = null
+    setBuleleVulpiiConfig({
+      lesson,
+      distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
+      nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+    })
+  }, [buleleVulpiiConfig, showLevelOverlay, introLesson, isPlayingRep, handleReplayOmite, starsEarned, levelIndex, active, lesson])
+
   // RE-PLAY automat după navigare: se armează doar dacă ținta e o coloană
   //   deja terminată; useEffect-ul de mai jos pornește apoi handleReplay.
   const pendingAutoReplayRef = useRef(false)
@@ -984,6 +1003,30 @@ export default function LearnPage() {
     setActive(tgt.ci)
     armAutoReplay(tgt.li, tgt.ci)
   }, [isPlayingRep, showLevelOverlay, introLesson, buleleVulpiiConfig, stepTarget, levelIndex, cancelMascotReward, armAutoReplay])
+
+  // ── NEXT: următoarea coloană (la ultima coloană a nivelului → prima coloană
+  //   deblocată din nivelul următor). Oprește repetarea în curs fără să deschidă
+  //   subjocul. Nu atinge progresul. ──
+  const nextColumnTarget = useCallback((): { li: number; ci: number } | null => {
+    const nc = active + 1
+    if (nc < level.lessons.length) return colUnlocked[levelIndex]?.[nc] ? { li: levelIndex, ci: nc } : null
+    return stepTarget(1)
+  }, [active, level, colUnlocked, levelIndex, stepTarget])
+
+  const handleNextColumn = useCallback(() => {
+    if (buleleVulpiiConfig || showLevelOverlay || introLesson) return
+    const tgt = nextColumnTarget()
+    if (!tgt) return
+    if (isPlayingRep) replayStopRef.current = true   // fără subjoc după oprire
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    letterSoundStopRef.current?.()
+    cancelMascotReward()
+    setEmptyingColumnId(null)
+    if (tgt.li !== levelIndex) setLevelIndex(tgt.li)
+    setActive(tgt.ci)
+    armAutoReplay(tgt.li, tgt.ci)
+  }, [buleleVulpiiConfig, showLevelOverlay, introLesson, nextColumnTarget, isPlayingRep, levelIndex, cancelMascotReward, armAutoReplay])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1311,9 +1354,8 @@ export default function LearnPage() {
                   <button
                     type="button"
                     className="lesson-replay-btn"
-                    disabled={isPlayingRep}
-                    onClick={(e) => { e.stopPropagation(); void handleReplay() }}
-                    aria-label="Re-play: rejoacă coloana și subjocul"
+                    onClick={(e) => { e.stopPropagation(); if (isPlayingRep) handleReplayStop(); else void handleReplay() }}
+                    aria-label={isPlayingRep ? 'Stop: oprește repetarea' : 'Repeat: repetă coloana'}
                     style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       border: '2px solid rgba(0,0,0,.18)', borderRadius: 999, padding: '7px 20px',
@@ -1322,10 +1364,12 @@ export default function LearnPage() {
                       boxShadow: '0 3px 0 rgba(0,0,0,.22), 0 4px 10px rgba(0,0,0,.12)',
                       fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 800,
                       fontSize: '1.05rem', letterSpacing: '.04em', whiteSpace: 'nowrap',
-                      cursor: isPlayingRep ? 'default' : 'pointer', opacity: isPlayingRep ? 0.55 : 1,
+                      cursor: 'pointer',
                     }}
                   >
-                    <span aria-hidden="true">↻</span> RE-PLAY
+                    {isPlayingRep
+                      ? <><span aria-hidden="true">■</span> STOP</>
+                      : <><span aria-hidden="true">↻</span> REPEAT</>}
                   </button>
                 </div>
               ) : (
@@ -1371,43 +1415,41 @@ export default function LearnPage() {
                 })}
               </div>
 
-              {/* Omite: același loc/formă — după prima redare a coloanei
-                  (stars >= 1 la deblocare SAU prima trecere în RE-PLAY). */}
-              {isActive && isUnlocked && !buleleVulpiiConfig && (
-                (stars >= 1 && !trophyEarned) ||
-                (trophyEarned && isPlayingRep && replayPassesDone >= 1)
-              ) && (
-                trophyEarned ? (
-                  <div className="lesson-col-btn-wrap lesson-col-btn-split">
-                    <button
-                      type="button"
-                      className="lesson-col-btn"
-                      onClick={(e) => { e.stopPropagation(); handleReplayStop() }}
-                      style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
-                    >
-                      Stop
-                    </button>
-                    <button
-                      type="button"
-                      className="lesson-col-btn"
-                      onClick={(e) => { e.stopPropagation(); handleReplayOmite() }}
-                      style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
-                    >
-                      Skip
-                    </button>
-                  </div>
-                ) : (
-                  <div className="lesson-col-btn-wrap">
-                    <button
-                      type="button"
-                      className="lesson-col-btn"
-                      onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
-                      style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
-                    >
-                      Omite
-                    </button>
-                  </div>
-                )
+              {/* Coloană terminată: ▶ PLAY (duce la joc) + NEXT (coloana următoare).
+                  Prima trecere (înainte de stele pline): NEXT = „Știu deja acest sunet" →
+                  joc → coloana următoare. */}
+              {isActive && isUnlocked && !buleleVulpiiConfig && trophyEarned && (
+                <div className="lesson-col-btn-wrap lesson-col-btn-split">
+                  <button
+                    type="button"
+                    className="lesson-col-btn"
+                    onClick={(e) => { e.stopPropagation(); handleReplayPlay() }}
+                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                  >
+                    <span aria-hidden="true">▶</span> PLAY
+                  </button>
+                  <button
+                    type="button"
+                    className="lesson-col-btn"
+                    disabled={!nextColumnTarget()}
+                    onClick={(e) => { e.stopPropagation(); handleNextColumn() }}
+                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                  >
+                    NEXT <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              )}
+              {isActive && isUnlocked && !buleleVulpiiConfig && !trophyEarned && stars >= 1 && (
+                <div className="lesson-col-btn-wrap">
+                  <button
+                    type="button"
+                    className="lesson-col-btn"
+                    onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
+                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                  >
+                    NEXT <span aria-hidden="true">→</span>
+                  </button>
+                </div>
               )}
 
             </div>
@@ -1572,7 +1614,7 @@ export default function LearnPage() {
           actions={[
             { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
             { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
-            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „Omite" (apare după prima repetare) ca să sari la joc.', 'hint') },
+            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
           ]}
         />
       )}
