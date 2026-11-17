@@ -3377,15 +3377,12 @@ button, textarea, input { font-family: var(--font-sans); }
   justify-content: center;
   min-width: 2.6rem;
   height: 2.6rem;
-  padding: 0 10px;
-  border: 2px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 800;
-  font-size: 1.15rem;
-  line-height: 1;
+  padding: 0 8px;
+  background: #fff;
+  border: 2px solid color-mix(in srgb, var(--lesson-color) 45%, #ccc);
+  border-radius: 16px;
   cursor: pointer;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: none;
   transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease;
   user-select: none;
 }
@@ -3408,11 +3405,11 @@ button, textarea, input { font-family: var(--font-sans); }
 }
 .symbol-btn.is-locked {
   cursor: not-allowed;
-  opacity: 0.72;
-  filter: grayscale(0.35);
+  border-color: #ddd;
 }
 .symbol-btn.is-locked .symbol-btn-text {
-  opacity: 0.55;
+  color: var(--color-text-muted);
+  opacity: 0.5;
 }
 .symbol-lock {
   position: absolute;
@@ -3426,6 +3423,11 @@ button, textarea, input { font-family: var(--font-sans); }
 .symbol-btn-text {
   position: relative;
   z-index: 1;
+  font-family: var(--font-sans);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.75rem;
+  line-height: 1;
 }
 .lesson-grid.lesson-grid-single {
   grid-template-columns: 1fr;
