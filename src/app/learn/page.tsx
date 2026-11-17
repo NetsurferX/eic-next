@@ -312,6 +312,8 @@ export default function LearnPage() {
   const [isPlayingRep, setIsPlayingRep]     = useState(false)
   // Câte treceri complete pe coloană în RE-PLAY curent — Omite apare după prima (ca stars >= 1)
   const [replayPassesDone, setReplayPassesDone] = useState(0)
+  // true când RE-PLAY a fost oprit cu „Stop" (nu se deschide subjocul); „Skip" lasă false
+  const replayStopRef = useRef(false)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
   const [celebrating, setCelebrating]       = useState(false)
   const [freePracticeCount, setFreePracticeCount] = useState(0)
@@ -826,6 +828,7 @@ export default function LearnPage() {
     const replayLesson = lesson
     const flatIdx = flatIndexOf(levelIndex, active)
     autoCancel.current = false
+    replayStopRef.current = false
     setReplayPassesDone(0)
     setIsPlayingRep(true)
     for (let r = 0; r < REPS_PER_LESSON; r++) {
@@ -837,7 +840,12 @@ export default function LearnPage() {
     }
     setIsPlayingRep(false)
     setReplayPassesDone(0)
-    // Omite în timpul RE-PLAY: oprește restul repetărilor și tot trece la subjoc
+    // Stop în timpul RE-PLAY: oprește tot, fără subjoc.
+    if (replayStopRef.current) {
+      replayStopRef.current = false
+      return
+    }
+    // Skip în timpul RE-PLAY: oprește restul repetărilor și tot trece la subjoc
     // (ca „Omite" de la prima deblocare → jocul dintre coloane).
     pendingAdvanceRef.current = null
     setBuleleVulpiiConfig({
@@ -851,6 +859,15 @@ export default function LearnPage() {
   //   termină și deschide subjocul (vezi mai sus). ──
   const handleReplayOmite = useCallback(() => {
     if (!isPlayingRep) return
+    autoCancel.current = true
+    currentAudio.current?.pause()
+    letterSoundStopRef.current?.()
+  }, [isPlayingRep])
+
+  // ── Stop în RE-PLAY: oprește audio-ul și bucla, NU deschide subjocul. ──
+  const handleReplayStop = useCallback(() => {
+    if (!isPlayingRep) return
+    replayStopRef.current = true
     autoCancel.current = true
     currentAudio.current?.pause()
     letterSoundStopRef.current?.()
@@ -1354,20 +1371,37 @@ export default function LearnPage() {
                 (stars >= 1 && !trophyEarned) ||
                 (trophyEarned && isPlayingRep && replayPassesDone >= 1)
               ) && (
-                <div className="lesson-col-btn-wrap">
-                  <button
-                    type="button"
-                    className="lesson-col-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      if (trophyEarned) handleReplayOmite()
-                      else handleStudiedButton()
-                    }}
-                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
-                  >
-                    Omite
-                  </button>
-                </div>
+                trophyEarned ? (
+                  <div className="lesson-col-btn-wrap lesson-col-btn-split">
+                    <button
+                      type="button"
+                      className="lesson-col-btn"
+                      onClick={(e) => { e.stopPropagation(); handleReplayStop() }}
+                      style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                    >
+                      Stop
+                    </button>
+                    <button
+                      type="button"
+                      className="lesson-col-btn"
+                      onClick={(e) => { e.stopPropagation(); handleReplayOmite() }}
+                      style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                    >
+                      Skip
+                    </button>
+                  </div>
+                ) : (
+                  <div className="lesson-col-btn-wrap">
+                    <button
+                      type="button"
+                      className="lesson-col-btn"
+                      onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
+                      style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                    >
+                      Omite
+                    </button>
+                  </div>
+                )
               )}
 
             </div>

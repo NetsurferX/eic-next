@@ -1708,6 +1708,8 @@ button, textarea, input { font-family: var(--font-sans); }
    "crește" pe buton chiar în clipa în care e câștigată (vezi .star-flight
    mai jos pentru zborul propriu-zis spre cupă) ── */
 .lesson-col-btn-wrap { position: relative; }
+.lesson-col-btn-wrap.lesson-col-btn-split { display: flex; gap: 8px; }
+.lesson-col-btn-wrap.lesson-col-btn-split .lesson-col-btn { flex: 1 1 0; min-width: 0; }
 .lesson-col-btn-star {
   position: absolute;
   top: -8px; right: -6px;
