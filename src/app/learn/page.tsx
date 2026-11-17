@@ -274,6 +274,9 @@ function lessonSymbolTextStyle(lesson: Lesson, unlocked: boolean): CSSProperties
 
 export default function LearnPage() {
   const [levelIndex, setLevelIndex]         = useState(0)
+  // Bara este împărțită în grupuri fixe de câte patru simboluri.
+  // Selectarea grupului schimbă doar coloanele afișate, nu lecția activă.
+  const [selectedSymbolGroup, setSelectedSymbolGroup] = useState(0)
   const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
   // Dimensionat dinamic din level.lessons.length — NU mai presupune 4
   // lecții/nivel (era hardcodat, bug găsit la Nivelul 5, care are 1 singură
@@ -541,6 +544,7 @@ export default function LearnPage() {
 
   const level     = LEVELS[levelIndex]
   const lesson    = level.lessons[active]
+  const visibleSymbolGroup = ALL_SYMBOLS.slice(selectedSymbolGroup * 4, selectedSymbolGroup * 4 + 4)
 
   // Declanșează OnboardingSoundIntro prima dată când o lecție (deblocată)
   // devine activă și n-a fost încă văzută. Nu rulează pentru lecții
@@ -1124,9 +1128,9 @@ export default function LearnPage() {
     }
   }, [introDone, isPlayingRep, playingWord, triggerFox])
 
-  const handleLetterClick = useCallback((l: Lesson, i: number) => {
+  const handleLetterClick = useCallback((l: Lesson, i: number, itemLevelIdx = levelIndex) => {
     if (!introDone || isPlayingRep || playingWord !== null) return
-    if (!colUnlocked[levelIndex][i]) return
+    if (!colUnlocked[itemLevelIdx]?.[i]) return
     if (!seenIntros.has(l.id)) return
     void playLetterPulse(l, 1)
   }, [introDone, isPlayingRep, playingWord, colUnlocked, levelIndex, seenIntros, playLetterPulse])
@@ -1245,35 +1249,34 @@ export default function LearnPage() {
           Grupate vizual câte 4 (gap mai mare la fiecare 4). Derulare
           orizontală dacă nu încap. Selectarea unui simbol deblocat
           afișează exclusiv coloana lui și pornește antrenamentul. ── */}
-      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare simbol">
+      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri">
         <div className="symbol-bar">
-          {ALL_SYMBOLS.map((item, flatIdx) => {
-            const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
-            const selected = levelIndex === item.levelIdx && active === item.colIdx
-            const sv = symbolView(item.lesson)
-            const groupStart = flatIdx > 0 && flatIdx % 4 === 0
+          {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
+            const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
+            const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
+            const groupSelected = selectedSymbolGroup === groupIndex
             return (
               <button
-                key={item.lesson.id}
+                key={groupIndex}
                 type="button"
-                className={[
-                  'symbol-btn',
-                  unlocked ? 'is-unlocked' : 'is-locked',
-                  selected ? 'is-selected' : '',
-                  groupStart ? 'is-group-start' : '',
-                ].filter(Boolean).join(' ')}
-                style={{ '--lesson-color': item.lesson.color } as CSSProperties}
-                disabled={!unlocked}
-                aria-pressed={selected}
-                aria-label={unlocked
-                  ? `Simbol ${sv.text}${selected ? ' (selectat)' : ''}`
-                  : `Simbol ${sv.text} (blocat)`}
-                onClick={() => selectSymbol(item.levelIdx, item.colIdx)}
+                className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}`}
+                disabled={!groupUnlocked}
+                aria-pressed={groupSelected}
+                aria-label={`Grupul ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
+                onClick={() => setSelectedSymbolGroup(groupIndex)}
               >
-                {!unlocked && <span className="symbol-lock" aria-hidden="true">🔒</span>}
-                <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
-                  {sv.text}
-                </span>
+                {items.map(item => {
+                  const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
+                  const sv = symbolView(item.lesson)
+                  return (
+                    <span className="symbol-group-symbol" key={item.lesson.id}>
+                      {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
+                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
+                        {sv.text}
+                      </span>
+                    </span>
+                  )
+                })}
               </button>
             )
           })}
@@ -1282,13 +1285,16 @@ export default function LearnPage() {
 
       <div className="lesson-layout">
       <div className="lesson-grid">
-        {level.lessons.map((l, i) => {
-          const isUnlocked   = colUnlocked[levelIndex][i]
-          const isActive     = active === i
-          const stars        = starsEarned[levelIndex][i]
+        {visibleSymbolGroup.map((item) => {
+          const l = item.lesson
+          const i = item.colIdx
+          const itemLevelIdx = item.levelIdx
+          const isUnlocked   = !!colUnlocked[itemLevelIdx]?.[i]
+          const isActive     = levelIndex === itemLevelIdx && active === i
+          const stars        = starsEarned[itemLevelIdx]?.[i] ?? 0
           const trophyEarned = stars >= REPS_PER_LESSON
-          const isNextUp     = i === nextUpIndex
-          const isRevealing  = justRevealedIndex === i
+          const isNextUp     = itemLevelIdx === levelIndex && i === nextUpIndex
+          const isRevealing  = itemLevelIdx === levelIndex && justRevealedIndex === i
           const isTricolor   = l.id === 'ou'
           const style = { '--lesson-color': l.color } as CSSProperties
           return (
@@ -1297,11 +1303,11 @@ export default function LearnPage() {
               ref={(el) => { colRefs.current[l.id] = el }}
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
-              onClick={() => selectColumn(i, true)}
-              onMouseEnter={() => hoverSelectColumn(i)}
+              onClick={() => selectSymbol(itemLevelIdx, i)}
+              onMouseEnter={() => { if (itemLevelIdx === levelIndex) hoverSelectColumn(i) }}
               onMouseLeave={cancelHoverSelectColumn}
             >
-              <div className="lesson-col-head" onClick={() => handleLetterClick(l, i)}>
+              <div className="lesson-col-head" onClick={() => handleLetterClick(l, i, itemLevelIdx)}>
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
                 <span className="lesson-number" aria-hidden="true">{GLOBAL_LESSON_NUMBER[l.id]}</span>
 
