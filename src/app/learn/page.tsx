@@ -260,6 +260,18 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
   )
 }
 
+/* Același stil de simbol în bara permanentă și în antetul coloanei.
+   Păstrează excepțiile vizuale (tricolor, diacritică roșie, alb conturat)
+   într-un singur loc, ca cele două reprezentări să nu divergă. */
+function lessonSymbolTextStyle(lesson: Lesson, unlocked: boolean): CSSProperties | undefined {
+  if (!unlocked) return undefined
+  const sv = symbolView(lesson)
+  if (lesson.id === 'ou') return tricolorLetterStyle(8, 0.7)
+  if (sv.whiteOutlined) return WHITE_OUTLINED_TEXT_STYLE
+  if (lesson.id === 'oi') return { color: OFFGLIDE_COLOR }
+  return { color: sv.color }
+}
+
 export default function LearnPage() {
   const [levelIndex, setLevelIndex]         = useState(0)
   const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
@@ -1189,15 +1201,7 @@ export default function LearnPage() {
                   selected ? 'is-selected' : '',
                   groupStart ? 'is-group-start' : '',
                 ].filter(Boolean).join(' ')}
-                style={{
-                  ...(unlocked
-                    ? (isTricolorSym
-                        ? { background: TRICOLOR_CSS_HORIZONTAL, color: '#fff' }
-                        : sv.whiteOutlined
-                          ? { background: '#111', color: '#fff', WebkitTextStroke: '1px #000' }
-                          : { background: sv.color, color: '#fff' })
-                    : { background: '#e8e6e1', color: '#666' }),
-                }}
+                style={{ '--lesson-color': item.lesson.color } as CSSProperties}
                 disabled={!unlocked}
                 aria-pressed={selected}
                 aria-label={unlocked
@@ -1206,7 +1210,7 @@ export default function LearnPage() {
                 onClick={() => selectSymbol(item.levelIdx, item.colIdx)}
               >
                 {!unlocked && <span className="symbol-lock" aria-hidden="true">🔒</span>}
-                <span className="symbol-btn-text" style={unlocked && sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>
+                <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
                   {sv.text}
                 </span>
               </button>
@@ -1265,12 +1269,7 @@ export default function LearnPage() {
                       className={`lesson-letter${letterPulseId === l.id ? ' is-pulsing' : ''}`}
                       // Tricolor pe /ou/ când e deblocată; altfel culoarea coloanei.
                       // Conturul comics e pe .aik-speech-bubble, nu pe literă.
-                      style={isUnlocked
-                        ? (isTricolor ? tricolorLetterStyle(8, 0.7)   // banda galbenă cu 30% mai subțire (doar în capul coloanei)
-                          : symbolView(l).whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
-                          : l.id === 'oi' ? { color: OFFGLIDE_COLOR }   // ỷ din titlu: roșu
-                          : { color: symbolView(l).color })
-                        : undefined}
+                      style={lessonSymbolTextStyle(l, isUnlocked)}
                     >
                       <span className={letterPulseId === l.id ? 'letter-inflate' : undefined}>
                         {symbolView(l).text}
