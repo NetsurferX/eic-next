@@ -6,7 +6,8 @@ import { LEVELS as ALL_LEVELS, STORAGE_KEY, REPS_PER_LESSON, type SavedProgress,
 import { Cup, Confetti } from '@/components/game/Cup'
 import { Mascot } from '@/components/game/Mascot'
 import MascotReward, { useMascotReward } from '@/components/game/MascotReward'
-import { FoxHelper, type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
+import { type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
+import { FoxTips } from '@/components/game/FoxTips'
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type TouchEvent as ReactTouchEvent } from 'react'
 import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
@@ -374,7 +375,7 @@ export default function LearnPage() {
   const [justRevealedIndex, setJustRevealedIndex] = useState<number | null>(null)
 
   // ── Vulpea de recompensă — chiar când o repetiție se termină cu succes,
-  //   vulpița „se detașează" din dock, merge la steaua tocmai câștigată, o
+  //   vulpița „pornește" de lângă coloană, merge la steaua tocmai câștigată, o
   //   apucă și o duce la cupa coloanei active; dacă acea stea a completat
   //   coloana, apucă apoi cupa coloanei și o cară/o varsă în cupa mare de
   //   nivel din sidebar (vezi MascotReward.tsx pentru cronologia completă).
@@ -435,15 +436,16 @@ export default function LearnPage() {
 
   // ── Vulpea-asistent — coadă de mesaje declanșate de evenimentele jocului ──
   const [foxQueue, setFoxQueue] = useState<FoxTip[]>([])
+  const [foxMenuOpen, setFoxMenuOpen] = useState(false)   // meniul lui Aik, deschis din medalionul de sus
   const triggerFox = useCallback((text: string, mood?: FoxMood) => {
     setFoxQueue(q => [...q, { id: `${Date.now()}-${Math.random()}`, text, mood }])
   }, [])
   const dequeueFox = useCallback(() => setFoxQueue(q => q.slice(1)), [])
 
   const [hydrated, setHydrated] = useState(false)
-  // ── intro-ul cu vulpea mare, la centru, care „zboară" apoi spre dock-ul
-  //    permanent (FoxHelper) — vezi MascotIntro.tsx. Dock-ul e montat abia
-  //    după aterizare, ca predarea vizuală să fie fără sărituri. ──
+  // ── intro-ul cu vulpea mare, la centru, care „zboară" apoi spre medalionul de sus
+  //    (capul lui Aik din coloana activă) — vezi MascotIntro.tsx. Mesajele lui Aik
+  //    (FoxTips) apar abia după aterizare. ──
   const [introDone, setIntroDone] = useState(false)
   const autoCancel  = useRef(false)
   // Holds a { pause } handle for whatever's currently speaking (Web Speech API),
@@ -1436,12 +1438,40 @@ export default function LearnPage() {
                   ].filter(Boolean).join(' ')}
                 >
                   {isActive && isUnlocked && (
-                    <div className="aik-corner" aria-hidden="true" title="Aik">
-                      <FoxReel
-                        frames={letterPulseId === l.id ? FACE_SPEAK_REEL : FACE_IDLE_REEL}
-                        className="aik-corner-head"
-                      />
-                    </div>
+                    <>
+                      {/* Medalionul de sus = asistentul: la apăsare deschide meniul, iar mesajele
+                          lui Aik apar sub el (rolul fostului medalion de jos). */}
+                      <div
+                        className="aik-corner"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Aik, asistentul"
+                        aria-expanded={foxMenuOpen}
+                        title="Aik"
+                        onClick={(e) => { e.stopPropagation(); setFoxMenuOpen(o => !o) }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFoxMenuOpen(o => !o) }
+                        }}
+                      >
+                        <FoxReel
+                          frames={letterPulseId === l.id ? FACE_SPEAK_REEL : FACE_IDLE_REEL}
+                          className="aik-corner-head"
+                        />
+                      </div>
+                      {!showLevelOverlay && introDone && (
+                        <FoxTips
+                          queue={foxQueue}
+                          onDequeue={dequeueFox}
+                          menuOpen={foxMenuOpen}
+                          onMenuOpenChange={setFoxMenuOpen}
+                          actions={[
+                            { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
+                            { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
+                            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
+                          ]}
+                        />
+                      )}
+                    </>
                   )}
                   <div className="aik-speech-bubble">
                     <span className="aik-speech-tail" aria-hidden="true" />
@@ -1731,24 +1761,9 @@ export default function LearnPage() {
       <MascotReward animation={mascotAnimation} size={96} />
 
       {/* Aik mare, la centru, la deschiderea paginii — „zboară" apoi
-          spre dock-ul de mai jos (vezi MascotIntro.tsx) ── */}
+          spre medalionul de sus, din coloana activă (vezi MascotIntro.tsx) ── */}
       {!introDone && <MascotIntro onComplete={() => setIntroDone(true)} />}
 
-      {/* Aik (vulpea-asistent) — dock permanent, ascuns cât timp overlay-ul de
-          nivel e deschis (acela are deja propria mascotă, în cupwrap), sau
-          cât timp intro-ul de mai sus încă nu a „aterizat" ── */}
-      {!showLevelOverlay && introDone && (
-        <FoxHelper
-          idleTip={foxIdleHint}
-          queue={foxQueue}
-          onDequeue={dequeueFox}
-          actions={[
-            { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
-            { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
-            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
-          ]}
-        />
-      )}
     </main>
   )
 }

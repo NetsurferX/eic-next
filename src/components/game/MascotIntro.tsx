@@ -5,16 +5,15 @@ import type { CSSProperties } from 'react'
 import { Mascot } from './Mascot'
 
 // ── Intro de bun-venit: la deschiderea paginii, vulpea apare mare, la
-//    centrul ecranului, apoi „zboară" spre locul ei permanent — dock-ul
-//    din colțul dreapta-jos (`.fox-helper`/`.fox-avatar`, vezi
-//    FoxHelper.tsx). Poziția/dimensiunea de sosire (în CSS, `.flying`) sunt
-//    ținute manual în sincron cu regulile `.fox-helper`/`.fox-avatar` din
-//    globals.css — dacă acelea se schimbă, actualizează-le și pe astea.
+//    centrul ecranului, apoi „zboară" spre locul ei permanent — medalionul
+//    de sus (`.aik-corner`, capul lui Aik din coloana activă). Poziția și
+//    mărimea de sosire se MĂSOARĂ pe elementul real în momentul zborului;
+//    dacă medalionul nu e în pagină, rămân valorile de rezervă din CSS
+//    (`.flying`: colțul dreapta-jos).
 //
 //    Randată doar cât timp `onComplete` nu a fost încă apelat — la final,
-//    componenta-părinte o demontează și montează dock-ul real (FoxHelper)
-//    exact în locul unde a aterizat vulpea mare, pentru o predare fără
-//    sărituri vizuale. ──
+//    componenta-părinte o demontează, iar medalionul real e chiar acolo
+//    unde a aterizat vulpea mare, fără sărituri vizuale. ──
 
 const MASCOT_SIZE = 180   // dimensiunea vulpii mari, la centru (px)
 const HOLD_MS = 850       // cât stă mare, la centru, înainte să plece
@@ -28,6 +27,8 @@ export function MascotIntro({ onComplete }: { onComplete: () => void }) {
   //    server vs. client (vezi eroarea de hidratare cu "Salut!"/"Bine ai
   //    revenit!"). ──
   const [seenBefore, setSeenBefore] = useState(false)
+  // ținta zborului, măsurată pe medalionul de sus: centru (x, y) și scara față de vulpea mare
+  const [target, setTarget] = useState<{ x: number; y: number; scale: number } | null>(null)
 
   useEffect(() => {
     try { setSeenBefore(localStorage.getItem('eic-fox-seen') === '1') } catch { /* ignore */ }
@@ -37,7 +38,14 @@ export function MascotIntro({ onComplete }: { onComplete: () => void }) {
       onComplete()
       return
     }
-    const flyTimer = window.setTimeout(() => setPhase('flying'), HOLD_MS)
+    const flyTimer = window.setTimeout(() => {
+      const el = document.querySelector('.aik-corner')
+      if (el) {
+        const r = el.getBoundingClientRect()
+        if (r.width > 0) setTarget({ x: r.left + r.width / 2, y: r.top + r.height / 2, scale: r.width / MASCOT_SIZE })
+      }
+      setPhase('flying')
+    }, HOLD_MS)
     const doneTimer = window.setTimeout(onComplete, HOLD_MS + FLY_MS + 80)
     return () => {
       window.clearTimeout(flyTimer)
@@ -50,7 +58,12 @@ export function MascotIntro({ onComplete }: { onComplete: () => void }) {
     <div className="mascot-intro-overlay" aria-hidden="true">
       <div
         className={`mascot-intro-fox ${phase === 'flying' ? 'flying' : ''}`}
-        style={{ '--intro-size': `${MASCOT_SIZE}px` } as CSSProperties}
+        style={{
+          '--intro-size': `${MASCOT_SIZE}px`,
+          ...(phase === 'flying' && target
+            ? { top: `${target.y}px`, left: `${target.x}px`, transform: `translate(-50%, -50%) scale(${target.scale})` }
+            : {}),
+        } as CSSProperties}
       >
         <Mascot
           state={phase === 'enter' ? 'cheering' : 'idle'}

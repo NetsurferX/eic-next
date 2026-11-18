@@ -3210,7 +3210,8 @@ button, textarea, input { font-family: var(--font-sans); }
   margin-left: -2px;
   margin-right: 0;
   z-index: 3;
-  pointer-events: none;
+  pointer-events: auto;   /* medalionul de sus e asistentul: apăsat, deschide meniul lui Aik */
+  cursor: pointer;
   filter: none !important; /* zero ceață în jurul medalionului */
 }
 .aik-corner,
@@ -3658,3 +3659,25 @@ button, textarea, input { font-family: var(--font-sans); }
 @media (max-width: 720px) and (prefers-reduced-motion: reduce) {
   .symbol-bar.slide-next, .symbol-bar.slide-prev { animation: none; }
 }
+
+/* ── Aik (asistent) în medalionul de sus: bula de mesaje și meniul apar sub medalion ── */
+.fox-tips {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 50;
+  width: max-content;
+  max-width: min(240px, 72vw);
+  text-align: left;
+  cursor: default;
+  font-style: normal;
+}
+.fox-tips .fox-bubble { max-width: 100%; }
+/* coada bulei arată în sus, spre medalion */
+.fox-tips .fox-bubble::after {
+  bottom: auto; top: -8px; right: auto; left: 18px;
+  border-right: none; border-bottom: none;
+  border-left: 1.5px solid var(--color-border);
+  border-top: 1.5px solid var(--color-border);
+}
+.aik-corner:focus-visible { outline: 2px solid #4472C4; outline-offset: 2px; border-radius: 50%; }
