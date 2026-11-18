@@ -440,6 +440,20 @@ export default function LearnPage() {
   // Meniul se deschide DOAR prin click/tastă pe medalion și se închide când se schimbă coloana
   // activă (inclusiv prin hover-select), ca să nu „însoțească" cursorul de la o coloană la alta.
   useEffect(() => { setFoxMenuOpen(false) }, [levelIndex, active])
+  // Trecerea cursorului peste coloană (doar dispozitive cu hover) deschide meniul lui Aik,
+  // deasupra medalionului; plecarea cursorului îl închide. Cheia = „nivel:coloană" peste care e cursorul.
+  const [foxHoverKey, setFoxHoverKey] = useState<string | null>(null)
+  const foxHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const armFoxHover = useCallback((key: string) => {
+    if (typeof window === 'undefined' || !window.matchMedia('(hover: hover)').matches) return
+    if (foxHoverTimerRef.current) clearTimeout(foxHoverTimerRef.current)
+    foxHoverTimerRef.current = setTimeout(() => setFoxHoverKey(key), 120)   // fără clipiri la traversare rapidă
+  }, [])
+  const clearFoxHover = useCallback(() => {
+    if (foxHoverTimerRef.current) { clearTimeout(foxHoverTimerRef.current); foxHoverTimerRef.current = null }
+    setFoxHoverKey(null)
+  }, [])
+  useEffect(() => () => { if (foxHoverTimerRef.current) clearTimeout(foxHoverTimerRef.current) }, [])
   const triggerFox = useCallback((text: string, mood?: FoxMood) => {
     setFoxQueue(q => [...q, { id: `${Date.now()}-${Math.random()}`, text, mood }])
   }, [])
@@ -1421,8 +1435,11 @@ export default function LearnPage() {
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectSymbol(itemLevelIdx, i)}
-              onMouseEnter={() => { if (itemLevelIdx === levelIndex) hoverSelectColumn(i) }}
-              onMouseLeave={cancelHoverSelectColumn}
+              onMouseEnter={() => {
+                if (itemLevelIdx === levelIndex) hoverSelectColumn(i)
+                armFoxHover(`${itemLevelIdx}:${i}`)
+              }}
+              onMouseLeave={() => { cancelHoverSelectColumn(); clearFoxHover() }}
             >
               <div className="lesson-col-head" onClick={() => handleLetterClick(l, i, itemLevelIdx)}>
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
@@ -1463,8 +1480,8 @@ export default function LearnPage() {
                         <FoxTips
                           queue={foxQueue}
                           onDequeue={dequeueFox}
-                          menuOpen={foxMenuOpen}
-                          onMenuOpenChange={setFoxMenuOpen}
+                          menuOpen={foxMenuOpen || foxHoverKey === `${levelIndex}:${active}`}
+                          onMenuOpenChange={(open) => { setFoxMenuOpen(open); if (!open) clearFoxHover() }}
                           actions={[
                             { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
                             { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
