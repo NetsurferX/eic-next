@@ -942,8 +942,19 @@ export default function LearnPage() {
   }, [starsEarned])
 
   // autoReplay=true doar la click (nu la hover, ca să nu pornească audio din trecerea mouse-ului)
+  // Click pe altă coloană în timp ce una rulează: oprește coloana care rulează
+  //   (fără joc), activează coloana nouă și, dacă e terminată, o repetă automat.
+  //   Hover-ul (autoReplay=false) nu întrerupe niciodată o redare în curs.
   const selectColumn = useCallback((i: number, autoReplay = false) => {
-    if (isPlayingRep || !colUnlocked[levelIndex][i] || i === active) return
+    if (!colUnlocked[levelIndex][i] || i === active) return
+    if (isPlayingRep) {
+      if (!autoReplay) return
+      replayStopRef.current = true
+      autoCancel.current = true
+      currentAudio.current?.pause()
+      letterSoundStopRef.current?.()
+      setReplayProgress(0)
+    }
     setActive(i)
     if (autoReplay) armAutoReplay(levelIndex, i)
   }, [isPlayingRep, colUnlocked, levelIndex, active, armAutoReplay])
@@ -957,6 +968,7 @@ export default function LearnPage() {
   const selectSymbol = useCallback((levelIdx: number, colIdx: number) => {
     if (!colUnlocked[levelIdx]?.[colIdx]) return
     // Oprește orice redare în curs (mecanismul existent: autoCancel + audio)
+    if (isPlayingRep) replayStopRef.current = true   // repetarea oprită nu mai deschide jocul
     autoCancel.current = true
     currentAudio.current?.pause()
     cancelMascotReward()
@@ -968,7 +980,7 @@ export default function LearnPage() {
     }
     // Coloană deja terminată → pornește RE-PLAY după ce state-ul s-a așezat
     armAutoReplay(levelIdx, colIdx)
-  }, [colUnlocked, levelIndex, active, cancelMascotReward, armAutoReplay])
+  }, [colUnlocked, levelIndex, active, isPlayingRep, cancelMascotReward, armAutoReplay])
 
   useEffect(() => {
     if (!pendingAutoReplayRef.current) return
