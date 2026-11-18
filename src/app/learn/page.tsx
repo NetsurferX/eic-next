@@ -345,6 +345,9 @@ export default function LearnPage() {
   const [replayPassesDone, setReplayPassesDone] = useState(0)
   // true când RE-PLAY a fost oprit cu „Stop" (nu se deschide subjocul); „Skip" lasă false
   const replayStopRef = useRef(false)
+  // Coloana (nivel:index) pe care ai ajuns întrerupând o alta cu un click: antrenamentul/repetarea
+  // NU pornește singur pe ea, ci doar când apeși REPEAT.
+  const [pausedColKey, setPausedColKey] = useState<string | null>(null)
   // false pentru repetările pornite automat la navigare (click coloană, săgeți, bara de simboluri): rămân fără joc
   const replayOpensGameRef = useRef(true)
   // 0–100: cât din repetarea curentă (toate trecerile) a fost citit — umple butonul REPEAT/STOP
@@ -947,6 +950,8 @@ export default function LearnPage() {
   //   Hover-ul (autoReplay=false) nu întrerupe niciodată o redare în curs.
   const selectColumn = useCallback((i: number, autoReplay = false) => {
     if (!colUnlocked[levelIndex][i] || i === active) return
+    // „Întrerupere" = o coloană e în antrenament/repetare (rulează sau așteaptă următoarea trecere)
+    const interrupting = isPlayingRep || (starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON
     if (isPlayingRep) {
       if (!autoReplay) return
       replayStopRef.current = true
@@ -956,8 +961,11 @@ export default function LearnPage() {
       setReplayProgress(0)
     }
     setActive(i)
-    if (autoReplay) armAutoReplay(levelIndex, i)
-  }, [isPlayingRep, colUnlocked, levelIndex, active, armAutoReplay])
+    if (autoReplay) {
+      if (interrupting) setPausedColKey(`${levelIndex}:${i}`)   // fără joc, fără start automat
+      else armAutoReplay(levelIndex, i)
+    }
+  }, [isPlayingRep, colUnlocked, levelIndex, active, starsEarned, armAutoReplay])
 
   // ── Selectare simbol din bara superioară (toate simbolurile, inclusiv
   //   blocate vizibile). Doar cele deblocate pot fi selectate. Oprește
@@ -968,6 +976,7 @@ export default function LearnPage() {
   const selectSymbol = useCallback((levelIdx: number, colIdx: number) => {
     if (!colUnlocked[levelIdx]?.[colIdx]) return
     // Oprește orice redare în curs (mecanismul existent: autoCancel + audio)
+    const interrupting = isPlayingRep || (starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON
     if (isPlayingRep) replayStopRef.current = true   // repetarea oprită nu mai deschide jocul
     autoCancel.current = true
     currentAudio.current?.pause()
@@ -979,8 +988,9 @@ export default function LearnPage() {
       setActive(colIdx)
     }
     // Coloană deja terminată → pornește RE-PLAY după ce state-ul s-a așezat
-    armAutoReplay(levelIdx, colIdx)
-  }, [colUnlocked, levelIndex, active, isPlayingRep, cancelMascotReward, armAutoReplay])
+    if (interrupting && !alreadySelected) setPausedColKey(`${levelIdx}:${colIdx}`)
+    else armAutoReplay(levelIdx, colIdx)
+  }, [colUnlocked, levelIndex, active, isPlayingRep, starsEarned, cancelMascotReward, armAutoReplay])
 
   useEffect(() => {
     if (!pendingAutoReplayRef.current) return
@@ -1216,6 +1226,7 @@ export default function LearnPage() {
     if (!hydrated || !introHydrated || !beginnerNoteHydrated || !introDone) return
     if (introLesson || isPlayingRep || buleleVulpiiConfig || showLevelOverlay || showResetConfirm) return
     if (letterPulseId) return   // așteaptă zvâcnirile literei + Aik (×3)
+    if (pausedColKey === `${levelIndex}:${active}`) return   // întrerupt cu click: pornește doar la REPEAT
     if (!colUnlocked[levelIndex]?.[active] || earned >= REPS_PER_LESSON) return
     // După ritualul de 3× pe coloana abia deschisă, așteaptă să se termine
     const startDelay = (earned === 0 && lesson && letterPulseDoneRef.current.has(lesson.id))
@@ -1225,7 +1236,7 @@ export default function LearnPage() {
     return () => clearTimeout(t)
   }, [hydrated, introHydrated, beginnerNoteHydrated, introDone, introLesson, isPlayingRep, buleleVulpiiConfig,
       showLevelOverlay, showResetConfirm, colUnlocked, levelIndex, active, earned, handleMainButton,
-      letterPulseId, lesson])
+      letterPulseId, lesson, pausedColKey])
 
   // ── Telefon: o singură coloană pe rând (vezi @media max-width:720px din
   //   globals.css), deci coloana activă poate fi în afara ecranului. La
@@ -1397,12 +1408,18 @@ export default function LearnPage() {
                 <p className="lesson-next-hint">se deschide imediat</p>
               )}
 
-              {isActive && isUnlocked && trophyEarned && !buleleVulpiiConfig ? (
+              {isActive && isUnlocked && !buleleVulpiiConfig && (trophyEarned || pausedColKey === `${levelIndex}:${i}`) && (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
                   <button
                     type="button"
                     className={`lesson-replay-btn${isPlayingRep ? ' is-running' : ''}${isTricolor ? ' is-tricolor' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); if (isPlayingRep) handleReplayStop(); else void handleReplay() }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (isPlayingRep) { handleReplayStop(); return }
+                      setPausedColKey(null)
+                      if (trophyEarned) void handleReplay()
+                      else void handleMainButton()   // coloană neterminată: pornește antrenamentul
+                    }}
                     aria-label={isPlayingRep ? 'Stop: oprește repetarea' : 'Repeat: repetă coloana'}
                     style={{
                       '--rp-bg': isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color,
@@ -1414,7 +1431,8 @@ export default function LearnPage() {
                     <span className="lesson-replay-label lesson-replay-label-on" aria-hidden="true">{repeatLabel}</span>
                   </button>
                 </div>
-              ) : (
+              )}
+              {!(isActive && isUnlocked && trophyEarned && !buleleVulpiiConfig) && (
               <div className="lesson-stars" aria-label={`${stars} din ${REPS_PER_LESSON} stele`}>
                 {Array.from({ length: REPS_PER_LESSON }).map((_, s) => (
                   <span
