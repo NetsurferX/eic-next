@@ -2144,7 +2144,7 @@ button, textarea, input { font-family: var(--font-sans); }
   .lesson-page { padding: 1.5rem 1rem 2.5rem; }
   /* Coloana antrenată rămâne mare sus; celelalte trei din grup stau
      compact, una lângă alta, imediat dedesubt. */
-  .lesson-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .lesson-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 6px; }   /* 14px între coloana antrenată și cele trei de sub ea; 6px între cele trei */
   .lesson-col.is-active { grid-column: 1 / -1; grid-row: 1; }
   .lesson-col:not(.is-active) { min-width: 0; padding: .55rem .25rem .65rem; border-width: 2px; }
   .lesson-col:not(.is-active) .lesson-word { font-size: 13px; padding: 5px 2px; }
