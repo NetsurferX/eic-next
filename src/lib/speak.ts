@@ -69,6 +69,9 @@ const RECORDED_SAMPLES: Record<string, string> = {
   // coloana /æ/ — simbol afișat ₑa; matchWord 'æ'
   'æ': '/sounds/ae.mp3',
   'ae': '/sounds/ae.mp3',
+  // coloana /ỷu/ (juː) — sunetul ỷ (roșu pe alb); matchWord 'you' din levels.ts
+  'you': '/sounds/yh.mp3',
+  'ỷ': '/sounds/yh.mp3',
   // coloana /u/ (uː) — close back rounded vowel
   'u': '/sounds/u.mp3',
   'ooh': '/sounds/u.mp3',
