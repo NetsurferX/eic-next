@@ -312,6 +312,8 @@ export function BulelePestilorGame({
   const [announce, setAnnounce] = useState<Lesson | null>(null)   // bula comics de lângă capul vulpii
   const [announceWord, setAnnounceWord] = useState<string | null>(null)   // nivelul 3: și cuvântul, în bulă
   const [buzzId, setBuzzId] = useState<string | null>(null)       // butonul care „protestează” (răspuns greșit)
+  const [sharkApproaching, setSharkApproaching] = useState(false)
+  const sharkTimers = useRef<number[]>([])
 
   const stageRef = useRef<HTMLDivElement>(null)
   const bucketRef = useRef<HTMLDivElement | null>(null)
@@ -359,11 +361,16 @@ export function BulelePestilorGame({
     progressRef.current = 0
     setFourthVisible(item.group.kind === 'next')
     const w = pickWord(item.group.lesson)
+    setSharkApproaching(false)
+    sharkTimers.current.forEach(t => window.clearTimeout(t))
+    sharkTimers.current = []
     setFish({
       id: fishSeq++, qi: pos, group: item.group, word: w,
-      y: SKY_H + 46 + Math.random() * (stageHRef.current - SKY_H - SAND_H - 92),
+      y: level === 3
+        ? stageHRef.current - SAND_H - 82
+        : SKY_H + 46 + Math.random() * (stageHRef.current - SKY_H - SAND_H - 92),
       phase: Math.random() * Math.PI * 2, progress: 0, zone: 'blue', state: 'swimming',
-      dir: Math.random() < FROM_RIGHT_P ? -1 : 1,
+      dir: level === 3 ? 1 : (Math.random() < FROM_RIGHT_P ? -1 : 1),
     })
     sayAnnouncement(item.group.lesson, w, level, () => !pausedRef.current)
     holdUntilRef.current = performance.now() + START_HOLD_MS
@@ -392,6 +399,9 @@ export function BulelePestilorGame({
   function start() {
     timers.current.forEach(t => window.clearTimeout(t))
     timers.current = []
+    sharkTimers.current.forEach(t => window.clearTimeout(t))
+    sharkTimers.current = []
+    setSharkApproaching(false)
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const q = buildQueue(currentGroup, distractorGroups, nextGroup)
     queueRef.current = q
@@ -464,7 +474,7 @@ export function BulelePestilorGame({
 
   // ── înotul peștelui curent: rAF cu timp real, poziția scrisă direct pe DOM (fără re-render pe frame) ──
   useEffect(() => {
-    if (!fish || fish.state !== 'swimming' || paused) return
+    if (!fish || fish.state !== 'swimming' || paused || level === 3) return
     const fishId = fish.id
     let raf = 0
     let last = performance.now()
@@ -496,6 +506,28 @@ export function BulelePestilorGame({
     return () => cancelAnimationFrame(raf)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fish?.id, paused, fish?.state])
+
+  // ── Nivelul 3: peștele apare în centru, stă 3,5 s; apoi rechinul are 3 s să-l ajungă. ──
+  useEffect(() => {
+    if (level !== 3 || !fish || fish.state !== 'swimming' || paused) return
+    const fishId = fish.id
+    const startShark = window.setTimeout(() => {
+      setSharkApproaching(true)
+      const eat = window.setTimeout(() => {
+        setFish(prev => prev && prev.id === fishId && prev.state === 'swimming'
+          ? { ...prev, state: 'miss' }
+          : prev)
+        window.setTimeout(() => setSharkApproaching(false), 350)
+      }, 3000)
+      sharkTimers.current.push(eat)
+    }, 3500)
+    sharkTimers.current.push(startShark)
+    return () => {
+      window.clearTimeout(startShark)
+      sharkTimers.current.forEach(t => window.clearTimeout(t))
+      sharkTimers.current = []
+    }
+  }, [level, fish?.id, fish?.state, paused])
 
   // ── indiciu (zona roz) și scăpare ──
   useEffect(() => {
@@ -642,6 +674,9 @@ export function BulelePestilorGame({
       later(() => setBuzzId(null), 450)
       return
     }
+    sharkTimers.current.forEach(t => window.clearTimeout(t))
+    sharkTimers.current = []
+    setSharkApproaching(false)
     scoreRef.current += fish.group.kind === 'next' ? 2 : 1
     setScore(scoreRef.current)
     correctRef.current += 1
@@ -919,8 +954,12 @@ export function BulelePestilorGame({
               ref={swimElRef}
               style={{
                 position: 'absolute', left: 0, top: 0, willChange: 'transform', zIndex: 2,
-                transform: swimTransform(fish, progressRef.current, W),
-                animation: fish.state === 'miss' ? `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards` : undefined,
+                transform: level === 3
+                  ? `translate3d(${(W / 2).toFixed(1)}px, ${fish.y.toFixed(1)}px, 0) translate(-50%,-50%)`
+                  : swimTransform(fish, progressRef.current, W),
+                animation: fish.state === 'miss'
+                  ? (level === 3 ? 'pf-eaten 350ms ease-in forwards' : `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards`)
+                  : undefined,
                 ['--flip' as string]: fish.dir ?? 1,
               }}
             >
@@ -933,6 +972,15 @@ export function BulelePestilorGame({
             </div>
           )
         })()}
+        {level === 3 && sharkApproaching && fish?.state === 'swimming' && !pull && (
+          <div
+            aria-hidden="true"
+            className="pf-shark-approach"
+            style={{ top: fish.y - 24, ['--shark-start' as string]: `${(stageRef.current?.clientWidth ?? 680) / 2 + 100}px` } as CSSProperties}
+          >
+            🦈
+          </div>
+        )}
         {/* peștele prins, atârnat de undiță / în zbor spre celulă (poziția o scrie rAF) */}
         {fish && pull && (() => {
           const lb = buildLabel(fish.group.lesson, level, fish.word, true)
@@ -987,7 +1035,7 @@ export function BulelePestilorGame({
             <button
               key={g.lesson.id}
               onClick={() => handlePress(g)}
-              className={buzzId === g.lesson.id ? 'pf-wrong' : hinted ? 'pf-buzz' : undefined}
+              className={buzzId === g.lesson.id ? 'pf-wrong' : (hinted || (level === 3 && sharkApproaching && fish?.group.lesson.id === g.lesson.id)) ? 'pf-buzz' : undefined}
               style={{
                 width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation',
                 background: g.lesson.id === 'ou' ? TRICOLOR_BUTTON_BG : ringColor,
@@ -1016,12 +1064,15 @@ export function BulelePestilorGame({
         .pf-buzz { animation: pf-buzz 450ms ease-in-out infinite; outline: 4px solid rgba(255,140,0,.55); outline-offset: 2px; }
         @keyframes pf-wrong { 0%,100% { transform: translateX(0) } 15% { transform: translateX(-8px) rotate(-6deg) } 30% { transform: translateX(8px) rotate(6deg) } 45% { transform: translateX(-7px) rotate(-5deg) } 60% { transform: translateX(7px) rotate(5deg) } 80% { transform: translateX(-3px) } }
         .pf-wrong { animation: pf-wrong 420ms linear; outline: 4px solid rgba(204,0,0,.55); outline-offset: 2px; }
-        @keyframes pf-swell { 0%,100% { transform: scale(1) } 50% { transform: scale(1.4) } }
-        .eic-pulse { display: inline-block; animation: pf-swell 2.6s ease-in-out infinite; }
+        @keyframes pf-swell { 0%,100% { transform: scaleX(1) } 50% { transform: scaleX(.12) } }
+        .eic-pulse { display: inline-block; transform-origin: center; animation: pf-swell 900ms ease-in-out infinite; }
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
         @keyframes pf-away-l { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: -70px } }
+        @keyframes pf-eaten { 0% { opacity: 1; transform: translate3d(0,0,0) translate(-50%,-50%) scale(1) } 100% { opacity: 0; transform: translate3d(0,0,0) translate(-50%,-50%) scale(.08) } }
+        @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(-50%); } }
+        .pf-shark-approach { position: absolute; left: 50%; z-index: 4; font-size: 58px; line-height: 1; pointer-events: none; animation: pf-shark-approach 3s linear forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
         @keyframes pf-pop { 0% { transform: scale(.3); opacity: 0 } 70% { transform: scale(1.2); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
         @keyframes pf-tailpop { 0% { transform: translateY(14px); opacity: 0 } 60% { transform: translateY(-3px); opacity: 1 } 100% { transform: translateY(0); opacity: 1 } }
         .pf-tailpop { animation: pf-tailpop 400ms ease-out; }
