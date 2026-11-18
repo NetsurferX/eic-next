@@ -3644,3 +3644,16 @@ button, textarea, input { font-family: var(--font-sans); }
   .symbol-group-btn.is-near-prev .symbol-group-symbol,
   .symbol-group-btn.is-near-next .symbol-group-symbol { min-width: .5rem; }
 }
+
+/* ── Telefon: swipe stânga/dreapta între grupuri + glisare scurtă la schimbare ── */
+@media (max-width: 720px) {
+  .symbol-bar-wrap,
+  .lesson-layout { touch-action: pan-y; }   /* scroll vertical normal; orizontalul îl preia swipe-ul */
+  @keyframes symbol-slide-next { from { transform: translateX(26px);  opacity: .3; } to { transform: none; opacity: 1; } }
+  @keyframes symbol-slide-prev { from { transform: translateX(-26px); opacity: .3; } to { transform: none; opacity: 1; } }
+  .symbol-bar.slide-next { animation: symbol-slide-next 220ms ease-out; }
+  .symbol-bar.slide-prev { animation: symbol-slide-prev 220ms ease-out; }
+}
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+  .symbol-bar.slide-next, .symbol-bar.slide-prev { animation: none; }
+}

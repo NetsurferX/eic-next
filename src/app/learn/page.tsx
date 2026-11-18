@@ -7,7 +7,7 @@ import { Cup, Confetti } from '@/components/game/Cup'
 import { Mascot } from '@/components/game/Mascot'
 import MascotReward, { useMascotReward } from '@/components/game/MascotReward'
 import { FoxHelper, type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
-import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type TouchEvent as ReactTouchEvent } from 'react'
 import Link from 'next/link'
 import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
@@ -293,6 +293,9 @@ export default function LearnPage() {
   // Bara este împărțită în grupuri fixe de câte patru simboluri.
   // Selectarea grupului schimbă doar coloanele afișate, nu lecția activă.
   const [selectedSymbolGroup, setSelectedSymbolGroup] = useState(0)
+  // direcția ultimei mutări a grupului (pentru animația de glisare pe telefon); n re-montează bara
+  const [groupSlide, setGroupSlide] = useState<{ dir: 0 | 1 | -1; n: number }>({ dir: 0, n: 0 })
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
   const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
   // Dimensionat dinamic din level.lessons.length — NU mai presupune 4
   // lecții/nivel (era hardcodat, bug găsit la Nivelul 5, care are 1 singură
@@ -572,6 +575,39 @@ export default function LearnPage() {
     ALL_SYMBOLS.slice(g * 4, g * 4 + 4).some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
   const canGoPrevGroup = selectedSymbolGroup > 0 && symbolGroupUnlocked(selectedSymbolGroup - 1)
   const canGoNextGroup = selectedSymbolGroup < symbolGroupCount - 1 && symbolGroupUnlocked(selectedSymbolGroup + 1)
+
+  // Bara urmărește coloana de antrenat: când se schimbă coloana activă (avans, săgeți, click),
+  // grupul ei devine grupul selectat (mare, la mijloc). Navigarea manuală între grupuri nu o schimbă.
+  useEffect(() => {
+    const idx = ALL_SYMBOLS.findIndex(it => it.levelIdx === levelIndex && it.colIdx === active)
+    if (idx >= 0) setSelectedSymbolGroup(Math.floor(idx / 4))
+  }, [levelIndex, active])
+
+  // dir: 1 = grupul următor, -1 = grupul anterior (săgeți sau swipe)
+  const goSymbolGroup = (dir: 1 | -1) => {
+    const n = selectedSymbolGroup + dir
+    if (n < 0 || n >= symbolGroupCount || !symbolGroupUnlocked(n)) return
+    setSelectedSymbolGroup(n)
+    setGroupSlide(prev => ({ dir, n: prev.n + 1 }))
+  }
+  // Swipe stânga/dreapta pe linia de simboluri și pe coloane (doar telefon):
+  // deget spre stânga → grupul următor; spre dreapta → grupul anterior.
+  const swipeProps = {
+    onTouchStart: (e: ReactTouchEvent) => {
+      const t = e.touches[0]
+      swipeStartRef.current = t ? { x: t.clientX, y: t.clientY } : null
+    },
+    onTouchEnd: (e: ReactTouchEvent) => {
+      const st = swipeStartRef.current
+      swipeStartRef.current = null
+      const t = e.changedTouches[0]
+      if (!st || !t || !window.matchMedia('(max-width: 720px)').matches) return
+      const dx = t.clientX - st.x, dy = t.clientY - st.y
+      if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return   // doar mișcare clar orizontală
+      goSymbolGroup(dx < 0 ? 1 : -1)
+    },
+    onTouchCancel: () => { swipeStartRef.current = null },
+  }
 
   // Declanșează OnboardingSoundIntro prima dată când o lecție (deblocată)
   // devine activă și n-a fost încă văzută. Nu rulează pentru lecții
@@ -1297,17 +1333,20 @@ export default function LearnPage() {
           Grupate vizual câte 4 (gap mai mare la fiecare 4). Derulare
           orizontală dacă nu încap. Selectarea unui simbol deblocat
           afișează exclusiv coloana lui și pornește antrenamentul. ── */}
-      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri">
+      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri" {...swipeProps}>
         <button
           type="button"
           className="symbol-bar-arrow"
           aria-label="Grupul anterior"
           disabled={!canGoPrevGroup}
-          onClick={() => setSelectedSymbolGroup(g => Math.max(0, g - 1))}
+          onClick={() => goSymbolGroup(-1)}
         >
           ‹
         </button>
-        <div className="symbol-bar">
+        <div
+          key={groupSlide.n}
+          className={`symbol-bar${groupSlide.dir === 1 ? ' slide-next' : groupSlide.dir === -1 ? ' slide-prev' : ''}`}
+        >
           {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
             const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
             const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
@@ -1343,13 +1382,13 @@ export default function LearnPage() {
           className="symbol-bar-arrow"
           aria-label="Grupul următor"
           disabled={!canGoNextGroup}
-          onClick={() => setSelectedSymbolGroup(g => Math.min(symbolGroupCount - 1, g + 1))}
+          onClick={() => goSymbolGroup(1)}
         >
           ›
         </button>
       </div>
 
-      <div className="lesson-layout">
+      <div className="lesson-layout" {...swipeProps}>
       <div className="lesson-grid">
         {visibleSymbolGroup.map((item) => {
           const l = item.lesson
