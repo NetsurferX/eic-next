@@ -108,24 +108,22 @@ const HINT_AT = 80           // la 80% parcurs (mai are 20%) vulpea repetă anun
 const HINT_HOLD_MS = 3000
 const PULL_MS = 1900
 const HOLD_MS = 2500    // peștele prins stă nemișcat (atârnat de undiță) cât se repetă sunetul
-const LINE_EXTRA = 34   // cât mai jos (px) atârnă peștele sub vârful undiței când e tras sus: mai natural
 const SWAY_PX = 5       // legănare foarte ușoară în pauză: deplasare laterală maximă (px)
 const SWAY_ROT = 0.07   // ... și înclinare maximă (rad, ~4°)
 const SWAY_CYCLES = 2   // câte balansări complete în pauză
 const DROP_SPEED = 2    // zborul spre taz: viteză dublă față de înainte
 // Ordinea: aruncare (cârligul ajunge în buza peștelui) → PAUZĂ cu legănare, cu peștele încă în apă, prins de buză
-//          → tras în sus → zbor în taz. Durata totală e aceeași ca înainte.
+//          → zbor direct în taz. Durata totală e aceeași ca înainte.
 const CAST_MS = PULL_MS * 0.3
-const LIFT_MS = PULL_MS * 0.3
-const PULL_B_MS = (PULL_MS * 0.4) / DROP_SPEED
-const PULL_TOTAL_MS = CAST_MS + HOLD_MS + LIFT_MS + PULL_B_MS
+// Zborul direct în taz preia timpul fostei „ridicări" + zborul vechi (durata totală rămâne aceeași).
+const FLY_MS = PULL_MS * 0.3 + (PULL_MS * 0.4) / DROP_SPEED
+const PULL_TOTAL_MS = CAST_MS + HOLD_MS + FLY_MS
 const FOX_LEFT = 78   // vulpea e mutată spre dreapta ca tazul să stea lângă ea, pe ponton (înainte 14)
 const FOX_SIZE = 84
 const TIP = { x: FOX_LEFT + 138, y: SKY_H - 84 }      // vârful undiței (în repaus)
 const ROD_BASE = { x: FOX_LEFT + 52, y: SKY_H - 38 }  // mânerul pornește exact din lăbuța din față
 const FLOAT = { x: FOX_LEFT + 146, y: SKY_H + 3 }     // pluta, la suprafața apei
 const MOUTH = 0.42 * FISH_W                            // distanța centru → gură
-const HANG = -35 * Math.PI / 180                       // înclinarea peștelui când e tras în sus
 const NEUTRAL = '#f4f1ea'
 // Fundalul butonului de răspuns pentru coloana /əʊ/ — aceleași 3 benzi ca peștele (TRICOLOR_BANDS)
 const TRICOLOR_BUTTON_BG = `linear-gradient(90deg, ${TRICOLOR_BANDS[0]} 0 33.33%, ${TRICOLOR_BANDS[1]} 33.33% 66.66%, ${TRICOLOR_BANDS[2]} 66.66% 100%)`
@@ -570,9 +568,6 @@ export function BulelePestilorGame({
     const above  = { x: cx0, y: rimY - 8 }   // deasupra buzei tazului, cu capul în jos
     const inside = { x: cx0, y: rimY + 16 }   // înăuntru (acoperit de peretele tazului)
     const DROP = (Math.PI / 2) * dir          // cap în jos (peștele păstrează sensul: fără întoarcere în oglindă)
-    // peștele e tras de GURĂ: stă înclinat cu botul în sus, atârnat sub vârful undiței
-    const up = { x: TIP.x - Math.cos(HANG) * MOUTH * dir, y: TIP.y + 20 - Math.sin(HANG) * MOUTH }
-    const upL = { x: up.x, y: up.y + LINE_EXTRA }   // poziția peștelui cu firul lungit (pauza + începutul zborului)
     const endScale = 0.3
     const t0 = performance.now()
     let heldSpoken = false
@@ -582,10 +577,9 @@ export function BulelePestilorGame({
     const mouthOf = (x: number, y: number, rot: number, s = 1) => ({ x: x + Math.cos(rot) * MOUTH * s, y: y + Math.sin(rot) * MOUTH * s })
     const step = (now: number) => {
       // timeline: [0..CAST] aruncare · [..+HOLD] prins de buză, nemișcat în apă, se leagănă ·
-      //           [..+LIFT] tras în sus · [..TOTAL] zbor în taz (x2)
+      //           [..TOTAL] zbor DIRECT în taz, din locul unde a stat (fără ridicare intermediară la undiță)
       const el = now - t0
-      const liftAt = CAST_MS + HOLD_MS
-      const flyAt = liftAt + LIFT_MS
+      const flyAt = CAST_MS + HOLD_MS
       if (!heldSpoken && el >= CAST_MS) {
         heldSpoken = true
         sayAnnouncement(f.group.lesson, f.word, level, () => !pausedRef.current)   // se aude încă o dată sunetul (și cuvântul la nivelul 3), exact când cârligul prinde buza
@@ -598,23 +592,19 @@ export function BulelePestilorGame({
       if (el < CAST_MS) {                   // aruncare: firul (moale) ajunge la gura peștelui
         const e = ease(el / CAST_MS)
         lx = lerp(TIP.x, m.x, e); ly = lerp(TIP.y, m.y, e); bend = 0.3 * e
-      } else if (el < liftAt) {             // cârligul e în buză: peștele stă în apă și se leagănă, firul întins
+      } else if (el < flyAt) {             // cârligul e în buză: peștele stă în apă și se leagănă, firul întins
         fx = start.x + sway * SWAY_PX; rot = sway * SWAY_ROT
         m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = 0.3 + 0.08 * sway
-      } else if (el < flyAt) {              // tragere: peștele se ridică și se înclină, atârnat de undiță
-        const e = ease((el - liftAt) / LIFT_MS)
-        fx = lerp(start.x, upL.x, e); fy = lerp(start.y, upL.y, e); rot = lerp(0, HANG * dir, e)
-        m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = lerp(0.3, 1, e)
       } else {                              // zboară deasupra tazului și cade în el; firul se vede, apoi se strânge înapoi la lansetă
-        const k = Math.min((el - flyAt) / PULL_B_MS, 1)
-        bend = 1 - ease(k)
-        if (k < 0.65) {                     // arc spre buza tazului, întorcându-se cu capul în jos
+        const k = Math.min((el - flyAt) / FLY_MS, 1)
+        bend = k < 0.3 ? lerp(0.3, 1, ease(k / 0.3)) : 1 - ease((k - 0.3) / 0.7)   // vârful undiței se încordează și revine
+        if (k < 0.65) {                     // arc direct din apă spre buza tazului, întorcându-se cu capul în jos
           const e = ease(k / 0.65)
-          const cx = (upL.x + above.x) / 2, cy = Math.min(upL.y, above.y) - 30
+          const cx = (start.x + above.x) / 2, cy = Math.min(start.y, above.y) - 30
           const a = 1 - e
-          fx = a * a * upL.x + 2 * a * e * cx + e * e * above.x
-          fy = a * a * upL.y + 2 * a * e * cy + e * e * above.y
-          rot = lerp(HANG * dir, DROP, e)
+          fx = a * a * start.x + 2 * a * e * cx + e * e * above.x
+          fy = a * a * start.y + 2 * a * e * cy + e * e * above.y
+          rot = lerp(0, DROP, e)
           scale = lerp(1, endScale, e)
           m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true   // firul rămâne întins între lansetă și gura peștelui
         } else {                            // cade în taz; de aici peretele tazului îl acoperă (se văd doar cozile)
