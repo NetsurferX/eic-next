@@ -345,6 +345,8 @@ export default function LearnPage() {
   const [replayPassesDone, setReplayPassesDone] = useState(0)
   // true când RE-PLAY a fost oprit cu „Stop" (nu se deschide subjocul); „Skip" lasă false
   const replayStopRef = useRef(false)
+  // false pentru repetările pornite automat la navigare (click coloană, săgeți, bara de simboluri): rămân fără joc
+  const replayOpensGameRef = useRef(true)
   // 0–100: cât din repetarea curentă (toate trecerile) a fost citit — umple butonul REPEAT/STOP
   const [replayProgress, setReplayProgress] = useState(0)
   const [poppingStarIndex, setPoppingStarIndex] = useState<number | null>(null)
@@ -857,13 +859,14 @@ export default function LearnPage() {
   // ── RE-PLAY — după ce omul a absolvit coloana ȘI subjocul (stele pline, jocul închis),
   //   poate rejuca coloana (REPS_PER_LESSON repetări automate) și apoi subjocul.
   //   Nu atinge progresul: nu acordă stele, nu deblochează nimic (pendingAdvanceRef = null). ──
-  const handleReplay = useCallback(async () => {
+  const handleReplay = useCallback(async (opts?: { openGame?: boolean }) => {
     if (isPlayingRep || buleleVulpiiConfig || showLevelOverlay || introLesson) return
     if (starsEarned[levelIndex][active] < REPS_PER_LESSON) return
     const replayLesson = lesson
     const flatIdx = flatIndexOf(levelIndex, active)
     autoCancel.current = false
     replayStopRef.current = false
+    replayOpensGameRef.current = opts?.openGame !== false
     setReplayPassesDone(0)
     setReplayProgress(0)
     setIsPlayingRep(true)
@@ -880,7 +883,7 @@ export default function LearnPage() {
     setReplayPassesDone(0)
     setReplayProgress(0)
     // Stop în timpul RE-PLAY: oprește tot, fără subjoc.
-    if (replayStopRef.current) {
+    if (replayStopRef.current || !replayOpensGameRef.current) {
       replayStopRef.current = false
       return
     }
@@ -917,7 +920,7 @@ export default function LearnPage() {
   //   Nu atinge progresul (pendingAdvanceRef = null). ──
   const handleReplayPlay = useCallback(() => {
     if (buleleVulpiiConfig || showLevelOverlay || introLesson) return
-    if (isPlayingRep) { handleReplayOmite(); return }
+    if (isPlayingRep) { replayOpensGameRef.current = true; handleReplayOmite(); return }
     if (starsEarned[levelIndex][active] < REPS_PER_LESSON) return
     const flatIdx = flatIndexOf(levelIndex, active)
     autoCancel.current = true
@@ -972,7 +975,7 @@ export default function LearnPage() {
     if (isPlayingRep || buleleVulpiiConfig || showLevelOverlay || introLesson) return
     if ((starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON) return
     pendingAutoReplayRef.current = false
-    void handleReplay()
+    void handleReplay({ openGame: false })   // pornit automat la navigare: doar repetă, nu duce la joc
   }, [levelIndex, active, isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, handleReplay])
 
   // ── "Hover intent" — la trecerea rapidă a mouse-ului peste mai multe
