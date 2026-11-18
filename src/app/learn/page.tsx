@@ -1021,14 +1021,13 @@ export default function LearnPage() {
 
   // ── Selectare simbol din bara superioară (toate simbolurile, inclusiv
   //   blocate vizibile). Doar cele deblocate pot fi selectate. Oprește
-  //   Replay-ul anterior, mută levelIndex+active pe simbolul ales, afișează
-  //   exclusiv coloana lui și lasă mecanismul existent de antrenament /
-  //   RE-PLAY să pornească automat (useEffect + handleReplay pentru
-  //   coloanele deja terminate). Nu atinge colUnlocked / starsEarned. ──
+  //   redarea anterioară și pornește automat coloana aleasă: antrenament
+  //   normal dacă este neterminată, RE-PLAY dacă este deja absolvită.
+  //   Nu pune ținta în pauză doar pentru că am întrerupt coloana anterioară.
+  //   Nu atinge colUnlocked / starsEarned. ──
   const selectSymbol = useCallback((levelIdx: number, colIdx: number) => {
     if (!colUnlocked[levelIdx]?.[colIdx]) return
     // Oprește orice redare în curs (mecanismul existent: autoCancel + audio)
-    const interrupting = isPlayingRep || (starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON
     if (isPlayingRep) replayStopRef.current = true   // repetarea oprită nu mai deschide jocul
     autoCancel.current = true
     currentAudio.current?.pause()
@@ -1039,10 +1038,10 @@ export default function LearnPage() {
       setLevelIndex(levelIdx)
       setActive(colIdx)
     }
-    // Coloană deja terminată → pornește RE-PLAY după ce state-ul s-a așezat
-    if (interrupting && !alreadySelected) setPausedColKey(`${levelIdx}:${colIdx}`)
-    else armAutoReplay(levelIdx, colIdx)
-  }, [colUnlocked, levelIndex, active, isPlayingRep, starsEarned, cancelMascotReward, armAutoReplay])
+    // Elimină orice pauză veche; coloana nouă pornește automat.
+    setPausedColKey(null)
+    armAutoReplay(levelIdx, colIdx)
+  }, [colUnlocked, levelIndex, active, isPlayingRep, cancelMascotReward, armAutoReplay])
 
   useEffect(() => {
     if (!pendingAutoReplayRef.current) return
