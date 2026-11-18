@@ -560,7 +560,9 @@ export function BulelePestilorGame({
     const W = stage.clientWidth
     const p0 = progressRef.current
     const dir: 1 | -1 = f.dir ?? 1   // ?? 1: protecție pentru peștii creați înainte de un hot-reload
-    const start = { x: fishX(p0, W, dir), y: fishY(f, p0) }
+    const start = level === 3
+      ? { x: W / 2, y: f.y }
+      : { x: fishX(p0, W, dir), y: fishY(f, p0) }
     const sr = stage.getBoundingClientRect()
     const cr = bucketEl.getBoundingClientRect()
     const cx0 = cr.left - sr.left + cr.width / 2
@@ -1070,7 +1072,7 @@ export function BulelePestilorGame({
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
         @keyframes pf-away-l { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: -70px } }
-        @keyframes pf-eaten { 0% { opacity: 1; transform: translate3d(0,0,0) translate(-50%,-50%) scale(1) } 100% { opacity: 0; transform: translate3d(0,0,0) translate(-50%,-50%) scale(.08) } }
+        @keyframes pf-eaten { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(5px); } }
         @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(-50%); } }
         .pf-shark-approach { position: absolute; left: 50%; z-index: 4; font-size: 58px; line-height: 1; pointer-events: none; animation: pf-shark-approach 3s linear forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
         @keyframes pf-pop { 0% { transform: scale(.3); opacity: 0 } 70% { transform: scale(1.2); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
