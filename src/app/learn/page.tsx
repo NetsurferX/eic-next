@@ -437,6 +437,9 @@ export default function LearnPage() {
   // ── Vulpea-asistent — coadă de mesaje declanșate de evenimentele jocului ──
   const [foxQueue, setFoxQueue] = useState<FoxTip[]>([])
   const [foxMenuOpen, setFoxMenuOpen] = useState(false)   // meniul lui Aik, deschis din medalionul de sus
+  // Meniul se deschide DOAR prin click/tastă pe medalion și se închide când se schimbă coloana
+  // activă (inclusiv prin hover-select), ca să nu „însoțească" cursorul de la o coloană la alta.
+  useEffect(() => { setFoxMenuOpen(false) }, [levelIndex, active])
   const triggerFox = useCallback((text: string, mood?: FoxMood) => {
     setFoxQueue(q => [...q, { id: `${Date.now()}-${Math.random()}`, text, mood }])
   }, [])
@@ -1446,7 +1449,6 @@ export default function LearnPage() {
                         tabIndex={0}
                         aria-label="Aik, asistentul"
                         aria-expanded={foxMenuOpen}
-                        title="Aik"
                         onClick={(e) => { e.stopPropagation(); setFoxMenuOpen(o => !o) }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFoxMenuOpen(o => !o) }
