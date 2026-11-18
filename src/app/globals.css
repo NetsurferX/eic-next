@@ -3347,8 +3347,8 @@ button, textarea, input { font-family: var(--font-sans); }
 
 @media (max-width: 720px) {
   .aik-corner {
-    flex-basis: 26px; width: 26px; height: 26px;
-    margin-top: 16px; margin-left: -8px;
+    flex-basis: 52px; width: 52px; height: 52px;
+    margin-top: 22px; margin-left: -8px;
   }
   .aik-speech-bubble {
     min-width: 2.3em;
