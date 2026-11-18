@@ -291,7 +291,7 @@ function lessonSymbolTextStyle(lesson: Lesson, unlocked: boolean): CSSProperties
 export default function LearnPage() {
   const [levelIndex, setLevelIndex]         = useState(0)
   // Bara este împărțită în grupuri fixe de câte patru simboluri.
-  // Selectarea grupului schimbă doar coloanele afișate, nu lecția activă.
+  // Selectarea unui grup nou activează prima lui coloană deblocată (mare, sus; celelalte mici dedesubt).
   const [selectedSymbolGroup, setSelectedSymbolGroup] = useState(0)
   // direcția ultimei mutări a grupului (pentru animația de glisare pe telefon); n re-montează bara
   const [groupSlide, setGroupSlide] = useState<{ dir: 0 | 1 | -1; n: number }>({ dir: 0, n: 0 })
@@ -577,19 +577,27 @@ export default function LearnPage() {
   const canGoNextGroup = selectedSymbolGroup < symbolGroupCount - 1 && symbolGroupUnlocked(selectedSymbolGroup + 1)
 
   // Bara urmărește coloana de antrenat: când se schimbă coloana activă (avans, săgeți, click),
-  // grupul ei devine grupul selectat (mare, la mijloc). Navigarea manuală între grupuri nu o schimbă.
+  // grupul ei devine grupul selectat (mare, la mijloc).
   useEffect(() => {
     const idx = ALL_SYMBOLS.findIndex(it => it.levelIdx === levelIndex && it.colIdx === active)
     if (idx >= 0) setSelectedSymbolGroup(Math.floor(idx / 4))
   }, [levelIndex, active])
 
-  // dir: 1 = grupul următor, -1 = grupul anterior (săgeți sau swipe)
-  const goSymbolGroup = (dir: 1 | -1) => {
-    const n = selectedSymbolGroup + dir
-    if (n < 0 || n >= symbolGroupCount || !symbolGroupUnlocked(n)) return
+  // Alegerea unui grup nou (buton, săgeți, swipe): prima coloană deblocată din grup devine
+  // coloana activă (mare, sus), iar celelalte trei stau mici dedesubt. Dacă grupul conține deja
+  // coloana activă, rămâne ea. Coloana nouă se activează ca la selectarea unui simbol
+  // (fără start automat dacă ai întrerupt o coloană; antrenamentul pornește la REPEAT).
+  const selectSymbolGroup = (n: number) => {
+    if (n === selectedSymbolGroup || n < 0 || n >= symbolGroupCount || !symbolGroupUnlocked(n)) return
+    const items = ALL_SYMBOLS.slice(n * 4, n * 4 + 4)
     setSelectedSymbolGroup(n)
-    setGroupSlide(prev => ({ dir, n: prev.n + 1 }))
+    setGroupSlide(prev => ({ dir: n > selectedSymbolGroup ? 1 : -1, n: prev.n + 1 }))
+    if (items.some(it => it.levelIdx === levelIndex && it.colIdx === active)) return
+    const first = items.find(it => !!colUnlocked[it.levelIdx]?.[it.colIdx])
+    if (first) selectSymbol(first.levelIdx, first.colIdx)
   }
+  // dir: 1 = grupul următor, -1 = grupul anterior (săgeți sau swipe)
+  const goSymbolGroup = (dir: 1 | -1) => selectSymbolGroup(selectedSymbolGroup + dir)
   // Swipe stânga/dreapta pe linia de simboluri și pe coloane (doar telefon):
   // deget spre stânga → grupul următor; spre dreapta → grupul anterior.
   const swipeProps = {
@@ -1359,7 +1367,7 @@ export default function LearnPage() {
                 disabled={!groupUnlocked}
                 aria-pressed={groupSelected}
                 aria-label={`Grupul ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
-                onClick={() => setSelectedSymbolGroup(groupIndex)}
+                onClick={() => selectSymbolGroup(groupIndex)}
               >
                 {items.map(item => {
                   const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
