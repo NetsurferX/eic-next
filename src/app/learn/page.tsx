@@ -566,6 +566,12 @@ export default function LearnPage() {
   const level     = LEVELS[levelIndex]
   const lesson    = level.lessons[active]
   const visibleSymbolGroup = ALL_SYMBOLS.slice(selectedSymbolGroup * 4, selectedSymbolGroup * 4 + 4)
+  // Telefon: bara arată doar grupul selectat (mare, între săgeți) și vecinii lui (mici, stânga/dreapta).
+  const symbolGroupCount = Math.ceil(ALL_SYMBOLS.length / 4)
+  const symbolGroupUnlocked = (g: number) =>
+    ALL_SYMBOLS.slice(g * 4, g * 4 + 4).some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
+  const canGoPrevGroup = selectedSymbolGroup > 0 && symbolGroupUnlocked(selectedSymbolGroup - 1)
+  const canGoNextGroup = selectedSymbolGroup < symbolGroupCount - 1 && symbolGroupUnlocked(selectedSymbolGroup + 1)
 
   // Declanșează OnboardingSoundIntro prima dată când o lecție (deblocată)
   // devine activă și n-a fost încă văzută. Nu rulează pentru lecții
@@ -1292,6 +1298,15 @@ export default function LearnPage() {
           orizontală dacă nu încap. Selectarea unui simbol deblocat
           afișează exclusiv coloana lui și pornește antrenamentul. ── */}
       <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri">
+        <button
+          type="button"
+          className="symbol-bar-arrow"
+          aria-label="Grupul anterior"
+          disabled={!canGoPrevGroup}
+          onClick={() => setSelectedSymbolGroup(g => Math.max(0, g - 1))}
+        >
+          ‹
+        </button>
         <div className="symbol-bar">
           {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
             const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
@@ -1301,7 +1316,7 @@ export default function LearnPage() {
               <button
                 key={groupIndex}
                 type="button"
-                className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}`}
+                className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}${groupIndex === selectedSymbolGroup - 1 ? ' is-near-prev' : ''}${groupIndex === selectedSymbolGroup + 1 ? ' is-near-next' : ''}`}
                 disabled={!groupUnlocked}
                 aria-pressed={groupSelected}
                 aria-label={`Grupul ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
@@ -1323,6 +1338,15 @@ export default function LearnPage() {
             )
           })}
         </div>
+        <button
+          type="button"
+          className="symbol-bar-arrow"
+          aria-label="Grupul următor"
+          disabled={!canGoNextGroup}
+          onClick={() => setSelectedSymbolGroup(g => Math.min(symbolGroupCount - 1, g + 1))}
+        >
+          ›
+        </button>
       </div>
 
       <div className="lesson-layout">

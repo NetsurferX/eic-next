@@ -3572,3 +3572,75 @@ button, textarea, input { font-family: var(--font-sans); }
     margin-left: 5px;
   }
 }
+
+/* ── Săgețile grupurilor: doar pe telefon ── */
+.symbol-bar-arrow { display: none; }
+
+/* ── Telefon: linia de simboluri devine un carusel de trei grupuri.
+   ‹  [grup precedent, mic]  [GRUPUL SELECTAT, mare]  [grup următor, mic]  ›
+   Celelalte grupuri se ascund; se ajunge la ele cu săgețile. ── */
+@media (max-width: 720px) {
+  .symbol-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: visible;
+    padding: 0;
+  }
+  .symbol-bar-arrow {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0 0 3px;
+    font-size: 1.35rem;
+    line-height: 1;
+    color: #1a1917;
+    background: #fff;
+    border: 1px solid #c9c9c9;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .symbol-bar-arrow:active:not(:disabled) { transform: translateY(1px); }
+  .symbol-bar-arrow:disabled { opacity: .3; cursor: not-allowed; }
+
+  .symbol-bar {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    column-gap: 8px;
+    padding: 3px 0 5px;
+  }
+  .symbol-group-btn:not(.is-selected):not(.is-near-prev):not(.is-near-next) { display: none; }
+  .symbol-group-btn.is-near-prev { grid-column: 1; grid-row: 1; justify-self: end; }
+  .symbol-group-btn.is-selected  { grid-column: 2; grid-row: 1; }
+  .symbol-group-btn.is-near-next { grid-column: 3; grid-row: 1; justify-self: start; }
+
+  /* grupul selectat: mare */
+  .symbol-group-btn.is-selected {
+    gap: .3rem;
+    min-height: 2.2rem;
+    padding: .32rem .65rem;
+    border-radius: 12px;
+  }
+  .symbol-group-btn.is-selected .symbol-btn-text { font-size: 1.05rem; }
+  .symbol-group-btn.is-selected .symbol-group-symbol { min-width: 1.05rem; }
+
+  /* vecinii: mici */
+  .symbol-group-btn.is-near-prev,
+  .symbol-group-btn.is-near-next {
+    gap: .15rem;
+    min-height: 1.3rem;
+    padding: .1rem .28rem;
+    border-radius: 7px;
+    opacity: .85;
+  }
+  .symbol-group-btn.is-near-prev .symbol-btn-text,
+  .symbol-group-btn.is-near-next .symbol-btn-text { font-size: .62rem; }
+  .symbol-group-btn.is-near-prev .symbol-group-symbol,
+  .symbol-group-btn.is-near-next .symbol-group-symbol { min-width: .5rem; }
+}
