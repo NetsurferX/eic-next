@@ -75,6 +75,9 @@ const RECORDED_SAMPLES: Record<string, string> = {
   // coloana /ʃ/ (sh) — voiceless postalveolar fricative
   'ʃ': '/sounds/sh.mp3',
   'sh': '/sounds/sh.mp3',
+  // coloana /ỷ/ (/ɔɪ/, lecția „oi", roșu) — matchWord 'oy' din levels.ts; simbol afișat ỷ
+  'oy': '/sounds/oy.mp3',
+  'ỷ': '/sounds/oy.mp3',
 }
 
 let liveAudio: HTMLAudioElement | null = null
