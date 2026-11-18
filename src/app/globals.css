@@ -2142,7 +2142,13 @@ button, textarea, input { font-family: var(--font-sans); }
    mari, vulpea-asistent și overlay-ul de nivel redimensionate. ── */
 @media (max-width: 720px) {
   .lesson-page { padding: 1.5rem 1rem 2.5rem; }
-  .lesson-grid { grid-template-columns: 1fr; gap: 10px; }
+  /* Coloana antrenată rămâne mare sus; celelalte trei din grup stau
+     compact, una lângă alta, imediat dedesubt. */
+  .lesson-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .lesson-col.is-active { grid-column: 1 / -1; grid-row: 1; }
+  .lesson-col:not(.is-active) { min-width: 0; padding: .55rem .25rem .65rem; border-width: 2px; }
+  .lesson-col:not(.is-active) .lesson-word { font-size: 13px; padding: 5px 2px; }
+  .lesson-col:not(.is-active) .lesson-col-head { gap: 3px; }
   .lesson-stepper-label { display: none; }
   .lesson-title { font-size: 1.35rem; }
   .lesson-word { font-size: 22px; padding: 12px 8px; }
