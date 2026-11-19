@@ -66,6 +66,8 @@ let liveUtterance: SpeechSynthesisUtterance | null = null
 const RECORDED_SAMPLES: Record<string, string> = {
   // Sunetul /eg/ pentru coloana /e/ — înregistrare furnizată.
   'egg': '/sounds/egg.mp3',
+  // coloana /o/ (roz) — matchWord 'odd' din levels.ts: sunetul izolat în locul cuvântului „odd"
+  'odd': '/sounds/odd.mp3',
   // coloana /eỷ/ (/eɪ/) — matchWord din levels.ts
   'eỷ': '/sounds/ey.mp3',
   // coloana /æ/ — simbol afișat ₑa; matchWord 'æ'
