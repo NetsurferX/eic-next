@@ -127,7 +127,7 @@ const FLOAT = { x: FOX_LEFT + 146, y: SKY_H + 3 }     // pluta, la suprafața ap
 const MOUTH = 0.42 * FISH_W                            // distanța centru → gură
 const NEUTRAL = '#f4f1ea'
 // Fundalul butonului de răspuns pentru coloana /əʊ/ — aceleași 3 benzi ca peștele (TRICOLOR_BANDS)
-const TRICOLOR_BUTTON_BG = `linear-gradient(90deg, ${TRICOLOR_BANDS[0]} 0 33.33%, ${TRICOLOR_BANDS[1]} 33.33% 66.66%, ${TRICOLOR_BANDS[2]} 66.66% 100%)`
+const TRICOLOR_BUTTON_BG = `linear-gradient(180deg, ${TRICOLOR_BANDS[0]} 0 33.33%, ${TRICOLOR_BANDS[1]} 33.33% 66.66%, ${TRICOLOR_BANDS[2]} 66.66% 100%)`
 // Tazul cu pești (sus-dreapta): w/h = dimensiunea desenului; rim = y-ul buzei tazului
 // tazul e desenat în coordonate 104x96 (BUCKET_VB) și afișat la 60% lățime / 70% înălțime (BUCKET)
 const BUCKET_VB = { w: 104, h: 112, rim: 30 }   // h=112 → la scara 0.6 iese 70% din înălțimea inițială (96)
