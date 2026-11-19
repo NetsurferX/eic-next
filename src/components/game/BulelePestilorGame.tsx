@@ -1030,7 +1030,7 @@ export function BulelePestilorGame({
               onClick={() => handlePress(g)}
               className={buzzId === g.lesson.id ? 'pf-wrong' : (hinted || (level === 3 && sharkApproaching && fish?.group.lesson.id === g.lesson.id)) ? 'pf-buzz' : undefined}
               style={{
-                width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation',
+                width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation', padding: 0,
                 background: g.lesson.id === 'ou' ? TRICOLOR_BUTTON_BG : ringColor,
                 boxShadow: hinted ? '0 0 0 5px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.15)',
                 transition: 'box-shadow 200ms',
