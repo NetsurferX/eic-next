@@ -1021,14 +1021,15 @@ export default function LearnPage() {
 
   // ── Selectare simbol din bara superioară (toate simbolurile, inclusiv
   //   blocate vizibile). Doar cele deblocate pot fi selectate. Oprește
-  //   redarea anterioară și pornește automat coloana aleasă: antrenament
-  //   normal dacă este neterminată, RE-PLAY dacă este deja absolvită.
-  //   Nu pune ținta în pauză doar pentru că am întrerupt coloana anterioară.
+  //   redarea anterioară și schimbă coloana activă, fără să pornească
+  //   automat antrenamentul sau RE-PLAY-ul. Pentru o coloană neterminată,
+  //   butonul REPEAT rămâne disponibil pentru pornire manuală.
   //   Nu atinge colUnlocked / starsEarned. ──
   const selectSymbol = useCallback((levelIdx: number, colIdx: number) => {
     if (!colUnlocked[levelIdx]?.[colIdx]) return
-    // Oprește orice redare în curs (mecanismul existent: autoCancel + audio)
-    if (isPlayingRep) replayStopRef.current = true   // repetarea oprită nu mai deschide jocul
+    // Oprește orice redare în curs și anulează orice RE-PLAY în așteptare.
+    if (isPlayingRep) replayStopRef.current = true
+    pendingAutoReplayRef.current = false
     autoCancel.current = true
     currentAudio.current?.pause()
     cancelMascotReward()
@@ -1038,10 +1039,9 @@ export default function LearnPage() {
       setLevelIndex(levelIdx)
       setActive(colIdx)
     }
-    // Elimină orice pauză veche; coloana nouă pornește automat.
-    setPausedColKey(null)
-    armAutoReplay(levelIdx, colIdx)
-  }, [colUnlocked, levelIndex, active, isPlayingRep, cancelMascotReward, armAutoReplay])
+    // Blochează pornirea automată; elevul pornește manual din REPEAT.
+    setPausedColKey(`${levelIdx}:${colIdx}`)
+  }, [colUnlocked, levelIndex, active, isPlayingRep, cancelMascotReward])
 
   useEffect(() => {
     if (!pendingAutoReplayRef.current) return
