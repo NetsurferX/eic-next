@@ -50,6 +50,13 @@ const COLUMN_WORD_OVERRIDES: Record<string, LessonWord[]> = {
     { text: 'bug',  mark: 'u', accent: 'en-GB' },
     { text: 'son',  mark: 'o', accent: 'en-GB' },
   ],
+  // /o/ (roz): stop prima, four (ou roz), salt (a roz, l gri), hawk (aw roz)
+  o: [
+    { text: 'stop', mark: 'o' },
+    { text: 'four', mark: 'ou' },
+    { text: 'salt', mark: 'a' },
+    { text: 'hawk', mark: 'aw' },
+  ],
   // u: moon, blue, fruit, soup
   u: [
     { text: 'moon',  mark: 'oo' },
