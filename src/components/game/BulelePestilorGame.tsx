@@ -61,10 +61,11 @@ function ttsWordFor(lesson: Lesson): string {
 // `stillOn` oprește lanțul dacă între timp s-a dat pauză.
 function sayAnnouncement(lesson: Lesson, word: LessonWord, level: Level, stillOn: () => boolean) {
   const accent = lesson.accent ?? 'en-US'
-  const first = speakWord(ttsWordFor(lesson), { accent })
   if (level === 3) {
-    first.promise.then(() => { if (stillOn()) speakWord(word.text, { accent: word.accent ?? accent }) })
+    speakWord(word.text, { accent: word.accent ?? accent })
+    return
   }
+  speakWord(ttsWordFor(lesson), { accent })
 }
 
 const TOTAL = 5
