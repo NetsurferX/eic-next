@@ -3,12 +3,15 @@
 // și pe pește. NU modifică levels.ts (lesson.letter rămâne simbolul IPA intern) și
 // nu atinge motorul. Aici se țin înlocuirile cerute de Dorel (2026-11-06).
 
+import { bandsFor, type Bands } from './tricolorStyle'
+
 export interface Lesson2Display { id: string; letter: string; color: string }
 
 export interface SymbolView {
   text: string                       // ce se scrie
   color: string                      // culoarea de bază a simbolului
-  tricolor?: boolean                 // ə‍w: tricolor (ca până acum la əʊ)
+  tricolor?: boolean                 // ə‍w: tricolor (ca până acum la əʊ); wa: negru–galben–negru
+  bands?: Bands                      // cele trei benzi când tricolor = true
   whiteOutlined?: boolean            // l̩/m̩: alb cu chenar negru
 }
 
@@ -35,7 +38,8 @@ const TEXT_BY_ID: Record<string, string> = {
 
 export function symbolView(lesson: Lesson2Display): SymbolView {
   const text = TEXT_BY_ID[lesson.id] ?? lesson.letter
-  if (lesson.id === 'ou') return { text, color: lesson.color, tricolor: true }
+  const bands = bandsFor(lesson.id)
+  if (bands) return { text, color: lesson.color, tricolor: true, bands }
   if (lesson.id === 'syllabic-lm') return { text, color: '#ffffff', whiteOutlined: true }
   if (CONSONANT_IDS.has(lesson.id)) return { text, color: CONSONANT_BLACK }
   return { text, color: lesson.color }

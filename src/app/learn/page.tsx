@@ -10,7 +10,7 @@ import { type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
 import { FoxTips } from '@/components/game/FoxTips'
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type TouchEvent as ReactTouchEvent } from 'react'
 import Link from 'next/link'
-import { tricolorLetterStyle, TRICOLOR_UNDERLINE_COLOR, TRICOLOR_BANDS, TRICOLOR_CSS_HORIZONTAL } from '@/lib/tricolorStyle'
+import { tricolorLetterStyle, bandsFor, underlineColorFor, bandsCssHorizontal } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
 import { MascotIntro } from '@/components/game/MascotIntro'
@@ -218,7 +218,8 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
   // (verificat pe "Vulpea șireată" — "oa"/"ow" nu întind un singur
   // gradient pe ambele litere). Coloanele blocate rămân pe stilul vechi
   // (culoare plată, estompată de CSS) ca să nu se "trădeze" prin gradient.
-  const isTricolorLesson = lessonId === 'ou' && !isLocked
+  const triBands = bandsFor(lessonId ?? '')   // 'ou' → tricolor românesc; 'wa' → negru–galben–negru
+  const isTricolorLesson = !!triBands && !isLocked
   // În „mercy”, litera e are un underscore negru, separat de marcajul c → /s/.
   const underlineMercyE = text.toLowerCase() === 'mercy' && mark.toLowerCase() === 'c'
 
@@ -248,7 +249,7 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
             <span
               key={i}
               style={{
-                ...tricolorLetterStyle(),
+                ...tricolorLetterStyle(2, 1, triBands ?? undefined),
                 // `currentColor` (used by .lesson-word.is-playing's glow
                 // rule) is 'transparent' here since the gradient fill sets
                 // color:transparent — so the playing-glow needs its own
@@ -258,7 +259,7 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
                 ...(underline
                   ? {
                       textDecoration: 'underline',
-                      textDecorationColor: TRICOLOR_UNDERLINE_COLOR,
+                      textDecorationColor: underlineColorFor(triBands!),
                       textUnderlineOffset: '4.7px',
                       textDecorationThickness: '2px',
                     }
@@ -290,7 +291,8 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
 function lessonSymbolTextStyle(lesson: Lesson, unlocked: boolean): CSSProperties | undefined {
   if (!unlocked) return undefined
   const sv = symbolView(lesson)
-  if (lesson.id === 'ou') return tricolorLetterStyle(8, 0.7)
+  const tri = bandsFor(lesson.id)
+  if (tri) return tricolorLetterStyle(8, 0.7, tri)
   if (sv.whiteOutlined) return WHITE_OUTLINED_TEXT_STYLE
   if (lesson.id === 'oi') return { color: OFFGLIDE_COLOR }
   return { color: sv.color }
@@ -1460,7 +1462,9 @@ export default function LearnPage() {
           const trophyEarned = stars >= REPS_PER_LESSON
           const isNextUp     = itemLevelIdx === levelIndex && i === nextUpIndex
           const isRevealing  = itemLevelIdx === levelIndex && justRevealedIndex === i
-          const isTricolor   = l.id === 'ou'
+          const colBands     = bandsFor(l.id)
+          const isTricolor   = !!colBands
+          const triBg        = colBands ? bandsCssHorizontal(colBands) : l.color
           const style = { '--lesson-color': l.color } as CSSProperties
           return (
             <div
@@ -1524,7 +1528,7 @@ export default function LearnPage() {
                     progressPct={(stars / REPS_PER_LESSON) * 100}
                     size={42}
                     color={l.color}
-                    bandColors={isTricolor ? TRICOLOR_BANDS : undefined}
+                    bandColors={colBands ?? undefined}
                     celebrating={isActive && celebrating}
                     allFull={trophyEarned}
                     idSuffix={l.id}
@@ -1552,7 +1556,7 @@ export default function LearnPage() {
                     }}
                     aria-label={isPlayingRep ? 'Stop: oprește repetarea' : 'Repeat: repetă coloana'}
                     style={{
-                      '--rp-bg': isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color,
+                      '--rp-bg': triBg,
                       '--rp-pct': `${isPlayingRep ? replayProgress : 0}%`,
                     } as CSSProperties}
                   >
@@ -1614,7 +1618,7 @@ export default function LearnPage() {
                     type="button"
                     className="lesson-col-btn"
                     onClick={(e) => { e.stopPropagation(); handleReplayPlay() }}
-                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                    style={{ background: triBg }}
                   >
                     <span aria-hidden="true">▶</span> PLAY
                   </button>
@@ -1623,7 +1627,7 @@ export default function LearnPage() {
                     className="lesson-col-btn"
                     disabled={!nextColumnTarget()}
                     onClick={(e) => { e.stopPropagation(); handleNextColumn() }}
-                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                    style={{ background: triBg }}
                   >
                     NEXT <span aria-hidden="true">→</span>
                   </button>
@@ -1635,7 +1639,7 @@ export default function LearnPage() {
                     type="button"
                     className="lesson-col-btn"
                     onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
-                    style={{ background: isTricolor ? TRICOLOR_CSS_HORIZONTAL : l.color }}
+                    style={{ background: triBg }}
                   >
                     NEXT <span aria-hidden="true">→</span>
                   </button>

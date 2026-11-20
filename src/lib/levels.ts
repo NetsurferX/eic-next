@@ -386,24 +386,6 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 8 · Vocale suplimentare',
     lessons: [
       {
-        id: 'strut', letter: 'ʌ', color: '#008E40', tabLabel: 'Verde-gradient', matchWord: 'uh',
-        // STRUT — necesită accent='en-GB' explicit: dicționarul US din acest
-        // proiect transcrie STRUT ca schwa (/ə/), nu /ʌ/ (o convenție de
-        // transcriere americană pentru acest sunet — nu ține de regula
-        // rhotic care altfel preferă US, vezi db.ts selectBest). Fără acest
-        // accent, cuvintele ar ieși negre (schwa), nu cu gradientul verde
-        // corect. Verificat direct: 'uk' → ʌ pe toate cele 6 cuvinte.
-        accent: 'en-GB',
-        words: [
-          { text: 'cup',  mark: 'u' },
-          { text: 'son',  mark: 'o' },
-          { text: 'run',  mark: 'u' },
-          { text: 'bus',  mark: 'u' },
-          { text: 'sun',  mark: 'u' },
-          { text: 'luck', mark: 'u' },
-        ],
-      },
-      {
         id: 'rotic-o', letter: 'o', color: '#FF3399', tabLabel: 'Roz', matchWord: 'or',
         // [o] rotic (door/force) — distinct de [ɒ] non-rotic (hot/dog, deja
         // acoperit în Nivelul 1) prin lipsa gradientului: rotic e flat.
@@ -414,6 +396,20 @@ export const LEVELS: Level[] = [
           { text: 'four',  mark: 'our' },
           { text: 'sport', mark: 'or' },
           { text: 'short', mark: 'or' },
+        ],
+      },
+      {
+        // /wɒ/ — simbolul „wa" e în trei benzi negru–galben–negru (vezi bandsFor în lib/tricolorStyle.ts).
+        // Accent britanic: ɒ (în americană „wa-" iese /wɑ/). matchWord 'wa' = înregistrarea din speak.ts.
+        id: 'wa', letter: 'wa', color: '#000000', tabLabel: 'Negru-galben', matchWord: 'wa',
+        accent: 'en-GB',
+        words: [
+          { text: 'want',  mark: 'wa' },
+          { text: 'watch', mark: 'wa' },
+          { text: 'wash',  mark: 'wa' },
+          { text: 'swan',  mark: 'wa' },
+          { text: 'swamp', mark: 'wa' },
+          { text: 'wasp',  mark: 'wa' },
         ],
       },
     ],

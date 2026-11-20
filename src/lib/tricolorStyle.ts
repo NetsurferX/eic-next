@@ -56,7 +56,29 @@ function inkWindow(padPct: number): { sizeY: string; positionY: string } {
 // value directly (e.g. Cup.tsx's SVG <linearGradient> stops, built from a
 // JS array rather than a background shorthand) should read the bands from
 // here instead of re-typing the three hex codes.
-export const TRICOLOR_BANDS: [string, string, string] = ['#002B7F', '#FCD116', '#CE1126']
+export type Bands = [string, string, string]
+export const TRICOLOR_BANDS: Bands = ['#002B7F', '#FCD116', '#CE1126']
+
+// Coloana „wa" (/wɒ/): același tipar în trei benzi, dar negru – galben – negru.
+export const BLACK_YELLOW_BLACK: Bands = ['#000000', '#FCD116', '#000000']
+
+// Lecțiile cu simbol în trei benzi (cheie = lesson.id). Orice id lipsă → null (culoare plată).
+export function bandsFor(lessonId: string): Bands | null {
+  if (lessonId === 'ou') return TRICOLOR_BANDS
+  if (lessonId === 'wa') return BLACK_YELLOW_BLACK
+  return null
+}
+// Subliniere sub literele marcate: ultima bandă (pentru tricolor = TRICOLOR_UNDERLINE_COLOR, roșul).
+export function underlineColorFor(bands: Bands): string {
+  return bands === TRICOLOR_BANDS ? TRICOLOR_UNDERLINE_COLOR : bands[2]
+}
+// Trei benzi egale stânga→dreapta (butoane, chipuri) și sus→jos (butoane rotunde).
+export function bandsCssHorizontal(bands: Bands): string {
+  return `linear-gradient(to right, ${bands[0]} 0%, ${bands[0]} 33%, ${bands[1]} 33%, ${bands[1]} 66%, ${bands[2]} 66%, ${bands[2]} 100%)`
+}
+export function bandsCssVertical(bands: Bands): string {
+  return `linear-gradient(180deg, ${bands[0]} 0 33.33%, ${bands[1]} 33.33% 66.66%, ${bands[2]} 66.66% 100%)`
+}
 
 // Horizontal variant of TRICOLOR_CSS, three equal vertical stripes
 // left→right in the same blue/yellow/red order — matches the actual
@@ -80,13 +102,13 @@ export const TRICOLOR_CSS_HORIZONTAL =
 // vertical window and were getting clipped top/bottom at the tight margin.
 // `yellowScale` (implicit 1 = neschimbat): înmulțește grosimea benzii galbene;
 // albastrul și roșul își împart egal restul (ex. 0.7 → galben cu 30% mai subțire).
-export function tricolorLetterStyle(marginPct: number = 2, yellowScale: number = 1): CSSProperties {
+export function tricolorLetterStyle(marginPct: number = 2, yellowScale: number = 1, bands: Bands = TRICOLOR_BANDS): CSSProperties {
   const { sizeY, positionY } = inkWindow(marginPct)
   let bg = TRICOLOR_CSS
-  if (yellowScale !== 1) {
+  if (yellowScale !== 1 || bands !== TRICOLOR_BANDS) {
     const y = (100 / 3) * yellowScale
     const b = (100 - y) / 2
-    bg = `linear-gradient(to bottom, ${TRICOLOR_BANDS[0]} 0%, ${TRICOLOR_BANDS[0]} ${b.toFixed(2)}%, ${TRICOLOR_BANDS[1]} ${b.toFixed(2)}%, ${TRICOLOR_BANDS[1]} ${(b + y).toFixed(2)}%, ${TRICOLOR_BANDS[2]} ${(b + y).toFixed(2)}%, ${TRICOLOR_BANDS[2]} 100%)`
+    bg = `linear-gradient(to bottom, ${bands[0]} 0%, ${bands[0]} ${b.toFixed(2)}%, ${bands[1]} ${b.toFixed(2)}%, ${bands[1]} ${(b + y).toFixed(2)}%, ${bands[2]} ${(b + y).toFixed(2)}%, ${bands[2]} 100%)`
   }
   return {
     background:           bg,

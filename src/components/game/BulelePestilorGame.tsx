@@ -8,7 +8,7 @@ import { speakWord } from '@/lib/speak'
 import WordRenderer from '@/components/WordRenderer'
 import type { RenderNode } from '@/lib/renderNode'
 import type { Lesson, LessonWord } from '@/lib/levels'
-import { tricolorLetterStyle, TRICOLOR_BANDS, TRICOLOR_UNDERLINE_COLOR } from '@/lib/tricolorStyle'
+import { tricolorLetterStyle, TRICOLOR_BANDS, bandsFor, underlineColorFor, bandsCssVertical, type Bands } from '@/lib/tricolorStyle'
 import { symbolView, bodyColorFor, CONSONANT_IDS, WHITE_OUTLINED_TEXT_STYLE } from '@/lib/symbolDisplay'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,6 @@ const FLOAT = { x: FOX_LEFT + 146, y: SKY_H + 3 }     // pluta, la suprafața ap
 const MOUTH = 0.42 * FISH_W                            // distanța centru → gură
 const NEUTRAL = '#f4f1ea'
 // Fundalul butonului de răspuns pentru coloana /əʊ/ — aceleași 3 benzi ca peștele (TRICOLOR_BANDS)
-const TRICOLOR_BUTTON_BG = `linear-gradient(180deg, ${TRICOLOR_BANDS[0]} 0 33.33%, ${TRICOLOR_BANDS[1]} 33.33% 66.66%, ${TRICOLOR_BANDS[2]} 66.66% 100%)`
 // Tazul cu pești (sus-dreapta): w/h = dimensiunea desenului; rim = y-ul buzei tazului
 // tazul e desenat în coordonate 104x96 (BUCKET_VB) și afișat la 60% lățime / 70% înălțime (BUCKET)
 const BUCKET_VB = { w: 104, h: 112, rim: 30 }   // h=112 → la scara 0.6 iese 70% din înălțimea inițială (96)
@@ -166,7 +165,7 @@ function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: 
   const sv = symbolView(lesson)
   // gh/ph: butonul e „f”, dar peștele poartă „ph”/„gh” (după cuvântul lui)
   const txt = lesson.id === 'gh-ph-f' && word ? word.mark : sv.text
-  const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6)
+  const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands)
     : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
     : { color: sv.color }
   return { node: <span style={style}>{txt}</span>, len: txt.replace(/\u200D/g, '').length }
@@ -181,10 +180,11 @@ function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: bool
     const nodes = nodesCache.get(text.toLowerCase())
     const idx = text.toLowerCase().indexOf(word.mark.toLowerCase())
     const range: [number, number] | undefined = !solved && idx !== -1 ? [idx, idx + word.mark.length] : undefined
-    if (nodes) return { node: <WordRenderer nodes={nodes} wordStr={text} flatSimple={flat} pulseRange={range} />, len: text.length }
+    if (nodes && lesson.id !== 'wa') return { node: <WordRenderer nodes={nodes} wordStr={text} flatSimple={flat} pulseRange={range} />, len: text.length }
     if (idx === -1) return { node: <span style={{ color: '#333' }}>{text}</span>, len: text.length }
     const markEnd = idx + word.mark.length
-    const tri = lesson.id === 'ou'
+    const triBands = bandsFor(lesson.id)
+    const tri = !!triBands
     return {
       len: text.length,
       node: (
@@ -192,7 +192,7 @@ function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: bool
           {text.slice(0, idx)}
           {[...text.slice(idx, markEnd)].map((ch, k, arr) => {
             if (!solved) return <span key={k} className="eic-pulse">{ch}</span>
-            if (tri && isVowelLike(ch)) return <span key={k} style={{ ...tricolorLetterStyle(), textDecorationColor: TRICOLOR_UNDERLINE_COLOR }}>{ch}</span>
+            if (triBands && isVowelLike(ch)) return <span key={k} style={{ ...tricolorLetterStyle(2, 1, triBands), textDecorationColor: underlineColorFor(triBands) }}>{ch}</span>
             if (lesson.id === 'oi' && k === arr.length - 1) return <span key={k} style={{ color: '#CC0000' }}>{OFFGLIDE[ch] ?? ch}</span>
             return <span key={k} style={isVowelLike(ch) ? { color: lesson.color } : undefined}>{ch}</span>
           })}
@@ -208,8 +208,8 @@ function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: bool
 }
 
 // ── peștele (SVG), cu CAPUL spre dreapta (sensul de înot) ──
-function FishSvg({ body, tricolor = false, label, len, width, wag = true }: {
-  body: string; tricolor?: boolean; label: ReactNode; len: number; width: number; wag?: boolean
+function FishSvg({ body, tricolor = false, bands = TRICOLOR_BANDS, label, len, width, wag = true }: {
+  body: string; tricolor?: boolean; bands?: Bands; label: ReactNode; len: number; width: number; wag?: boolean
 }) {
   const gid = useId().replace(/:/g, '')
   const height = width / 2
@@ -221,9 +221,9 @@ function FishSvg({ body, tricolor = false, label, len, width, wag = true }: {
         {tricolor && (
           <defs>
             <linearGradient id={gid} x1="1" y1="0" x2="0" y2="0">
-              <stop offset="0%" stopColor={TRICOLOR_BANDS[0]} /><stop offset="33%" stopColor={TRICOLOR_BANDS[0]} />
-              <stop offset="33%" stopColor={TRICOLOR_BANDS[1]} /><stop offset="66%" stopColor={TRICOLOR_BANDS[1]} />
-              <stop offset="66%" stopColor={TRICOLOR_BANDS[2]} /><stop offset="100%" stopColor={TRICOLOR_BANDS[2]} />
+              <stop offset="0%" stopColor={bands[0]} /><stop offset="33%" stopColor={bands[0]} />
+              <stop offset="33%" stopColor={bands[1]} /><stop offset="66%" stopColor={bands[1]} />
+              <stop offset="66%" stopColor={bands[2]} /><stop offset="100%" stopColor={bands[2]} />
             </linearGradient>
           </defs>
         )}
@@ -824,14 +824,14 @@ export function BulelePestilorGame({
         {/* bula comics cu simbolul rostit de vulpe; chenarul are culoarea simbolului (negru la consoane) */}
         {announce && !paused && !done && (() => {
           const sv = symbolView(announce)
-          const border = sv.tricolor ? TRICOLOR_BANDS[1] : sv.whiteOutlined ? '#000' : sv.color
+          const border = sv.tricolor ? (sv.bands ?? TRICOLOR_BANDS)[1] : sv.whiteOutlined ? '#000' : sv.color
           return (
             <div style={{
               position: 'absolute', left: FOX_LEFT + FOX_SIZE + 2, top: SKY_H - FOX_SIZE - 16, zIndex: 5,
               background: '#fff', border: `3px solid ${border}`, borderRadius: 14, padding: '2px 12px',
               fontSize: 26, fontWeight: 800, fontStyle: 'italic', boxShadow: '2px 3px 0 rgba(0,0,0,.15)',
             }}>
-              <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{sv.text}</span>
+              <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{sv.text}</span>
               {announceWord && <span style={{ marginLeft: 10, fontSize: 20, fontStyle: 'normal', fontWeight: 700, color: '#333' }}>{announceWord}</span>}
               <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />
             </div>
@@ -846,11 +846,16 @@ export function BulelePestilorGame({
         >
           <svg width={BUCKET.w} height={BUCKET.h} viewBox={`0 0 ${BUCKET_VB.w} ${BUCKET_VB.h}`} style={{ overflow: 'visible', display: 'block' }}>
             <defs>
-              <linearGradient id={`${bucketId}-tri`} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor={TRICOLOR_BANDS[0]} /><stop offset="33%" stopColor={TRICOLOR_BANDS[0]} />
-                <stop offset="33%" stopColor={TRICOLOR_BANDS[1]} /><stop offset="66%" stopColor={TRICOLOR_BANDS[1]} />
-                <stop offset="66%" stopColor={TRICOLOR_BANDS[2]} /><stop offset="100%" stopColor={TRICOLOR_BANDS[2]} />
-              </linearGradient>
+              {(['ou', 'wa'] as const).map(id => {
+                const b = bandsFor(id)!
+                return (
+                  <linearGradient key={id} id={`${bucketId}-${id}`} x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={b[0]} /><stop offset="33%" stopColor={b[0]} />
+                    <stop offset="33%" stopColor={b[1]} /><stop offset="66%" stopColor={b[1]} />
+                    <stop offset="66%" stopColor={b[2]} /><stop offset="100%" stopColor={b[2]} />
+                  </linearGradient>
+                )
+              })}
             </defs>
             {/* cozile (poziție/înclinare fixe per pește: nu sar când se adaugă altele) */}
             {cells.map((c, i) => {
@@ -864,7 +869,7 @@ export function BulelePestilorGame({
                   <path
                     className="pf-tailpop"
                     d="M-3 4 L-10 -22 Q0 -15 10 -22 L3 4 Z"
-                    fill={c.lesson.id === 'ou' ? `url(#${bucketId}-tri)` : bodyColorFor(c.lesson)}
+                    fill={bandsFor(c.lesson.id) ? `url(#${bucketId}-${c.lesson.id})` : bodyColorFor(c.lesson)}
                     stroke="#1a1006" strokeWidth="2" strokeLinejoin="round"
                   />
                 </g>
@@ -950,7 +955,8 @@ export function BulelePestilorGame({
             >
               <FishSvg
                 body={level === 2 && !solved ? NEUTRAL : bodyColorFor(fish.group.lesson)}
-                tricolor={fish.group.lesson.id === 'ou' && !(level === 2 && !solved)}
+                tricolor={!!bandsFor(fish.group.lesson.id) && !(level === 2 && !solved)}
+                bands={bandsFor(fish.group.lesson.id) ?? undefined}
                 label={lb.node} len={lb.len} width={FISH_W}
               />
               {fish.group.kind === 'next' && <span style={{ position: 'absolute', top: -10, right: -4, fontSize: 13 }}>✨</span>}
@@ -973,7 +979,8 @@ export function BulelePestilorGame({
             <div ref={pullFishRef} style={{ position: 'absolute', left: 0, top: 0, willChange: 'transform', zIndex: 4, transform: 'translate3d(-999px,-999px,0)', ['--flip' as string]: fish.dir ?? 1 }}>
               <FishSvg
                 body={bodyColorFor(fish.group.lesson)}
-                tricolor={fish.group.lesson.id === 'ou'}
+                tricolor={!!bandsFor(fish.group.lesson.id)}
+                bands={bandsFor(fish.group.lesson.id) ?? undefined}
                 label={lb.node} len={lb.len} width={FISH_W} wag={false}
               />
             </div>
@@ -1023,14 +1030,14 @@ export function BulelePestilorGame({
               className={buzzId === g.lesson.id ? 'pf-wrong' : (hinted || (level === 3 && sharkApproaching && fish?.group.lesson.id === g.lesson.id)) ? 'pf-buzz' : undefined}
               style={{
                 width: ansSize, height: ansSize, borderRadius: '50%', border: 'none', cursor: 'pointer', touchAction: 'manipulation', padding: 0,
-                background: g.lesson.id === 'ou' ? TRICOLOR_BUTTON_BG : ringColor,
+                background: bandsFor(g.lesson.id) ? bandsCssVertical(bandsFor(g.lesson.id)!) : ringColor,
                 boxShadow: hinted ? '0 0 0 5px rgba(0,0,0,.12)' : '0 1px 3px rgba(0,0,0,.15)',
                 transition: 'box-shadow 200ms',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
               <span style={{ width: compact ? 63 : 57, height: compact ? 63 : 57, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 28 : 24, fontWeight: 800, color: sv.color }}>
-                <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{sv.text}</span>
+                <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{sv.text}</span>
               </span>
             </button>
           )
