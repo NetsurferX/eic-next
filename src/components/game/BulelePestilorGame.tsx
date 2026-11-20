@@ -44,14 +44,6 @@ type GroupKind = 'current' | 'distractor' | 'next'
 interface Group { kind: GroupKind; lesson: Lesson }
 interface QueueItem { group: Group }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
 function pickWord(lesson: Lesson): LessonWord {
   return lesson.words[Math.floor(Math.random() * lesson.words.length)]
 }
@@ -70,24 +62,18 @@ function sayAnnouncement(lesson: Lesson, word: LessonWord, level: Level, stillOn
 }
 
 const TOTAL = 5
+// Secvența peștilor (și a sunetelor lor) e FIXĂ, în ordinea asta:
+//   1. sunetul de antrenat — prima redare
+//   2. sunetul de antrenat — a doua redare
+//   3. sunetul anterior (cel mai recent dintre cele învățate înainte)
+//   4. sunetul de antrenat — din nou
+//   5. sunetul nou (coloana următoare)
+// Dacă nu există un sunet anterior (prima coloană), locul 3 e tot sunetul de antrenat; dacă nu există
+// unul nou, locul 5 ia al doilea sunet anterior, iar în lipsa lui, tot sunetul de antrenat.
 function buildQueue(current: Group, distractors: Group[], next: Group | null): QueueItem[] {
-  const nextCount = next ? 1 : 0
-  let currentCount = 3
-  let distractorTotal = TOTAL - currentCount - nextCount
-  if (distractors.length === 0) { currentCount += distractorTotal; distractorTotal = 0 }
-  const items: QueueItem[] = []
-  for (let i = 0; i < currentCount; i++) items.push({ group: current })
-  if (distractors.length > 0) {
-    const base = Math.floor(distractorTotal / distractors.length)
-    let extra = distractorTotal - base * distractors.length
-    for (const d of distractors) {
-      const count = base + (extra > 0 ? 1 : 0)
-      if (extra > 0) extra--
-      for (let i = 0; i < count; i++) items.push({ group: d })
-    }
-  }
-  if (next) items.push({ group: next })
-  return shuffle(items).slice(0, TOTAL)
+  const previous = distractors[0] ?? current
+  const last = next ?? distractors[1] ?? current
+  return [current, current, previous, current, last].slice(0, TOTAL).map(group => ({ group }))
 }
 
 // ── geometrie ──
