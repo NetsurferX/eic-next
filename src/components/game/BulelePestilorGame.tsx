@@ -1037,7 +1037,7 @@ export function BulelePestilorGame({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <span style={{ width: compact ? 38 : 30, height: compact ? 38 : 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: sv.color }}>
+              <span style={{ width: compact ? 51 : 41, height: compact ? 51 : 41, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: sv.color }}>
                 <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{sv.text}</span>
               </span>
             </button>
