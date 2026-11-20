@@ -1553,8 +1553,8 @@ export default function LearnPage() {
                     } as CSSProperties}
                   >
                     <span className="lesson-replay-fill" aria-hidden="true" />
-                    <span className="lesson-replay-label">{repeatLabel}</span>
-                    <span className="lesson-replay-label lesson-replay-label-on" aria-hidden="true">{repeatLabel}</span>
+                    <span className="lesson-replay-label">{isPlayingRep ? <><span aria-hidden="true">■</span> STOP</> : stars === 0 ? <><span aria-hidden="true">▶</span> START</> : repeatLabel}</span>
+                    <span className="lesson-replay-label lesson-replay-label-on" aria-hidden="true">{isPlayingRep ? <><span aria-hidden="true">■</span> STOP</> : stars === 0 ? <><span aria-hidden="true">▶</span> START</> : repeatLabel}</span>
                   </button>
                 </div>
               )}
