@@ -68,7 +68,7 @@ export function MascotIntro({ onComplete }: { onComplete: () => void }) {
         <Mascot
           state={phase === 'enter' ? 'cheering' : 'idle'}
           size={MASCOT_SIZE}
-          message={phase === 'enter' ? (seenBefore ? 'Bine ai revenit!' : 'Salut, sînt Aik 🦊') : null}
+          message={phase === 'enter' && !seenBefore ? 'Salut, sînt Aik 🦊' : null}   // fără „Bine ai revenit" la reveniri
         />
       </div>
     </div>

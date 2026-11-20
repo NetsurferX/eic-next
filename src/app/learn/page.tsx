@@ -560,12 +560,12 @@ export default function LearnPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated])
 
-  // ── Salut personalizat, o singură dată la prima vizită, apoi „Bine ai revenit" ──
+  // ── Salut doar la prima vizită; la reveniri vulpea nu mai spune nimic („Bine ai revenit" a fost scos) ──
   useEffect(() => {
     const seenBefore = (() => {
       try { return localStorage.getItem('eic-fox-seen') === '1' } catch { return false }
     })()
-    triggerFox(seenBefore ? 'Bine ai revenit! Hai să continuăm.' : 'Salut! Sunt Aik și te ajut la lecție 🦊', 'greeting')
+    if (!seenBefore) triggerFox('Salut! Sunt Aik și te ajut la lecție 🦊', 'greeting')
     try { localStorage.setItem('eic-fox-seen', '1') } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
