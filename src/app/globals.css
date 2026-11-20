@@ -3210,8 +3210,7 @@ button, textarea, input { font-family: var(--font-sans); }
   margin-left: -2px;
   margin-right: 0;
   z-index: 3;
-  pointer-events: auto;   /* medalionul de sus e asistentul: apăsat, deschide meniul lui Aik */
-  cursor: pointer;
+  pointer-events: none;
   filter: none !important; /* zero ceață în jurul medalionului */
 }
 .aik-corner,
@@ -3675,7 +3674,18 @@ button, textarea, input { font-family: var(--font-sans); }
 .fox-tips .fox-bubble { max-width: 100%; }
 /* coada bulei arată în jos, spre medalion */
 .fox-tips .fox-bubble::after { right: auto; left: 18px; }
-.aik-corner:focus-visible { outline: 2px solid #4472C4; outline-offset: 2px; border-radius: 50%; }
 @media (max-width: 720px) {
   .fox-tips { bottom: calc(100% - 16px); }   /* medalionul începe la 22px pe telefon */
 }
+
+/* ── Butonul HELP din bara de sus: deschide meniul vulpii ── */
+.lesson-help-wrap { position: relative; grid-column: 3; justify-self: end; }
+@media (max-width: 420px) { .lesson-help-wrap { grid-column: 1; } }
+.lesson-help-btn {
+  background: #fff7e6; color: #5a4620; border: 1px solid #efcf87; border-radius: 999px;
+  padding: 8px 14px; font-weight: 900; font-size: 12px; letter-spacing: .08em;
+  white-space: nowrap; cursor: pointer; box-shadow: 0 2px 7px #8a682019;
+}
+.lesson-help-btn:hover { background: #fff0cf; }
+.lesson-help-btn[aria-expanded="true"] { background: #ffe7ae; }
+.lesson-help-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; min-width: 190px; max-width: 80vw; }

@@ -443,24 +443,20 @@ export default function LearnPage() {
 
   // ── Vulpea-asistent — coadă de mesaje declanșate de evenimentele jocului ──
   const [foxQueue, setFoxQueue] = useState<FoxTip[]>([])
-  const [foxMenuOpen, setFoxMenuOpen] = useState(false)   // meniul lui Aik, deschis din medalionul de sus
-  // Meniul se deschide DOAR prin click/tastă pe medalion și se închide când se schimbă coloana
-  // activă (inclusiv prin hover-select), ca să nu „însoțească" cursorul de la o coloană la alta.
-  useEffect(() => { setFoxMenuOpen(false) }, [levelIndex, active])
-  // Trecerea cursorului peste coloană (doar dispozitive cu hover) deschide meniul lui Aik,
-  // deasupra medalionului; plecarea cursorului îl închide. Cheia = „nivel:coloană" peste care e cursorul.
-  const [foxHoverKey, setFoxHoverKey] = useState<string | null>(null)
-  const foxHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const armFoxHover = useCallback((key: string) => {
-    if (typeof window === 'undefined' || !window.matchMedia('(hover: hover)').matches) return
-    if (foxHoverTimerRef.current) clearTimeout(foxHoverTimerRef.current)
-    foxHoverTimerRef.current = setTimeout(() => setFoxHoverKey(key), 120)   // fără clipiri la traversare rapidă
-  }, [])
-  const clearFoxHover = useCallback(() => {
-    if (foxHoverTimerRef.current) { clearTimeout(foxHoverTimerRef.current); foxHoverTimerRef.current = null }
-    setFoxHoverKey(null)
-  }, [])
-  useEffect(() => () => { if (foxHoverTimerRef.current) clearTimeout(foxHoverTimerRef.current) }, [])
+  // Meniul lui Aik (Ce să fac acum? / Repetă sunetul / Am nevoie de ajutor) se deschide din butonul
+  // HELP de sus, din bara paginii — nu din medalion și nu la trecerea cursorului.
+  const [helpMenuOpen, setHelpMenuOpen] = useState(false)
+  useEffect(() => {
+    if (!helpMenuOpen) return
+    const onDown = (e: PointerEvent) => {
+      if ((e.target as Element | null)?.closest('.lesson-help-wrap')) return
+      setHelpMenuOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setHelpMenuOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [helpMenuOpen])
   const triggerFox = useCallback((text: string, mood?: FoxMood) => {
     setFoxQueue(q => [...q, { id: `${Date.now()}-${Math.random()}`, text, mood }])
   }, [])
@@ -1360,6 +1356,37 @@ export default function LearnPage() {
             🦊 Joacă cu vulpița
           </Link>
         </div>
+        {/* HELP: deschide meniul vulpii (Ce să fac acum? / Repetă sunetul / Am nevoie de ajutor) */}
+        <div className="lesson-help-wrap">
+          <button
+            type="button"
+            className="lesson-help-btn"
+            aria-haspopup="menu"
+            aria-expanded={helpMenuOpen}
+            onClick={() => setHelpMenuOpen(o => !o)}
+          >
+            🦊 HELP
+          </button>
+          {helpMenuOpen && (
+            <div className="fox-menu lesson-help-menu" role="menu">
+              {[
+                { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
+                { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
+                { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
+              ].map(a => (
+                <button
+                  key={a.id}
+                  type="button"
+                  role="menuitem"
+                  className="fox-menu-item"
+                  onClick={() => { a.onClick(); setHelpMenuOpen(false) }}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Linia permanentă cu TOATE simbolurile (deblocate + blocate).
@@ -1442,11 +1469,8 @@ export default function LearnPage() {
               className={`lesson-col ${isUnlocked ? 'is-unlocked' : 'is-locked'} ${isActive && isUnlocked ? 'is-active' : ''} ${isNextUp ? 'is-next-up' : ''} ${isRevealing ? 'is-revealing' : ''}`}
               style={style}
               onClick={() => selectSymbol(itemLevelIdx, i)}
-              onMouseEnter={() => {
-                if (itemLevelIdx === levelIndex) hoverSelectColumn(i)
-                armFoxHover(`${itemLevelIdx}:${i}`)
-              }}
-              onMouseLeave={() => { cancelHoverSelectColumn(); clearFoxHover() }}
+              onMouseEnter={() => { if (itemLevelIdx === levelIndex) hoverSelectColumn(i) }}
+              onMouseLeave={cancelHoverSelectColumn}
             >
               <div className="lesson-col-head" onClick={() => handleLetterClick(l, i, itemLevelIdx)}>
                 {!isUnlocked && <span className="lesson-lock" aria-label="blocat">{isNextUp ? '🔓' : '🔒'}</span>}
@@ -1465,36 +1489,16 @@ export default function LearnPage() {
                 >
                   {isActive && isUnlocked && (
                     <>
-                      {/* Medalionul de sus = asistentul: la apăsare deschide meniul, iar mesajele
-                          lui Aik apar sub el (rolul fostului medalion de jos). */}
-                      <div
-                        className="aik-corner"
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Aik, asistentul"
-                        aria-expanded={foxMenuOpen}
-                        onClick={(e) => { e.stopPropagation(); setFoxMenuOpen(o => !o) }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFoxMenuOpen(o => !o) }
-                        }}
-                      >
+                      {/* Medalionul de sus = capul lui Aik; mesajele lui apar deasupra lui.
+                          Meniul vulpii e în butonul HELP din bara de sus. */}
+                      <div className="aik-corner" aria-hidden="true">
                         <FoxReel
                           frames={letterPulseId === l.id ? FACE_SPEAK_REEL : FACE_IDLE_REEL}
                           className="aik-corner-head"
                         />
                       </div>
                       {!showLevelOverlay && introDone && (
-                        <FoxTips
-                          queue={foxQueue}
-                          onDequeue={dequeueFox}
-                          menuOpen={foxMenuOpen || foxHoverKey === `${levelIndex}:${active}`}
-                          onMenuOpenChange={(open) => { setFoxMenuOpen(open); if (!open) clearFoxHover() }}
-                          actions={[
-                            { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
-                            { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
-                            { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
-                          ]}
-                        />
+                        <FoxTips queue={foxQueue} onDequeue={dequeueFox} />
                       )}
                     </>
                   )}
