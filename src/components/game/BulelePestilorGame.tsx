@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { FoxMotion, type FoxMotionState } from '@/components/game/FoxMotion'
 import { useSpringLook } from '@/components/game/useSpringLook'
+import { HelpSign, HELP_SIGN_W } from '@/components/game/HelpSign'
 import { speakWord } from '@/lib/speak'
 import WordRenderer from '@/components/WordRenderer'
 import type { RenderNode } from '@/lib/renderNode'
@@ -729,7 +730,6 @@ export function BulelePestilorGame({
     <div style={{ maxWidth: 680, margin: '0 auto', fontFamily: 'inherit' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 10, marginBottom: compact ? 6 : 10, flexWrap: compact ? 'nowrap' : 'wrap' }}>
         <span style={{ fontSize: 13, color: '#a03060', whiteSpace: 'nowrap' }}>💗 {hearts}</span>
-        <button onClick={useHelp} disabled={hearts <= 0 || paused} style={{ ...pbBar, whiteSpace: 'nowrap' }}>Ajută-mă</button>
         {helpMessage && !compact && (
           <span style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
             {helpMessage}
@@ -823,6 +823,12 @@ export function BulelePestilorGame({
         {/* pontonul */}
         <div style={{ position: 'absolute', left: 0, top: SKY_H - 10, width: FOX_LEFT + 156, height: 12, background: 'repeating-linear-gradient(90deg,#b88a55 0 22px,#a77a47 22px 24px)', borderRadius: '0 0 6px 0' }} />
         <div style={{ position: 'absolute', left: FOX_LEFT + 136, top: SKY_H + 2, width: 8, height: 40, background: '#8a6238' }} />
+        {/* tăblița „HELP": atârnată chiar sub ponton, sub vulpe; preia rolul butonului „Ajută-mă" */}
+        <HelpSign
+          onClick={useHelp}
+          disabled={hearts <= 0 || paused}
+          style={{ left: FOX_LEFT + FOX_SIZE / 2 - HELP_SIGN_W / 2, top: SKY_H + 2, zIndex: 1 }}
+        />
         {/* vulpea (singura de pe ecran) */}
         <div className="pf-fox" style={{ position: 'absolute', left: FOX_LEFT, top: SKY_H - 10 - FOX_SIZE + 6 }}>
           <div ref={foxLookRef} style={{ transformOrigin: '42% 78%' }}>
@@ -1107,6 +1113,13 @@ export function BulelePestilorGame({
         .pf-weed { position: absolute; pointer-events: none; transform-origin: 50% 100%; animation: pf-weed 3.4s ease-in-out infinite; }
         @keyframes pf-dock { 0%,100% { transform: rotate(-0.35deg) } 38% { transform: rotate(0.7deg) translateY(-1px) } 68% { transform: rotate(-0.15deg) translateY(0.4px) } }
         .pf-fox { transform-origin: 40% 100%; animation: pf-dock 6.4s ease-in-out infinite; }
+        @keyframes pf-sign-sway { 0%,100% { transform: rotate(-1.4deg) } 50% { transform: rotate(1.4deg) } }
+        .pf-sign { transform-origin: 50% 0; animation: pf-sign-sway 5.6s ease-in-out infinite; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .pf-sign:hover:not(:disabled) { animation-duration: 1.8s; filter: brightness(1.08); }
+        .pf-sign:active:not(:disabled) { animation: none; transform: scale(.96); }
+        .pf-sign:focus-visible { outline: 2px solid #4472C4; outline-offset: 3px; border-radius: 6px; }
+        .pf-sign:disabled { animation: none; cursor: not-allowed; filter: grayscale(.75) opacity(.55); }
+        @media (prefers-reduced-motion: reduce) { .pf-sign { animation: none; } }
         @media (prefers-reduced-motion: reduce) { .pf-rays, .pf-weed, .pf-motes span, .pf-caustic, .pf-fox, .pf-rod-rest { animation: none } }
       `}</style>
     </div>
