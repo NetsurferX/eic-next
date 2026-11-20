@@ -705,7 +705,7 @@ export function BulelePestilorGame({
 
   const pb: React.CSSProperties = compact ? { ...pillBtn, padding: '10px 16px', fontSize: 14 } : pillBtn
   const pbBar: React.CSSProperties = compact ? { ...pillBtn, padding: '8px 12px', fontSize: 13 } : pillBtn
-  const ansSize = compact ? 64 : 52
+  const ansSize = compact ? 76 : 68
   const visibleGroups = fourthVisible && nextGroup
     ? [currentGroup, ...distractorGroups, nextGroup]
     : [currentGroup, ...distractorGroups]
@@ -1037,7 +1037,7 @@ export function BulelePestilorGame({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <span style={{ width: compact ? 51 : 41, height: compact ? 51 : 41, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 13, fontWeight: 700, color: sv.color }}>
+              <span style={{ width: compact ? 63 : 57, height: compact ? 63 : 57, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 21 : 18, fontWeight: 800, color: sv.color }}>
                 <span style={sv.tricolor ? tricolorLetterStyle(6) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{sv.text}</span>
               </span>
             </button>
