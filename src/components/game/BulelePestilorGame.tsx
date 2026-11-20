@@ -595,8 +595,8 @@ export function BulelePestilorGame({
         const e = ease(el / CAST_MS)
         lx = lerp(TIP.x, m.x, e); ly = lerp(TIP.y, m.y, e); bend = 0.3 * e
       } else if (el < flyAt) {             // cârligul e în buză: peștele stă în apă și se leagănă, firul întins
-        fx = start.x + sway * SWAY_PX; rot = sway * SWAY_ROT
-        m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = 0.3 + 0.08 * sway
+        fx = start.x; rot = 0
+        m = mouthOf(fx, fy, rot, dir); lx = m.x; ly = m.y; taut = true; bend = 0.3
       } else {                              // zboară deasupra tazului și cade în el; firul se vede, apoi se strânge înapoi la lansetă
         const k = Math.min((el - flyAt) / FLY_MS, 1)
         bend = k < 0.3 ? lerp(0.3, 1, ease(k / 0.3)) : 1 - ease((k - 0.3) / 0.7)   // vârful undiței se încordează și revine
