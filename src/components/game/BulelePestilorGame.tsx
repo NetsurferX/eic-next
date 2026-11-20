@@ -189,7 +189,7 @@ function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: 
 function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: boolean): { node: ReactNode; len: number } {
   const flat = lesson.id === 'o'   // coloana o: roz complet, fără negru
   // Nivelul 3: peștele poartă cuvântul, complet prelucrat — mai puțin litera/literele antrenate,
-  // care rămân neutre și se umflă/se dezumflă încet până se apasă butonul potrivit.
+  // care rămân neutre, devin subțiri și oscilează sus-jos (2 s per oscilație) până se apasă butonul potrivit.
   if (level === 3) {
     const text = word.text
     const nodes = nodesCache.get(text.toLowerCase())
@@ -1063,8 +1063,11 @@ export function BulelePestilorGame({
         .pf-buzz { animation: pf-buzz 450ms ease-in-out infinite; outline: 4px solid rgba(255,140,0,.55); outline-offset: 2px; }
         @keyframes pf-wrong { 0%,100% { transform: translateX(0) } 15% { transform: translateX(-8px) rotate(-6deg) } 30% { transform: translateX(8px) rotate(6deg) } 45% { transform: translateX(-7px) rotate(-5deg) } 60% { transform: translateX(7px) rotate(5deg) } 80% { transform: translateX(-3px) } }
         .pf-wrong { animation: pf-wrong 420ms linear; outline: 4px solid rgba(204,0,0,.55); outline-offset: 2px; }
-        @keyframes pf-swell { 0%,100% { transform: scaleX(1) } 50% { transform: scaleX(.12) } }
-        .eic-pulse { display: inline-block; transform-origin: center; animation: pf-swell 900ms ease-in-out infinite; }
+        /* Literele-țintă (cele care se transformă la apăsarea butonului potrivit): rămân SUBȚIRI și
+           oscilează sus-jos; o oscilație completă (sus → jos → sus) durează 2 secunde. */
+        @keyframes pf-float { 0%,100% { transform: translateY(-4px) scaleX(.35) } 50% { transform: translateY(4px) scaleX(.35) } }
+        .eic-pulse { display: inline-block; transform-origin: center; transform: scaleX(.35); animation: pf-float 2000ms ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .eic-pulse { animation: none; } }
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
