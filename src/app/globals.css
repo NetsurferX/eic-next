@@ -3356,6 +3356,8 @@ button, textarea, input { font-family: var(--font-sans); }
   .aik-corner {
     flex-basis: 60px; width: 60px; height: 60px;
     margin-top: 26px; margin-left: -8px;
+    /* tăblița HELP se aliniază la marginea de sus */
+  
   }
   .aik-speech-bubble {
     min-width: 2.3em;
@@ -3702,9 +3704,9 @@ button, textarea, input { font-family: var(--font-sans); }
 .aik-help {
   position: absolute;
   left: 50%;
-  bottom: calc(100% - 2px);       /* se sprijină pe creștetul medalionului, centrată pe el */
-  width: 84px;
-  margin-left: -42px;
+  top: -22px;                    /* tăblița atinge marginea superioară a coloanei */
+  width: 50px;
+  margin-left: -25px;
   z-index: 6;
   pointer-events: auto;           /* medalionul are pointer-events:none; tăblița e apăsabilă */
 }
