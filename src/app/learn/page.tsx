@@ -1542,7 +1542,7 @@ export default function LearnPage() {
                 <p className="lesson-next-hint">se deschide imediat</p>
               )}
 
-              {isActive && isUnlocked && !buleleVulpiiConfig && (trophyEarned || pausedColKey === `${levelIndex}:${i}`) && (
+              {isActive && isUnlocked && !buleleVulpiiConfig && (
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
                   <button
                     type="button"
