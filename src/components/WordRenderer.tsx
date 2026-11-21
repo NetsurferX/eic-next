@@ -14,6 +14,7 @@ interface Props {
   //  pulseRange — [început, sfârșit) în literele cuvântului: nodurile care ating intervalul se desenează
   //               neutru + clasa `eic-pulse` (animația o definește părintele). Folosit la nivelul 3.
   flatSimple?: boolean
+  blackD?: boolean
   pulseRange?: [number, number]
 }
 
@@ -22,7 +23,7 @@ interface Props {
 // /learn page's hand-curated "ou" column can share the exact same
 // calibration instead of re-deriving its own copy.
 
-export default function WordRenderer({ nodes, wordStr, flatSimple = false, pulseRange }: Props) {
+export default function WordRenderer({ nodes, wordStr, flatSimple = false, blackD = false, pulseRange }: Props) {
   // NOTE: split out + traced (each step reports to /debug/graph's live
   // view via pipelineTrace.ts) at Dorel's explicit request. Purely
   // additive — same three calls, same order, same output as before;
@@ -129,6 +130,8 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, pulse
                     <span style={{ color: d.offglideColor }}>{offglideText}</span>
                   </>
                 )
+              : blackD && /d/i.test(d.t) && !d.glyph
+              ? [...d.t].map((ch, ci) => /d/i.test(ch) ? <span key={ci} style={{ color: '#000000', background: 'none', backgroundClip: 'unset', WebkitBackgroundClip: 'unset', WebkitTextFillColor: '#000000' }}>{ch}</span> : <span key={ci} style={d.gradient ? style : undefined}>{ch}</span>)
               : ringify(d.glyph ?? d.t)}
             {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>
