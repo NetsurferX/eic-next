@@ -11,6 +11,7 @@ import { FoxTips } from '@/components/game/FoxTips'
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type TouchEvent as ReactTouchEvent } from 'react'
 import Link from 'next/link'
 import { ringify } from '@/components/SymbolText'
+import { HelpSign } from '@/components/game/HelpSign'
 import { tricolorLetterStyle, bandsFor, underlineColorFor, bandsCssHorizontal } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
@@ -447,12 +448,12 @@ export default function LearnPage() {
   // ── Vulpea-asistent — coadă de mesaje declanșate de evenimentele jocului ──
   const [foxQueue, setFoxQueue] = useState<FoxTip[]>([])
   // Meniul lui Aik (Ce să fac acum? / Repetă sunetul / Am nevoie de ajutor) se deschide din butonul
-  // HELP de sus, din bara paginii — nu din medalion și nu la trecerea cursorului.
+  // HELP (tăblița de lemn de deasupra medalionului) — nu din medalion și nu la trecerea cursorului.
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   useEffect(() => {
     if (!helpMenuOpen) return
     const onDown = (e: PointerEvent) => {
-      if ((e.target as Element | null)?.closest('.lesson-help-wrap')) return
+      if ((e.target as Element | null)?.closest('.aik-help')) return
       setHelpMenuOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setHelpMenuOpen(false) }
@@ -1359,37 +1360,6 @@ export default function LearnPage() {
             🦊 Joacă cu vulpița
           </Link>
         </div>
-        {/* HELP: deschide meniul vulpii (Ce să fac acum? / Repetă sunetul / Am nevoie de ajutor) */}
-        <div className="lesson-help-wrap">
-          <button
-            type="button"
-            className="lesson-help-btn"
-            aria-haspopup="menu"
-            aria-expanded={helpMenuOpen}
-            onClick={() => setHelpMenuOpen(o => !o)}
-          >
-            🦊 HELP
-          </button>
-          {helpMenuOpen && (
-            <div className="fox-menu lesson-help-menu" role="menu">
-              {[
-                { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
-                { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
-                { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
-              ].map(a => (
-                <button
-                  key={a.id}
-                  type="button"
-                  role="menuitem"
-                  className="fox-menu-item"
-                  onClick={() => { a.onClick(); setHelpMenuOpen(false) }}
-                >
-                  {a.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ── Linia permanentă cu TOATE simbolurile (deblocate + blocate).
@@ -1494,15 +1464,47 @@ export default function LearnPage() {
                 >
                   {isActive && isUnlocked && (
                     <>
-                      {/* Medalionul de sus = capul lui Aik; mesajele lui apar deasupra lui.
-                          Meniul vulpii e în butonul HELP din bara de sus. */}
-                      <div className="aik-corner" aria-hidden="true">
-                        <FoxReel
-                          frames={letterPulseId === l.id ? FACE_SPEAK_REEL : FACE_IDLE_REEL}
-                          className="aik-corner-head"
-                        />
+                      {/* Medalionul de sus = capul lui Aik. Deasupra lui stă tăblița de lemn „HELP",
+                          care deschide meniul vulpii; mesajele lui Aik apar mai sus, deasupra tăbliței. */}
+                      <div className="aik-corner">
+                        <div className="aik-corner-face" aria-hidden="true">
+                          <FoxReel
+                            frames={letterPulseId === l.id ? FACE_SPEAK_REEL : FACE_IDLE_REEL}
+                            className="aik-corner-head"
+                          />
+                        </div>
+                        <div className="aik-help" onClick={(e) => e.stopPropagation()}>
+                          <HelpSign
+                            className="help-sign"
+                            width={84}
+                            ropes={false}
+                            ariaLabel="HELP: meniul lui Aik"
+                            expanded={helpMenuOpen}
+                            onClick={() => setHelpMenuOpen(o => !o)}
+                            style={{ position: 'relative', display: 'block' }}
+                          />
+                          {helpMenuOpen && (
+                            <div className="fox-menu aik-help-menu" role="menu">
+                              {[
+                                { id: 'what-now', label: 'Ce să fac acum?', onClick: () => triggerFox(foxIdleHint, 'hint') },
+                                { id: 'repeat', label: 'Repetă sunetul', onClick: () => { if (!isPlayingRep) handleMainButton() } },
+                                { id: 'help', label: 'Am nevoie de ajutor', onClick: () => triggerFox('Apasă pe orice cuvânt ca să-l auzi separat, sau „NEXT" (apare după prima repetare) ca să treci la joc și apoi la coloana următoare.', 'hint') },
+                              ].map(a => (
+                                <button
+                                  key={a.id}
+                                  type="button"
+                                  role="menuitem"
+                                  className="fox-menu-item"
+                                  onClick={() => { a.onClick(); setHelpMenuOpen(false) }}
+                                >
+                                  {a.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {!showLevelOverlay && introDone && (
+                      {!showLevelOverlay && introDone && !helpMenuOpen && (
                         <FoxTips queue={foxQueue} onDequeue={dequeueFox} />
                       )}
                     </>

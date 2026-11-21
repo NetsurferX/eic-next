@@ -47,36 +47,56 @@ export function HelpSign({
   onClick,
   disabled,
   style,
+  width = HELP_SIGN_W,
+  ropes = true,
+  className = 'pf-sign',
+  ariaLabel = 'Ajută-mă: ascultă din nou sunetul',
+  expanded,
 }: {
   onClick: () => void
   disabled?: boolean
   style?: CSSProperties
+  width?: number          // lățimea desenată; înălțimea se scalează proporțional
+  ropes?: boolean         // false = doar scândura (varianta compactă, fără frânghii)
+  className?: string
+  ariaLabel?: string
+  expanded?: boolean      // dacă e setat, tăblița deschide un meniu (aria-haspopup + aria-expanded)
 }) {
   const gid = useId().replace(/:/g, '')
+  // Fără frânghii, decupăm desenul pe scândură (y 11 → 57); altfel îl arătăm întreg.
+  const vbY = ropes ? 0 : 11
+  const vbH = ropes ? HELP_SIGN_H : 46
+  const height = (width * vbH) / HELP_SIGN_W
   return (
     <button
       type="button"
-      className="pf-sign"
+      className={className}
       onClick={onClick}
       disabled={disabled}
-      aria-label="Ajută-mă: ascultă din nou sunetul"
+      aria-label={ariaLabel}
+      aria-haspopup={expanded === undefined ? undefined : 'menu'}
+      aria-expanded={expanded}
       title="HELP"
       style={{
         position: 'absolute', padding: 0, margin: 0, border: 'none', background: 'none',
-        width: HELP_SIGN_W, height: HELP_SIGN_H, ...style,
+        width, height, ...style,
       }}
     >
-      <svg width={HELP_SIGN_W} height={HELP_SIGN_H} viewBox={`0 0 ${HELP_SIGN_W} ${HELP_SIGN_H}`} style={{ display: 'block', overflow: 'visible' }} aria-hidden="true">
+      <svg width={width} height={height} viewBox={`0 ${vbY} ${HELP_SIGN_W} ${vbH}`} style={{ display: 'block', overflow: 'visible' }} aria-hidden="true">
         <defs>
           <linearGradient id={`${gid}-wood`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#b98c54" /><stop offset=".5" stopColor="#9a6f3f" /><stop offset="1" stopColor="#7a5430" />
           </linearGradient>
         </defs>
         {/* frânghii */}
-        <path d="M22 0 L24 14" stroke="#5a3f24" strokeWidth="3" strokeLinecap="round" />
-        <path d="M22 0 L24 14" stroke="#b79a6c" strokeWidth="1" strokeDasharray="2 2.2" strokeLinecap="round" />
-        <path d="M110 0 L108 14" stroke="#5a3f24" strokeWidth="3" strokeLinecap="round" />
-        <path d="M110 0 L108 14" stroke="#b79a6c" strokeWidth="1" strokeDasharray="2 2.2" strokeLinecap="round" />
+        {ropes && (
+          <>
+            <path d="M22 0 L24 14" stroke="#5a3f24" strokeWidth="3" strokeLinecap="round" />
+            <path d="M22 0 L24 14" stroke="#b79a6c" strokeWidth="1" strokeDasharray="2 2.2" strokeLinecap="round" />
+            <path d="M110 0 L108 14" stroke="#5a3f24" strokeWidth="3" strokeLinecap="round" />
+            <path d="M110 0 L108 14" stroke="#b79a6c" strokeWidth="1" strokeDasharray="2 2.2" strokeLinecap="round" />
+          </>
+        )}
         {/* tăblia, cu margini roase */}
         <path
           d="M4 14 L20 12.5 L46 14 L74 12.5 L100 14 L128 12.8 L129.5 20 L128 31 L129 44 L127 53 L102 54.5 L76 53 L50 54.6 L24 53.2 L5 54.5 L3 44 L4.5 31 L3 21 Z"

@@ -3663,7 +3663,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .fox-tips {
   position: absolute;
   left: 0;
-  bottom: calc(100% - 12px);   /* DEASUPRA medalionului: marginea de jos la 6px peste capul vulpii (medalionul începe la 18px) */
+  bottom: calc(100% + 11px);   /* DEASUPRA tăbliței HELP (care stă deasupra medalionului): 6px peste marginea ei de sus */
   z-index: 50;
   width: max-content;
   max-width: min(240px, 72vw);
@@ -3675,20 +3675,42 @@ button, textarea, input { font-family: var(--font-sans); }
 /* coada bulei arată în jos, spre medalion */
 .fox-tips .fox-bubble::after { right: auto; left: 18px; }
 @media (max-width: 720px) {
-  .fox-tips { bottom: calc(100% - 16px); }   /* medalionul începe la 22px pe telefon */
+  .fox-tips { bottom: calc(100% + 5px); }   /* medalionul începe la 26px pe telefon; tăblița HELP urcă ~27px */
 }
 
-/* ── Butonul HELP din bara de sus: deschide meniul vulpii ── */
-.lesson-help-wrap { position: relative; grid-column: 3; justify-self: end; }
-@media (max-width: 420px) { .lesson-help-wrap { grid-column: 1; } }
-.lesson-help-btn {
-  background: #fff7e6; color: #5a4620; border: 1px solid #efcf87; border-radius: 999px;
-  padding: 8px 14px; font-weight: 900; font-size: 12px; letter-spacing: .08em;
-  white-space: nowrap; cursor: pointer; box-shadow: 0 2px 7px #8a682019;
-}
-.lesson-help-btn:hover { background: #fff0cf; }
-.lesson-help-btn[aria-expanded="true"] { background: #ffe7ae; }
-.lesson-help-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; min-width: 190px; max-width: 80vw; }
 
-.aik-corner-help { position:absolute; top:-18px; left:50%; translate:-50% 0; z-index:5; padding:2px 7px; font-size:9px; font-weight:800; letter-spacing:.04em; color:#5a4620; background:#fff7e6; border:1px solid #efcf87; border-radius:999px; cursor:pointer; pointer-events:auto; }
-.aik-corner-help:hover { background:#fff0cf; }
+
+/* ── „x̊" (x cu inel): inelul e desenat separat, centrat pe literă și la aceeași distanță
+   deasupra ei în orice font. Poziția vine din înălțimea lui „x" a fontului curent (`ex`);
+   baza liniei cade la ~.85em de sus când line-height:1. Culoarea = culoarea textului. ── */
+.x-ring { display: inline-block; position: relative; line-height: 1; }
+.x-ring-o {
+  position: absolute;
+  left: 50%;
+  top: calc(.85em - 1.6ex);
+  box-sizing: border-box;
+  width: .46ex;
+  height: .46ex;
+  margin-left: -.23ex;
+  border: .1ex solid currentColor;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Tăblița de lemn „HELP", deasupra medalionului vulpii; deschide meniul lui Aik ── */
+.aik-corner-face { width: 100%; height: 100%; }
+.aik-help {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 2px);       /* se sprijină pe creștetul medalionului, centrată pe el */
+  width: 84px;
+  margin-left: -42px;
+  z-index: 6;
+  pointer-events: auto;           /* medalionul are pointer-events:none; tăblița e apăsabilă */
+}
+.help-sign { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .15s ease, filter .15s ease; }
+.help-sign:hover:not(:disabled) { transform: translateY(-1px) rotate(-1deg); filter: brightness(1.08); }
+.help-sign:active:not(:disabled) { transform: scale(.96); }
+.help-sign:focus-visible { outline: 2px solid #4472C4; outline-offset: 3px; border-radius: 6px; }
+.help-sign[aria-expanded="true"] { filter: brightness(1.12) drop-shadow(0 2px 4px rgba(60, 35, 10, .35)); }
+.aik-help-menu { position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 60; min-width: 190px; max-width: 72vw; text-align: left; }
