@@ -10,6 +10,7 @@ import type { RenderNode } from '@/lib/renderNode'
 import type { Lesson, LessonWord } from '@/lib/levels'
 import { tricolorLetterStyle, TRICOLOR_BANDS, bandsFor, underlineColorFor, bandsCssVertical, type Bands } from '@/lib/tricolorStyle'
 import { symbolView, bodyColorFor, CONSONANT_IDS, WHITE_OUTLINED_TEXT_STYLE } from '@/lib/symbolDisplay'
+import { ringify } from '@/components/SymbolText'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Vulpea la pescuit (fost „Bulele Vulpii — pești”) — componentă NOUĂ, paralelă cu BuleleVulpiiGame.
@@ -168,7 +169,7 @@ function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: 
   const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands)
     : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
     : { color: sv.color }
-  return { node: <span style={style}>{txt}</span>, len: txt.replace(/\u200D/g, '').length }
+  return { node: <span style={style}>{ringify(txt)}</span>, len: txt.replace(/[\u200D\u030A]/g, '').length }
 }
 
 function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: boolean): { node: ReactNode; len: number } {
@@ -204,7 +205,7 @@ function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: bool
   // Nivelul 1: peștele e colorat (corpul), iar la consoane poartă și simbolul din prima clipă.
   // Nivelul 2: peștele vine gol; la apăsarea corectă primește simbolul și culoarea.
   if (solved || (level === 1 && CONSONANT_IDS.has(lesson.id))) return symbolNode(lesson, word)
-  return { node: null, len: Math.max(symbolView(lesson).text.replace(/\u200D/g, '').length, 1) }
+  return { node: null, len: Math.max(symbolView(lesson).text.replace(/[\u200D\u030A]/g, '').length, 1) }
 }
 
 // ── peștele (SVG), cu CAPUL spre dreapta (sensul de înot) ──
@@ -718,7 +719,7 @@ export function BulelePestilorGame({
         <span style={{ fontSize: 13, color: '#a03060', whiteSpace: 'nowrap' }}>💗 {hearts}</span>
         {helpMessage && !compact && (
           <span style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
-            {helpMessage}
+            {helpMessage && ringify(helpMessage)}
           </span>
         )}
         {compact && (
@@ -736,7 +737,7 @@ export function BulelePestilorGame({
         {/* indiciul „Ajută-mă” pe telefon: peste scenă, ca să nu lărgească bara de sus */}
         {helpMessage && compact && (
           <div style={{ position: 'absolute', left: '50%', top: 8, transform: 'translateX(-50%)', zIndex: 5, background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 10px', fontSize: 15, fontWeight: 700 }}>
-            {helpMessage}
+            {helpMessage && ringify(helpMessage)}
           </div>
         )}
         {/* apa */}
@@ -831,7 +832,7 @@ export function BulelePestilorGame({
               background: '#fff', border: `3px solid ${border}`, borderRadius: 14, padding: '2px 12px',
               fontSize: 26, fontWeight: 800, fontStyle: 'italic', boxShadow: '2px 3px 0 rgba(0,0,0,.15)',
             }}>
-              <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{sv.text}</span>
+              <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{ringify(sv.text)}</span>
               {announceWord && <span style={{ marginLeft: 10, fontSize: 20, fontStyle: 'normal', fontWeight: 700, color: '#333' }}>{announceWord}</span>}
               <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />
             </div>
@@ -1037,7 +1038,7 @@ export function BulelePestilorGame({
               }}
             >
               <span style={{ width: compact ? 63 : 57, height: compact ? 63 : 57, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 28 : 24, fontWeight: 800, color: sv.color }}>
-                <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{sv.text}</span>
+                <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{ringify(sv.text)}</span>
               </span>
             </button>
           )

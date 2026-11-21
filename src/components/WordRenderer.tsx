@@ -4,6 +4,7 @@ import { DEFAULT_CONFIG, applyRegexOverrides } from '@/lib/ruleConfig'
 import { resolveDisplay, DIPHTHONG_START, DIPHTHONG_END, applySyllabicConsonantDetection, applySyllabicRDetection } from '@/lib/engine'
 import { TRICOLOR_BG_SIZE_Y, TRICOLOR_BG_POSITION_Y } from '@/lib/tricolorStyle'
 import { emitPipelineStage, nodesDiffer } from '@/lib/pipelineTrace'
+import { ringify } from '@/components/SymbolText'
 
 interface Props {
   nodes:   RenderNode[]
@@ -128,7 +129,7 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, pulse
                     <span style={{ color: d.offglideColor }}>{offglideText}</span>
                   </>
                 )
-              : (d.glyph ?? d.t)}
+              : ringify(d.glyph ?? d.t)}
             {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>
         )

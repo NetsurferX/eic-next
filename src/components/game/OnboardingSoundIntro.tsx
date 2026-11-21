@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { speakWord } from '@/lib/speak'
 import type { Accent } from '@/lib/levels'
 import { Mascot } from './Mascot'
+import { ringify } from '@/components/SymbolText'
 
 interface Props {
   phoneme: string       // sunetul afișat în capul coloanei — fără slash-uri, ex. 'ʌ'
@@ -108,20 +109,20 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, color, colorName, m
         <>
           <p className="sound-intro-label">Un sunet nou</p>
           <div className="sound-match-row">
-            <span key={`p-${pulseTick}`} className="sound-match-phoneme" style={{ color }}>{phoneme}</span>
+            <span key={`p-${pulseTick}`} className="sound-match-phoneme" style={{ color }}>{ringify(phoneme)}</span>
             <span className="sound-match-equals" aria-hidden="true">=</span>
             <span className="sound-match-circle">
               <span key={`s-${pulseTick}`} className="sound-match-square" style={{ background: color }} />
             </span>
           </div>
           {colorName && (
-            <p className="sound-match-caption" style={{ color }}>{colorName} = /{phoneme}/</p>
+            <p className="sound-match-caption" style={{ color }}>{colorName} = /{ringify(phoneme)}/</p>
           )}
         </>
       ) : (
         <>
           <p className="sound-intro-label">Un sunet nou</p>
-          <span className="sound-intro-phoneme" style={{ color }}>{phoneme}</span>
+          <span className="sound-intro-phoneme" style={{ color }}>{ringify(phoneme)}</span>
           <p className="sound-intro-word" style={{ color }}>{exampleWord}</p>
         </>
       )}

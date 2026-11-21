@@ -10,6 +10,7 @@ import { type FoxTip, type FoxMood } from '@/components/game/FoxHelper'
 import { FoxTips } from '@/components/game/FoxTips'
 import { useState, useCallback, useEffect, useRef, useMemo, type CSSProperties, type TouchEvent as ReactTouchEvent } from 'react'
 import Link from 'next/link'
+import { ringify } from '@/components/SymbolText'
 import { tricolorLetterStyle, bandsFor, underlineColorFor, bandsCssHorizontal } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
@@ -1413,7 +1414,7 @@ export default function LearnPage() {
                       onClick={() => selectSymbol(levelIdx, colIdx)}
                     >
                       {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
-                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item, unlocked)}>{sv.text}</span>
+                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item, unlocked)}>{ringify(sv.text)}</span>
                     </button>
                   )
                 })}
@@ -1488,7 +1489,7 @@ export default function LearnPage() {
                       style={lessonSymbolTextStyle(l, isUnlocked)}
                     >
                       <span className={letterPulseId === l.id ? 'letter-inflate' : undefined}>
-                        {symbolView(l).text}
+                        {ringify(symbolView(l).text)}
                       </span>
                     </div>
                   </div>

@@ -3740,4 +3740,19 @@ button, textarea, input { font-family: var(--font-sans); }
 .symbol-level-btn.is-locked {
   opacity: .55;
   cursor: not-allowed;
+/* ── „x̊" (x cu inel): inelul e desenat separat, centrat pe literă și la aceeași distanță
+   deasupra ei în orice font. Poziția vine din înălțimea lui „x" a fontului curent (`ex`);
+   baza liniei cade la ~.85em de sus când line-height:1. Culoarea = culoarea textului. ── */
+.x-ring { display: inline-block; position: relative; line-height: 1; }
+.x-ring-o {
+  position: absolute;
+  left: 50%;
+  top: calc(.85em - 1.6ex);
+  box-sizing: border-box;
+  width: .46ex;
+  height: .46ex;
+  margin-left: -.23ex;
+  border: .1ex solid currentColor;
+  border-radius: 50%;
+  pointer-events: none;
 }

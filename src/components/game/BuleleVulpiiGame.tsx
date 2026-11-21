@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { MascotV2, type MascotStateV2 } from './MascotV2'
 import { speakWord } from '@/lib/speak'
 import type { Lesson, LessonWord } from '@/lib/levels'
+import { ringify } from '@/components/SymbolText'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Bulele Vulpii — versiune "reală", pe baza specificației exhaustive de la
@@ -298,7 +299,7 @@ function renderBalloonContent(level: BuleleVulpiiLevel, b: LiveBalloon) {
   const solved = b.state === 'correct'
   const hex = b.group.lesson.color
   if (level === 1) {
-    return <span style={{ color: solved ? hex : '#333', fontWeight: 700 }}>{b.group.lesson.letter}</span>
+    return <span style={{ color: solved ? hex : '#333', fontWeight: 700 }}>{ringify(b.group.lesson.letter)}</span>
   }
   // Nivel 2: cuvânt monosilabic, doar litera-țintă colorată la răspuns corect
   const text = b.word.text
@@ -537,7 +538,7 @@ export function BuleleVulpiiGame({
         <MascotV2 state={mascotState} action={done?.passed ? 'celebrating' : undefined} size={72} />
         {helpMessage && (
           <span style={{ position: 'absolute', left: 78, top: -6, background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '2px 8px', fontSize: 13, fontWeight: 700 }}>
-            {helpMessage}
+            {helpMessage && ringify(helpMessage)}
           </span>
         )}
         <span style={{ fontSize: 13, color: '#a03060' }}>💗 {hearts}</span>
@@ -672,7 +673,7 @@ export function BuleleVulpiiGame({
               }}
             >
               <span style={{ width: 30, height: 30, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: g.lesson.color }}>
-                {g.lesson.letter}
+                {ringify(g.lesson.letter)}
               </span>
             </button>
           )
