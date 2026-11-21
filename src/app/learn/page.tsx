@@ -53,8 +53,9 @@ const COLUMN_WORD_OVERRIDES: Record<string, LessonWord[]> = {
     { text: 'son',  mark: 'o', accent: 'en-GB' },
   ],
   // /o/ (roz): stop prima, four (ou roz), salt (a roz, l gri), hawk (aw roz)
+  // stop: accent britanic (/ɒ/ — în americană „stop" are /ɑ/, nu /ɒ/)
   o: [
-    { text: 'stop', mark: 'o' },
+    { text: 'stop', mark: 'o', accent: 'en-GB' },
     { text: 'four', mark: 'ou' },
     { text: 'salt', mark: 'a' },
     { text: 'hawk', mark: 'aw' },
