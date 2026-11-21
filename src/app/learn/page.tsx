@@ -1476,7 +1476,7 @@ export default function LearnPage() {
                         <div className="aik-help" onClick={(e) => e.stopPropagation()}>
                           <HelpSign
                             className="help-sign"
-                            width={84}
+                            width={50}
                             ropes={false}
                             ariaLabel="HELP: meniul lui Aik"
                             expanded={helpMenuOpen}
