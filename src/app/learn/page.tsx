@@ -1392,36 +1392,63 @@ export default function LearnPage() {
         </div>
       </div>
 
-      {/* Simboluri grupate strict pe nivel, cu simbolurile nivelului lângă etichetă. */}
-      <div className="symbol-bar-wrap" role="toolbar" aria-label="Simboluri pe nivel">
-        <div className="symbol-level-list">
-          {LEVELS.map((lvl, levelIdx) => (
-            <div className="symbol-level-row" key={lvl.id}>
-              <span className="symbol-level-label">Nivelul {levelIdx + 1}</span>
-              <div className="symbol-level-items">
-                {lvl.lessons.map((item, colIdx) => {
-                  const unlocked = !!colUnlocked[levelIdx]?.[colIdx]
-                  const selected = levelIndex === levelIdx && active === colIdx
-                  const sv = symbolView(item)
+      {/* ── Linia permanentă cu TOATE simbolurile (deblocate + blocate).
+          Grupate vizual câte 4 (gap mai mare la fiecare 4). Derulare
+          orizontală dacă nu încap. Selectarea unui simbol deblocat
+          afișează exclusiv coloana lui și pornește antrenamentul. ── */}
+      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri" {...swipeProps}>
+        <button
+          type="button"
+          className="symbol-bar-arrow"
+          aria-label="Grupul anterior"
+          disabled={!canGoPrevGroup}
+          onClick={() => goSymbolGroup(-1)}
+        >
+          ‹
+        </button>
+        <div
+          key={groupSlide.n}
+          className={`symbol-bar${groupSlide.dir === 1 ? ' slide-next' : groupSlide.dir === -1 ? ' slide-prev' : ''}`}
+        >
+          {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
+            const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
+            const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
+            const groupSelected = selectedSymbolGroup === groupIndex
+            return (
+              <button
+                key={groupIndex}
+                type="button"
+                className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}${groupIndex === selectedSymbolGroup - 1 ? ' is-near-prev' : ''}${groupIndex === selectedSymbolGroup + 1 ? ' is-near-next' : ''}`}
+                disabled={!groupUnlocked}
+                aria-pressed={groupSelected}
+                aria-label={`Grupul ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
+                onClick={() => selectSymbolGroup(groupIndex)}
+              >
+                {items.map(item => {
+                  const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
+                  const sv = symbolView(item.lesson)
                   return (
-                    <button
-                      type="button"
-                      key={item.id}
-                      className={`symbol-level-btn ${selected ? 'is-selected' : ''} ${unlocked ? 'is-unlocked' : 'is-locked'}`}
-                      disabled={!unlocked}
-                      aria-pressed={selected}
-                      aria-label={`Nivelul ${levelIdx + 1}, simbol ${sv.text}`}
-                      onClick={() => selectSymbol(levelIdx, colIdx)}
-                    >
+                    <span className="symbol-group-symbol" key={item.lesson.id}>
                       {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
-                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item, unlocked)}>{ringify(sv.text)}</span>
-                    </button>
+                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
+                        {sv.text}
+                      </span>
+                    </span>
                   )
                 })}
-              </div>
-            </div>
-          ))}
+              </button>
+            )
+          })}
         </div>
+        <button
+          type="button"
+          className="symbol-bar-arrow"
+          aria-label="Grupul următor"
+          disabled={!canGoNextGroup}
+          onClick={() => goSymbolGroup(1)}
+        >
+          ›
+        </button>
       </div>
 
       <div className="lesson-layout" {...swipeProps}>
