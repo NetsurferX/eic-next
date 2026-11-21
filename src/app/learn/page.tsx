@@ -1605,7 +1605,7 @@ export default function LearnPage() {
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
                       {wordNodes[w.text.toLowerCase()]
-                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} />
+                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} />
                         : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />}
                     </button>
                   )
