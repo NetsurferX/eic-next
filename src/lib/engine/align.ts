@@ -136,6 +136,8 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
   'th|th': 'tɦ',   // thin, think (th → /θ/, surd) — B_tehnic_yesyes.docx Tabelul
                     // T1, rândul /θ/: diacritic pe varianta surdă, cf. cerere
                     // explicită 2026-09 ("implementează-le pe toate").
+  't|d':   'đ',    // looked, reaped, shocked, helped, laughed, kissed
+                    // (-ed → /t/ după consoană surdă; coloana d-hat / đ)
 }
 
 // display → spelling(lowercase) → which slice carries the sound (gets the

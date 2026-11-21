@@ -88,6 +88,15 @@ const RECORDED_SAMPLES: Record<string, string> = {
   // coloana /ỷ/ (/ɔɪ/, lecția „oi", roșu) — matchWord 'oy' din levels.ts; simbol afișat ỷ
   'oy': '/sounds/oy.mp3',
   'ỷ': '/sounds/oy.mp3',
+  // coloana /dʒ/ (j / dj) — matchWord 'j'; sunet izolat (c_j.mp3)
+  'j': '/sounds/j.mp3',
+  'dʒ': '/sounds/j.mp3',
+  'dj': '/sounds/j.mp3',
+  // coloana /θ ð/ (th) — coloana 16; matchWord 'th'; sunet izolat (c_th.mp3)
+  'th': '/sounds/th.mp3',
+  'θ': '/sounds/th.mp3',
+  'ð': '/sounds/th.mp3',
+  'θ/ð': '/sounds/th.mp3',
 }
 
 let liveAudio: HTMLAudioElement | null = null

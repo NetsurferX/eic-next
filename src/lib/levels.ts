@@ -252,7 +252,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'dj', letter: 'dʒ', color: '#008E40', tabLabel: 'Verde',
+        id: 'dj', letter: 'dʒ', color: '#008E40', tabLabel: 'Verde', matchWord: 'j',
         words: [
           { text: 'jam',     mark: 'j' },
           { text: 'bridge',  mark: 'dge' },
@@ -263,7 +263,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'th', letter: 'θ/ð', color: '#00A2E0', tabLabel: 'Bleu',
+        id: 'th', letter: 'θ/ð', color: '#00A2E0', tabLabel: 'Bleu', matchWord: 'th',
         beginnerNote: 'Pentru începători: dacă încă nu-ți iese sunetul englezesc, poți citi „th" surd (thief, north) ca „t" românesc (tot, tapet), și „th" sonor (the, weather) ca „d" românesc (dor, dop) — un sprijin temporar, nu sunetul real englezesc.',
         words: [
           { text: 'think',   mark: 'th' },
