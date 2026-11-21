@@ -985,14 +985,17 @@ export default function LearnPage() {
     letterSoundStopRef.current?.()
   }, [isPlayingRep])
 
-  // ── Stop în RE-PLAY: oprește audio-ul și bucla, NU deschide subjocul. ──
+  // ── STOP: oprește audio-ul și bucla, NU deschide subjocul și NU lasă coloana să repornească
+  //   singură (antrenamentul automat sare peste o coloană „în pauză"); rularea reia doar la
+  //   START sau REPEAT, care scot coloana din pauză. ──
   const handleReplayStop = useCallback(() => {
     if (!isPlayingRep) return
     replayStopRef.current = true
+    setPausedColKey(`${levelIndex}:${active}`)
     autoCancel.current = true
     currentAudio.current?.pause()
     letterSoundStopRef.current?.()
-  }, [isPlayingRep])
+  }, [isPlayingRep, levelIndex, active])
 
   // ── PLAY: duce la joc (Bulele Vulpii). În timpul repetării oprește bucla
   //   (handleReplay deschide apoi jocul); în repaus deschide jocul direct.
@@ -1071,9 +1074,11 @@ export default function LearnPage() {
     if (!pendingAutoReplayRef.current) return
     if (isPlayingRep || buleleVulpiiConfig || showLevelOverlay || introLesson) return
     if ((starsEarned[levelIndex]?.[active] ?? 0) < REPS_PER_LESSON) return
+    // Coloană oprită cu STOP (sau întreruptă cu click): nu repornește singură, doar la START/REPEAT.
+    if (pausedColKey === `${levelIndex}:${active}`) { pendingAutoReplayRef.current = false; return }
     pendingAutoReplayRef.current = false
     void handleReplay({ openGame: false })   // pornit automat la navigare: doar repetă, nu duce la joc
-  }, [levelIndex, active, isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, handleReplay])
+  }, [levelIndex, active, isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, handleReplay, pausedColKey])
 
   // ── "Hover intent" — la trecerea rapidă a mouse-ului peste mai multe
   //   coloane (spre ex. când cursorul doar traversează grila spre alt
@@ -1301,7 +1306,7 @@ export default function LearnPage() {
     if (!hydrated || !introHydrated || !beginnerNoteHydrated || !introDone) return
     if (introLesson || isPlayingRep || buleleVulpiiConfig || showLevelOverlay || showResetConfirm) return
     if (letterPulseId) return   // așteaptă zvâcnirile literei + Aik (×3)
-    if (pausedColKey === `${levelIndex}:${active}`) return   // întrerupt cu click: pornește doar la REPEAT
+    if (pausedColKey === `${levelIndex}:${active}`) return   // oprită cu STOP sau întreruptă cu click: pornește doar la START/REPEAT
     if (!colUnlocked[levelIndex]?.[active] || earned >= REPS_PER_LESSON) return
     // După ritualul de 3× pe coloana abia deschisă, așteaptă să se termine
     const startDelay = (earned === 0 && lesson && letterPulseDoneRef.current.has(lesson.id))
