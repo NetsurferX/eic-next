@@ -3689,3 +3689,6 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-help-btn:hover { background: #fff0cf; }
 .lesson-help-btn[aria-expanded="true"] { background: #ffe7ae; }
 .lesson-help-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; min-width: 190px; max-width: 80vw; }
+
+.aik-corner-help { position:absolute; top:-18px; left:50%; translate:-50% 0; z-index:5; padding:2px 7px; font-size:9px; font-weight:800; letter-spacing:.04em; color:#5a4620; background:#fff7e6; border:1px solid #efcf87; border-radius:999px; cursor:pointer; pointer-events:auto; }
+.aik-corner-help:hover { background:#fff0cf; }
