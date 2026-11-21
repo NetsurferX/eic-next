@@ -52,6 +52,7 @@ export function HelpSign({
   className = 'pf-sign',
   ariaLabel = 'Ajută-mă: ascultă din nou sunetul',
   expanded,
+  cream = false,
 }: {
   onClick: () => void
   disabled?: boolean
@@ -61,6 +62,7 @@ export function HelpSign({
   className?: string
   ariaLabel?: string
   expanded?: boolean      // dacă e setat, tăblița deschide un meniu (aria-haspopup + aria-expanded)
+  cream?: boolean         // litere alb-gălbui, cu contur brun-închis (în loc de litere închise tăiate în lemn)
 }) {
   const gid = useId().replace(/:/g, '')
   // Fără frânghii, decupăm desenul pe scândură (y 11 → 57); altfel îl arătăm întreg.
@@ -118,8 +120,18 @@ export function HelpSign({
         <g fill="#2c1d10"><circle cx="10" cy="19" r="2.1" /><circle cx="122" cy="19" r="2.1" /><circle cx="10" cy="48" r="2.1" /><circle cx="122" cy="48" r="2.1" /></g>
         <g fill="#c9a36b" opacity=".7"><circle cx="9.5" cy="18.4" r=".7" /><circle cx="121.5" cy="18.4" r=".7" /><circle cx="9.5" cy="47.4" r=".7" /><circle cx="121.5" cy="47.4" r=".7" /></g>
         {/* literele de pirat: întâi o umbră deschisă (efect de tăietură), apoi literele */}
-        <g transform="translate(.9 1.1)" fill="#e2bd86" stroke="#e2bd86" strokeWidth=".6" strokeLinejoin="round" opacity=".38"><HelpLetters /></g>
-        <g fill="#2a1a0d" stroke="#2a1a0d" strokeWidth=".6" strokeLinejoin="round"><HelpLetters /></g>
+        {cream ? (
+          <>
+            {/* litere alb-gălbui: întâi un contur brun-închis, apoi literele */}
+            <g fill="#2a1a0d" stroke="#2a1a0d" strokeWidth="2.6" strokeLinejoin="round" opacity=".9"><HelpLetters /></g>
+            <g fill="#f6efc9" stroke="#f6efc9" strokeWidth=".6" strokeLinejoin="round"><HelpLetters /></g>
+          </>
+        ) : (
+          <>
+            <g transform="translate(.9 1.1)" fill="#e2bd86" stroke="#e2bd86" strokeWidth=".6" strokeLinejoin="round" opacity=".38"><HelpLetters /></g>
+            <g fill="#2a1a0d" stroke="#2a1a0d" strokeWidth=".6" strokeLinejoin="round"><HelpLetters /></g>
+          </>
+        )}
       </svg>
     </button>
   )

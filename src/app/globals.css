@@ -3665,7 +3665,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .fox-tips {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 11px);   /* DEASUPRA tăbliței HELP (care stă deasupra medalionului): 6px peste marginea ei de sus */
+  bottom: calc(100% + 21px);   /* DEASUPRA tăbliței HELP (care stă deasupra medalionului): ~6px peste marginea ei de sus */
   z-index: 50;
   width: max-content;
   max-width: min(240px, 72vw);
@@ -3677,7 +3677,7 @@ button, textarea, input { font-family: var(--font-sans); }
 /* coada bulei arată în jos, spre medalion */
 .fox-tips .fox-bubble::after { right: auto; left: 18px; }
 @media (max-width: 720px) {
-  .fox-tips { bottom: calc(100% + 5px); }   /* medalionul începe la 26px pe telefon; tăblița HELP urcă ~27px */
+  .fox-tips { bottom: calc(100% + 15px); }   /* medalionul începe la 26px pe telefon; tăblița HELP urcă ~27px */
 }
 
 
@@ -3704,7 +3704,7 @@ button, textarea, input { font-family: var(--font-sans); }
 .aik-help {
   position: absolute;
   left: 50%;
-  top: -22px;                    /* tăblița atinge marginea superioară a coloanei */
+  top: -32px;                    /* tăblița stă mai sus, cu un gol între ea și capul vulpii */
   width: 50px;
   margin-left: -25px;
   z-index: 6;

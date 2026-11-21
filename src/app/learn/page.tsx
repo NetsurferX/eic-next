@@ -1483,6 +1483,7 @@ export default function LearnPage() {
                             className="help-sign"
                             width={50}
                             ropes={false}
+                            cream
                             ariaLabel="HELP: meniul lui Aik"
                             expanded={helpMenuOpen}
                             onClick={() => setHelpMenuOpen(o => !o)}
