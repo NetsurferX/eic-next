@@ -166,7 +166,7 @@ function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: 
   const sv = symbolView(lesson)
   // gh/ph: butonul e „f”, dar peștele poartă „ph”/„gh” (după cuvântul lui)
   const txt = lesson.id === 'gh-ph-f' && word ? word.mark : sv.text
-  const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands)
+  const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6, sv.bands === TRICOLOR_BANDS ? 0.8 : 1, sv.bands)
     : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE
     : { color: sv.color }
   return { node: <span style={style}>{ringify(txt)}</span>, len: txt.replace(/[\u200D\u030A]/g, '').length }
@@ -193,7 +193,7 @@ function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: bool
           {text.slice(0, idx)}
           {[...text.slice(idx, markEnd)].map((ch, k, arr) => {
             if (!solved) return <span key={k} className="eic-pulse">{ch}</span>
-            if (triBands && isVowelLike(ch)) return <span key={k} style={{ ...tricolorLetterStyle(2, 1, triBands), textDecorationColor: underlineColorFor(triBands) }}>{ch}</span>
+            if (triBands && isVowelLike(ch)) return <span key={k} style={{ ...tricolorLetterStyle(2, triBands === TRICOLOR_BANDS ? 0.8 : 1, triBands), textDecorationColor: underlineColorFor(triBands) }}>{ch}</span>
             if (lesson.id === 'oi' && k === arr.length - 1) return <span key={k} style={{ color: '#CC0000' }}>{OFFGLIDE[ch] ?? ch}</span>
             return <span key={k} style={isVowelLike(ch) ? { color: lesson.color } : undefined}>{ch}</span>
           })}
@@ -1038,7 +1038,7 @@ export function BulelePestilorGame({
               }}
             >
               <span style={{ width: compact ? 63 : 57, height: compact ? 63 : 57, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 28 : 24, fontWeight: 800, color: sv.color }}>
-                <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{ringify(sv.text)}</span>
+                <span style={sv.tricolor ? tricolorLetterStyle(6, sv.bands === TRICOLOR_BANDS ? 0.8 : 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : undefined}>{ringify(sv.text)}</span>
               </span>
             </button>
           )
