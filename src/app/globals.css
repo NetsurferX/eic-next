@@ -3347,6 +3347,26 @@ button, textarea, input { font-family: var(--font-sans); }
 .lesson-letter.is-pulsing {
   animation: none;
 }
+/* „= đ" — apare lângă simbolul din capul coloanei după apăsare (vezi HEAD_SYMBOL_ALIAS) */
+.lesson-letter-eq {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1;
+  pointer-events: none;
+  animation: lesson-eq-in .22s ease-out;
+}
+@keyframes lesson-eq-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
 /* span interior nu mai are animație proprie — se scalează odată cu balonul */
 .letter-inflate {
   display: inline-block;

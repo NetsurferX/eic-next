@@ -291,6 +291,14 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
 /* Același stil de simbol în bara permanentă și în antetul coloanei.
    Păstrează excepțiile vizuale (tricolor, diacritică roșie, alb conturat)
    într-un singur loc, ca cele două reprezentări să nu divergă. */
+// Simbolul din CAPUL coloanei poate fi altul decât simbolul lecției: la coloana „đ" (-ed → /t/) capul
+// arată „t", iar la apăsarea simbolului apare lângă el „= đ". Doar capul coloanei; restul (bara de
+// simboluri, jocuri, sunete) rămâne cu simbolul lecției.
+const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
+  'd-hat': { show: 't', eq: 'đ' },
+}
+const HEAD_EQ_VISIBLE_MS = 2800
+
 function lessonSymbolTextStyle(lesson: Lesson, unlocked: boolean): CSSProperties | undefined {
   if (!unlocked) return undefined
   const sv = symbolView(lesson)
@@ -1222,6 +1230,17 @@ export default function LearnPage() {
   //   • litera din cap zvâcnește (letterPulseId)
   //   • Aik din colțul coloanei active zvâcnește + undă de sunet din gură
   //   Folosit la startul fiecărei coloane (3×) și la click pe literă (1×).
+  // „= đ" lângă simbolul din capul coloanei, vizibil câteva secunde după apăsare (și în ritualul ×3)
+  const [eqShownId, setEqShownId] = useState<string | null>(null)
+  const eqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showSymbolEq = useCallback((id: string) => {
+    if (!HEAD_SYMBOL_ALIAS[id]) return
+    setEqShownId(id)
+    if (eqTimerRef.current) clearTimeout(eqTimerRef.current)
+    eqTimerRef.current = setTimeout(() => setEqShownId(null), HEAD_EQ_VISIBLE_MS)
+  }, [])
+  useEffect(() => () => { if (eqTimerRef.current) clearTimeout(eqTimerRef.current) }, [])
+
   const playLetterPulse = useCallback(async (l: Lesson, times = 1) => {
     if (!introDone || isPlayingRep || playingWord !== null) return
     letterSoundStopRef.current?.()
@@ -1231,6 +1250,7 @@ export default function LearnPage() {
     for (let i = 0; i < times; i++) {
       if (autoCancel.current) break
       setLetterPulseId(l.id)
+      showSymbolEq(l.id)
       if (i === 0 && times > 1) triggerFox(LETTER_FOX_PROMPT, 'greeting')
       const { promise, stop } = speakWord(word, { accent })
       letterSoundStopRef.current = stop
@@ -1248,7 +1268,7 @@ export default function LearnPage() {
         await new Promise(r => setTimeout(r, LETTER_PULSE_GAP_MS))
       }
     }
-  }, [introDone, isPlayingRep, playingWord, triggerFox])
+  }, [introDone, isPlayingRep, playingWord, triggerFox, showSymbolEq])
 
   const handleLetterClick = useCallback((l: Lesson, i: number, itemLevelIdx = levelIndex) => {
     if (!introDone || isPlayingRep || playingWord !== null) return
@@ -1525,9 +1545,14 @@ export default function LearnPage() {
                       style={lessonSymbolTextStyle(l, isUnlocked)}
                     >
                       <span className={letterPulseId === l.id ? 'letter-inflate' : undefined}>
-                        {ringify(symbolView(l).text)}
+                        {ringify(HEAD_SYMBOL_ALIAS[l.id]?.show ?? symbolView(l).text)}
                       </span>
                     </div>
+                    {HEAD_SYMBOL_ALIAS[l.id] && eqShownId === l.id && (
+                      <span className="lesson-letter-eq" aria-hidden="true" style={{ color: symbolView(l).color }}>
+                        = {HEAD_SYMBOL_ALIAS[l.id].eq}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
