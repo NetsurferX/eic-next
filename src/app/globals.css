@@ -1425,6 +1425,7 @@ button, textarea, input { font-family: var(--font-sans); }
   outline-offset: 3px;
   background: #ffffff; /* alb 100% */
   padding: 1.1rem 0.9rem 1.25rem;
+  --pw-pad: .9rem;   /* padding orizontal al coloanei — vezi .lesson-word (limita barei la 3 mm de chenar) */
   transition: border-color .35s ease, outline-color .35s ease, background .2s, opacity .2s;
 }
 .lesson-col.is-unlocked {
@@ -1585,6 +1586,16 @@ button, textarea, input { font-family: var(--font-sans); }
   100%    { opacity: 1; transform: scale(1) rotate(0); }
 }
 
+/* ── Limita de lățime a barei cuvântului la rulare ───────────────────────────────────────────
+   Scalarea (.is-playing: scale(1.6)) rămâne neschimbată pentru TEXT și ÎNĂLȚIME. Doar lățimea
+   barei se oprește când marginea ei ajunge la 3 mm de chenarul coloanei.
+   --pw-s = factorul de scalare curent (1 în repaus → 1.6 la rulare), animat cu ACELAȘI timp și
+   aceeași curbă ca `transform`, deci cele două rămân mereu în pas. Lățimea de bază a butonului e
+   cât să dea, după scalare, exact min(lățime × scală, lățime + rezerva disponibilă):
+     rezerva = max(0, 2 × padding-ul coloanei − 2 × 3 mm)
+   (distanța de la bară la chenar e padding-ul coloanei; din ea păstrăm 3 mm pe fiecare parte).
+   Bara crește ca până acum până atinge limita, apoi nu mai crește pe orizontală. ── */
+@property --pw-s { syntax: '<number>'; inherits: false; initial-value: 1; }
 .lesson-words { display: flex; flex-direction: column; gap: 7px; }
 .lesson-word {
   /* .lesson-word e acum un <button> (ca fiecare cuvânt să poată fi apăsat
@@ -1596,7 +1607,9 @@ button, textarea, input { font-family: var(--font-sans); }
   outline: none;
   display: block;
   position: relative;
-  width: 100%;
+  --pw-s: 1;
+  width: min(100%, calc((100% + max(0px, 2 * var(--pw-pad, .9rem) - 6mm)) / var(--pw-s)));
+  margin-inline: auto;   /* lățimea de bază se poate micșora la rulare: rămâne centrată */
   font-size: 27px; /* de la 13.5px — cuvinte mai mari, mai lizibile pentru copii */
   font-weight: 600;
   font-family: var(--font-sans);
@@ -1609,7 +1622,7 @@ button, textarea, input { font-family: var(--font-sans); }
   transform: scale(1);
   transform-origin: center;
   cursor: default;
-  transition: box-shadow .2s, background .2s, transform .3s cubic-bezier(.34,1.4,.64,1);
+  transition: box-shadow .2s, background .2s, transform .3s cubic-bezier(.34,1.4,.64,1), --pw-s .3s cubic-bezier(.34,1.4,.64,1);
 }
 .lesson-word.is-clickable { cursor: pointer; }
 .lesson-word.is-clickable:hover {
@@ -1658,6 +1671,8 @@ button, textarea, input { font-family: var(--font-sans); }
      separat (asta rupea proporția); ea rămâne diferențiată doar prin
      culoare + glow (filter), vezi regula de mai jos. */
   transform: scale(1.6);
+  --pw-s: 1.6;
+  padding-inline: 0;   /* lățimea de bază poate fi mai mică decât a cuvântului: textul rămâne centrat, nu se rupe */
 }
 .lesson-word.is-playing .lesson-word-mark {
   filter: none; /* zero glow */
@@ -2147,7 +2162,7 @@ button, textarea, input { font-family: var(--font-sans); }
   .lesson-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 6px; }   /* 14px între coloana antrenată și cele trei de sub ea; 6px între cele trei */
   /* Coloana de antrenat: perimetrul cu 15% mai îngust, centrat; restul dimensiunilor rămân. */
   .lesson-col.is-active { grid-column: 1 / -1; grid-row: 1; width: 85%; justify-self: center; }
-  .lesson-col:not(.is-active) { min-width: 0; padding: .55rem .25rem .65rem; border-width: 2px; }
+  .lesson-col:not(.is-active) { min-width: 0; padding: .55rem .25rem .65rem; border-width: 2px; --pw-pad: .25rem; }
   .lesson-col:not(.is-active) .lesson-word { font-size: 13px; padding: 5px 2px; }
   .lesson-col:not(.is-active) .lesson-col-head { gap: 3px; }
   .lesson-stepper-label { display: none; }
