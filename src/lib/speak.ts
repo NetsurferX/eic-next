@@ -68,6 +68,8 @@ const RECORDED_SAMPLES: Record<string, string> = {
   'egg': '/sounds/egg.mp3',
   // coloana /o/ (roz) — matchWord 'odd' din levels.ts: sunetul izolat în locul cuvântului „odd"
   'odd': '/sounds/odd.mp3',
+  // coloana /i/ (roșu) — matchWord 'it' din levels.ts: sunetul izolat, voce feminină (liniștea de la început/sfârșit tăiată)
+  'it': '/sounds/it.mp3',
   // cuvântul „moon" (coloana /u/) — înregistrare; se aude oriunde e rostit cuvântul (click pe cuvânt, repetări, jocuri)
   'moon': '/sounds/moon.mp3',
   // cuvântul „blue" (coloana /u/ pe /learn: moon, blue, fruit, soup) — înregistrare (US)
