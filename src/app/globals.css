@@ -3693,7 +3693,7 @@ button, textarea, input { font-family: var(--font-sans); }
   box-sizing: border-box;
   width: .46ex;
   height: .46ex;
-  transform: translateX(-50%) translateX(.16em);
+  transform: translateX(-50%) translateX(.08em);
   border: .1ex solid currentColor;
   border-radius: 50%;
   pointer-events: none;
@@ -3716,3 +3716,6 @@ button, textarea, input { font-family: var(--font-sans); }
 .help-sign:focus-visible { outline: 2px solid #4472C4; outline-offset: 3px; border-radius: 6px; }
 .help-sign[aria-expanded="true"] { filter: brightness(1.12) drop-shadow(0 2px 4px rgba(60, 35, 10, .35)); }
 .aik-help-menu { position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 60; min-width: 190px; max-width: 72vw; text-align: left; }
+
+/* Corecție suplimentară doar când x̊ este în text italic */
+em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.16em); }
