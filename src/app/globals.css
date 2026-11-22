@@ -3693,7 +3693,7 @@ button, textarea, input { font-family: var(--font-sans); }
   box-sizing: border-box;
   width: .46ex;
   height: .46ex;
-  transform: translateX(-50%) translateX(.08em);
+  transform: translateX(-50%) translateX(.16em);
   border: .1ex solid currentColor;
   border-radius: 50%;
   pointer-events: none;
