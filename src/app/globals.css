@@ -1654,9 +1654,9 @@ button, textarea, input { font-family: var(--font-sans); }
   z-index: 1;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--lesson-color) 55%, transparent);
   background: var(--color-bg);
-  /* Păstrează scalarea actuală, dar limitează lățimea de bază astfel încât
-     blocul scalat să rămână cu 3 mm în interiorul coloanei. */
-  width: calc((100% - 6mm) / 1.6);
+  /* Tot butonul crește ca UN singur bloc — litera colorată nu se mai umflă
+     separat (asta rupea proporția); ea rămâne diferențiată doar prin
+     culoare + glow (filter), vezi regula de mai jos. */
   transform: scale(1.6);
 }
 .lesson-word.is-playing .lesson-word-mark {
