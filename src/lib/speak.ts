@@ -97,6 +97,10 @@ const RECORDED_SAMPLES: Record<string, string> = {
   'θ': '/sounds/th.mp3',
   'ð': '/sounds/th.mp3',
   'θ/ð': '/sounds/th.mp3',
+  // coloana đ (d-hat) — -ed → /t/; matchWord 't'; sunet izolat (c_t.mp3)
+  't': '/sounds/t.mp3',
+  'đ': '/sounds/t.mp3',
+  'd-hat': '/sounds/t.mp3',
 }
 
 let liveAudio: HTMLAudioElement | null = null

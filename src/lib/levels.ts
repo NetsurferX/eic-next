@@ -332,7 +332,7 @@ export const LEVELS: Level[] = [
     // Nivelul 4, doar altă ortografie; considerate redundante.
     lessons: [
       {
-        id: 'd-hat', letter: 'đ', color: '#833C0B', tabLabel: 'Maro',
+        id: 'd-hat', letter: 'đ', color: '#833C0B', tabLabel: 'Maro', matchWord: 't',
         // -ed surd (/t/) — looked, reaped, shocked, helped, laughed, kissed.
         words: [
           { text: 'looked',  mark: 'ed' },
