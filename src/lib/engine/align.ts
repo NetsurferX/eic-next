@@ -425,7 +425,7 @@ export function align(rawWord: string, rawSegs: Seg[]): RenderNode[] {
       const vowelText = consumed.slice(0, -1)
       const rLetter = consumed.slice(-1)
       nodes.push({ t: vowelText, s: display, c: color ?? COLOR_SILENT, u: isStressed, x: false })
-      nodes.push({ t: rLetter, s: 'r', c: COLOR_CONSONANT, u: false, x: true })
+      nodes.push({ t: rLetter, s: 'r', c: '#000000', u: false, x: true })
       if (muteTail) nodes.push({ t: muteTail, s: '', c: COLOR_SILENT, u: false, x: false })
       continue
     }
