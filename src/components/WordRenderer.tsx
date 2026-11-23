@@ -130,8 +130,10 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, black
                     <span style={{ color: d.offglideColor }}>{offglideText}</span>
                   </>
                 )
-              : blackD && /d/i.test(d.t) && !d.glyph
-              ? [...d.t].map((ch, ci) => /d/i.test(ch) ? <span key={ci} style={{ color: '#000000', background: 'none', backgroundClip: 'unset', WebkitBackgroundClip: 'unset', WebkitTextFillColor: '#000000' }}>{ch}</span> : <span key={ci} style={d.gradient ? style : undefined}>{ch}</span>)
+              : blackD && /d/i.test(d.t)
+              ? d.glyph
+                ? <span style={{ color: '#000000', background: 'none', backgroundClip: 'unset', WebkitBackgroundClip: 'unset', WebkitTextFillColor: '#000000' }}>{ringify(d.glyph)}</span>
+                : [...d.t].map((ch, ci) => /d/i.test(ch) ? <span key={ci} style={{ color: '#000000', background: 'none', backgroundClip: 'unset', WebkitBackgroundClip: 'unset', WebkitTextFillColor: '#000000' }}>{ch}</span> : <span key={ci} style={d.gradient ? style : undefined}>{ch}</span>)
               : ringify(d.glyph ?? d.t)}
             {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>
