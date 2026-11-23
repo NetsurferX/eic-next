@@ -69,6 +69,9 @@ export function applySyllabicRDetection<T extends RenderNode>(nodes: T[]): T[] {
   for (let i = 0; i < out.length; i++) {
     const cur = out[i]
     if (!(cur.x && cur.s === 'r' && cur.t.toLowerCase() === 'r')) continue
+    // Explicit black R in /ɔːr/ (four, door, floor, sport, short, force):
+    // it must remain a plain consonant, not receive the syllabic-R styling.
+    if (cur.c === '#000000') continue
     if (hasRealPhonemeAfter(out, i)) continue
 
     const prev = i >= 1 ? out[i - 1] : undefined
