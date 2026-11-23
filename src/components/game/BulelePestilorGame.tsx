@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode 
 import { FoxMotion, type FoxMotionState } from '@/components/game/FoxMotion'
 import { useSpringLook } from '@/components/game/useSpringLook'
 import { HelpSign, HELP_SIGN_W } from '@/components/game/HelpSign'
+import { WoodBucket } from '@/components/game/WoodBucket'
 import { speakWord } from '@/lib/speak'
 import WordRenderer from '@/components/WordRenderer'
 import type { RenderNode } from '@/lib/renderNode'
@@ -116,9 +117,9 @@ const MOUTH = 0.42 * FISH_W                            // distanța centru → g
 const NEUTRAL = '#f4f1ea'
 // Fundalul butonului de răspuns pentru coloana /əʊ/ — aceleași 3 benzi ca peștele (TRICOLOR_BANDS)
 // Tazul cu pești (sus-dreapta): w/h = dimensiunea desenului; rim = y-ul buzei tazului
-// tazul e desenat în coordonate 104x96 (BUCKET_VB) și afișat la 60% lățime / 70% înălțime (BUCKET)
-const BUCKET_VB = { w: 104, h: 112, rim: 30 }   // h=112 → la scara 0.6 iese 70% din înălțimea inițială (96)
-const BUCKET_SCALE = 0.6
+// coșul de lemn e desenat în coordonate 104x112 (BUCKET_VB) și afișat la 30% (de 2 ori mai mic decât tazul de dinainte, scara 0.6)
+const BUCKET_VB = { w: 104, h: 112, rim: 30 }
+const BUCKET_SCALE = 0.3
 const BUCKET = { w: BUCKET_VB.w * BUCKET_SCALE, h: BUCKET_VB.h * BUCKET_SCALE, rim: BUCKET_VB.rim * BUCKET_SCALE, top: SKY_H - 10 - BUCKET_VB.h * BUCKET_SCALE, left: 8 }   // tazul stă pe ponton, în stânga vulpii
 
 type Zone = 'blue' | 'pink'
@@ -554,10 +555,11 @@ export function BulelePestilorGame({
     const cr = bucketEl.getBoundingClientRect()
     const cx0 = cr.left - sr.left + cr.width / 2
     const rimY = cr.top - sr.top + BUCKET.rim
-    const above  = { x: cx0, y: rimY - 8 }   // deasupra buzei tazului, cu capul în jos
-    const inside = { x: cx0, y: rimY + 16 }   // înăuntru (acoperit de peretele tazului)
+    const bk = BUCKET_SCALE / 0.6              // coșul e mai mic decât tazul de odinioară (scara 0.6): peștele coboară proporțional
+    const above  = { x: cx0, y: rimY - 8 * bk }   // deasupra buzei coșului, cu capul în jos
+    const inside = { x: cx0, y: rimY + 16 * bk }  // înăuntru (acoperit de peretele coșului)
     const DROP = (Math.PI / 2) * dir          // cap în jos (peștele păstrează sensul: fără întoarcere în oglindă)
-    const endScale = 0.3
+    const endScale = 0.3 * bk
     const t0 = performance.now()
     let heldSpoken = false
     pullingRef.current = true
@@ -876,13 +878,11 @@ export function BulelePestilorGame({
                 </g>
               )
             })}
-            {/* corpul tazului (acoperă corpurile peștilor) */}
-            <path d={`M8 ${BUCKET_VB.rim} L96 ${BUCKET_VB.rim} L88 106 Q87 111 82 111 L22 111 Q17 111 16 106 Z`} fill="#8fa3b8" stroke="#34495e" strokeWidth="2.5" strokeLinejoin="round" />
-            <path d={`M10 ${BUCKET_VB.rim + 12} L94 ${BUCKET_VB.rim + 12}`} stroke="rgba(255,255,255,.35)" strokeWidth="2" />
-            <rect x="3" y={BUCKET_VB.rim - 4} width="98" height="9" rx="4.5" fill="#6f8499" stroke="#34495e" strokeWidth="2.5" />
+            {/* coșul de lemn (acoperă corpurile peștilor): doage, cercuri de fier, buză */}
+            <WoodBucket />
             <text
-              x="52" y="86" textAnchor="middle" fontSize="40" fontWeight="800" fill="#fff"
-              stroke="#34495e" strokeWidth="5" paintOrder="stroke"
+              x="52" y="85" textAnchor="middle" fontSize="40" fontWeight="800" fill="#fff3c8"
+              stroke="#3a2410" strokeWidth="6" strokeLinejoin="round" paintOrder="stroke"
               style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive, sans-serif' }}
             >
               {caughtCount}
