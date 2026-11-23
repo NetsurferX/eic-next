@@ -1057,10 +1057,9 @@ export function BulelePestilorGame({
         .pf-buzz { animation: pf-buzz 450ms ease-in-out infinite; outline: 4px solid rgba(255,140,0,.55); outline-offset: 2px; }
         @keyframes pf-wrong { 0%,100% { transform: translateX(0) } 15% { transform: translateX(-8px) rotate(-6deg) } 30% { transform: translateX(8px) rotate(6deg) } 45% { transform: translateX(-7px) rotate(-5deg) } 60% { transform: translateX(7px) rotate(5deg) } 80% { transform: translateX(-3px) } }
         .pf-wrong { animation: pf-wrong 420ms linear; outline: 4px solid rgba(204,0,0,.55); outline-offset: 2px; }
-        /* Literele-țintă (cele care se transformă la apăsarea butonului potrivit): rămân SUBȚIRI și
-           oscilează sus-jos; o oscilație completă (sus → jos → sus) durează 2 secunde. */
+        /* Literele-țintă rămân subțiri și oscilează sus-jos; o oscilație completă durează 1,2 secunde. */
         @keyframes pf-float { 0%,100% { transform: translateY(-4px) scaleX(.35) } 50% { transform: translateY(4px) scaleX(.35) } }
-        .eic-pulse { display: inline-block; transform-origin: center; transform: scaleX(.35); animation: pf-float 2000ms ease-in-out infinite; }
+        .eic-pulse { display: inline-block; transform-origin: center; transform: scaleX(.35); animation: pf-float 1200ms ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .eic-pulse { animation: none; } }
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
