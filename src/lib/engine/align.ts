@@ -412,7 +412,7 @@ export function align(rawWord: string, rawSegs: Seg[]): RenderNode[] {
       continue
     }
 
-    // B_tehnic — cerere Dorel (2026-09-04): în setul door/force (/ɔːr/,
+    // B_tehnic — cerere Dorel (2026-09-04), reconfirmată 2026-11-23: R-ul din four (și door/floor/sport/short/force) rămâne NEGRU (/ɔːr/).
     // display 'or' — door, floor, four, sport, short, force), litera 'r'
     // trebuie să rămână NEAGRĂ ca orice consoană obișnuită, NU să împrumute
     // rozul vocalei /o/. Different de celelalte vocale r-colored (ar/er/
