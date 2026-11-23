@@ -241,7 +241,7 @@ function FishSvg({ body, tricolor = false, bands = TRICOLOR_BANDS, label, len, w
       <div style={{
         position: 'absolute', left: 'calc(22% + (1 - var(--flip, 1)) * 2%)', top: '20%', width: '52%', height: '60%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', fontSize: (width * fs) / 100,
+        fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', letterSpacing: '0.04em', fontSize: (width * fs) / 100,
       }}>
         {label}
       </div>
