@@ -209,6 +209,10 @@ function buildLabel(lesson: Lesson, level: Level, word: LessonWord, solved: bool
   return { node: null, len: Math.max(symbolView(lesson).text.replace(/[\u200D\u030A]/g, '').length, 1) }
 }
 
+// Eticheta albă a peștelui (spațiul pentru cuvânt), în unități viewBox (100 lățime). Capul (ochiul la x≈84) e spre dreapta:
+// eticheta s-a lungit spre cap (x 22 → 79), în contul părții colorate a capului; ls = distanța dintre litere (em).
+const LABEL = { x: 22, w: 57, ls: 0.08 }
+
 // ── peștele (SVG), cu CAPUL spre dreapta (sensul de înot) ──
 function FishSvg({ body, tricolor = false, bands = TRICOLOR_BANDS, label, len, width, wag = true }: {
   body: string; tricolor?: boolean; bands?: Bands; label: ReactNode; len: number; width: number; wag?: boolean
@@ -216,7 +220,8 @@ function FishSvg({ body, tricolor = false, bands = TRICOLOR_BANDS, label, len, w
   const gid = useId().replace(/:/g, '')
   const height = width / 2
   const fill = tricolor ? `url(#${gid})` : body
-  const fs = Math.min(26, 50 / (0.65 * Math.max(len, 1))) // în unități viewBox (100 lățime)
+  // mărimea literelor: cuvântul (cu spațierea dintre litere) încape în etichetă, cu ~1 unitate rezervă pe margini
+  const fs = Math.min(26, (LABEL.w - 2) / ((0.65 + LABEL.ls) * Math.max(len, 1))) // în unități viewBox (100 lățime)
   return (
     <div style={{ position: 'relative', width, height }}>
       <svg width={width} height={height} viewBox="0 0 100 50" style={{ overflow: 'visible', display: 'block', transform: 'scaleX(var(--flip, 1))' }} aria-hidden="true">
@@ -237,12 +242,14 @@ function FishSvg({ body, tricolor = false, bands = TRICOLOR_BANDS, label, len, w
           <circle cx="16" cy="21" r="4.4" fill="#f7f2de" stroke="#1a1006" strokeWidth="1.3" />
           <circle cx="15.2" cy="21" r="2.2" fill="#111" />
         </g>
-        <rect x="22" y="10" width="52" height="30" rx="15" fill="rgba(255,255,255,.95)" stroke="rgba(0,0,0,.2)" strokeWidth="1" />
+        <rect x={LABEL.x} y="10" width={LABEL.w} height="30" rx="15" fill="rgba(255,255,255,.95)" stroke="rgba(0,0,0,.2)" strokeWidth="1" />
       </svg>
       <div style={{
-        position: 'absolute', left: 'calc(22% + (1 - var(--flip, 1)) * 2%)', top: '20%', width: '52%', height: '60%',
+        // la pește întors (--flip = -1) eticheta se oglindește odată cu desenul: x' = 100 − x − w
+        position: 'absolute', left: `calc(${LABEL.x}% + (1 - var(--flip, 1)) * ${(100 - 2 * LABEL.x - LABEL.w) / 2}%)`, top: '20%', width: `${LABEL.w}%`, height: '60%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', letterSpacing: '0.04em', fontSize: (width * fs) / 100,
+        // paddingLeft = spațierea de după ultima literă, ca textul să rămână centrat
+        fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap', letterSpacing: `${LABEL.ls}em`, paddingLeft: `${LABEL.ls}em`, fontSize: (width * fs) / 100,
       }}>
         {label}
       </div>
