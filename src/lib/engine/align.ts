@@ -58,7 +58,9 @@ const CONSONANT_SPELLINGS = new Map<string, string[]>([
            'kh', 'k', 'c', 'q']],  // "khaki", "cat", "queen"
   ['g',   ['gg', 'gh', 'g']],     // "bigger", "ghost"
   ['ɡ',   ['gg', 'g']],           // script-g (U+0261) variant from some IPA fonts
-  ['t',   ['tt', 't']],
+  // 'd' included so -ed → /t/ (looked, helped…) can match via the last-phoneme
+  // mute-e branch and then pick up the DIACRITIC_GLYPHS 't|d' → đ substitution.
+  ['t',   ['tt', 't', 'd']],
   ['d',   ['dd', 'd']],
   ['p',   ['pp', 'p']],
   ['b',   ['bb', 'b']],
