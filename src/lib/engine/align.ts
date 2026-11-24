@@ -42,10 +42,10 @@ function isVowelDisplay(d: string): boolean {
 
 const CONSONANT_SPELLINGS = new Map<string, string[]>([
   // Affricates & fricatives
-  ['sh',  ['tsch', 'sch', 'ssh', 'sh',
+  ['sh',  ['tsch', 'sch', 'ssh', 'ss', 'sh',
            'ti', 'ci', 'si',
-           'ch']],                 // "nation"→ti, "social"→ci, "pension"→si,
-                                    // "chef"/"machine"→ch (French loanwords)
+           'ch']],                 // "mission"→ss (both s → ŝŝ), "nation"→ti,
+                                    // "social"→ci, "pension"→si, "chef"/"machine"→ch
   ['ch',  ['tch', 'ch']],          // "catch", "church"
   // display token for /dʒ/ is 'dj', not 'j' — see segment.ts TRANSFORMS note.
   ['dj',  ['dge', 'dg', 'j']],    // "judge", "fridge"
