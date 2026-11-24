@@ -146,7 +146,10 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
 // diacritic) vs. which slice is mute (grey). Slices are [start,end) into
 // the CONSUMED text, mirroring SILENT_WITHIN_SPELLING's shape above.
 const DIACRITIC_SPLIT_SPELLINGS: Record<string, Record<string, { real: [number, number]; mute: [number, number]; glyph: string }>> = {
-  sh: { ti: { real: [0, 1], mute: [1, 2], glyph: 'ṫ' } }, // nation, station
+  sh: {
+    ti: { real: [0, 1], mute: [1, 2], glyph: 'ṫ' }, // nation, station
+    ss: { real: [0, 2], mute: [0, 0], glyph: 'š' }, // mission: both s letters represent /ʃ/
+  },
 }
 
 function tryConsSpellings(display: string, word: string, pos: number): string {
