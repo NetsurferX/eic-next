@@ -370,7 +370,9 @@ export function align(rawWord: string, rawSegs: Seg[]): RenderNode[] {
       const realText = consumed.slice(real[0], real[1])
       const muteText = consumed.slice(mute[0], mute[1])
       const realNode: RenderNode = { t: realText, s: display, c: color ?? COLOR_CONSONANT, u: false, x: true, glyphOverride: glyph }
-      const silentNode: RenderNode = { t: muteText, s: '', c: COLOR_SILENT, u: false, x: false }
+      // i din ti→ʃ (nation, station): negru, nu gri (cerere: „I din nation trebuie să fie negru”)
+      const muteColor = /^i$/i.test(muteText) ? COLOR_CONSONANT : COLOR_SILENT
+      const silentNode: RenderNode = { t: muteText, s: '', c: muteColor, u: false, x: false }
       if (real[0] < mute[0]) nodes.push(realNode, silentNode)
       else nodes.push(silentNode, realNode)
       continue
