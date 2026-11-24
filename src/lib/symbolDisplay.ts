@@ -28,7 +28,9 @@ const TEXT_BY_ID: Record<string, string> = {
   u: 'u',
   ou: 'ə\u200Dw',          // schwa + U+200D (SYLLABIC_MARKER) + w — ca la əʊ
   oi: 'ỷ',                 // oɪ → ỷ (dacă vrei „oỷ”, schimbă aici)
-  sh: 'sh',
+  // Coloana /ʃ/: simbol principal ŝ (s cu circumflex); alternativ ṫ (t cu punct)
+  // pentru cazurile ti→ʃ (nation). Pe pește / buton / bulă se arată ŝ.
+  sh: 'ŝ',
   ch: 'ch',
   dj: 'j',
   th: 'tɦ',
