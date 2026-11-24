@@ -148,7 +148,7 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
 const DIACRITIC_SPLIT_SPELLINGS: Record<string, Record<string, { real: [number, number]; mute: [number, number]; glyph: string }>> = {
   sh: {
     ti: { real: [0, 1], mute: [1, 2], glyph: 'ṫ' }, // nation, station
-    ss: { real: [0, 2], mute: [0, 0], glyph: 'š' }, // mission: both s letters represent /ʃ/
+    ss: { real: [0, 2], mute: [0, 0], glyph: 'ŝŝ' }, // mission: both s letters represent /ʃ/
   },
 }
 
