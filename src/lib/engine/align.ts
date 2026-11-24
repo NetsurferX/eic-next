@@ -147,7 +147,7 @@ const DIACRITIC_GLYPHS: Record<string, string> = {
 // the CONSUMED text, mirroring SILENT_WITHIN_SPELLING's shape above.
 const DIACRITIC_SPLIT_SPELLINGS: Record<string, Record<string, { real: [number, number]; mute: [number, number]; glyph: string }>> = {
   sh: {
-    ti: { real: [0, 1], mute: [1, 2], glyph: 'ṫ' }, // nation, station
+    ti: { real: [0, 1], mute: [1, 2], glyph: 't̂' }, // nation, station — circumflex, not dot
     ss: { real: [0, 2], mute: [0, 0], glyph: 'ŝŝ' }, // mission: both s letters represent /ʃ/
   },
 }
