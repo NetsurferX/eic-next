@@ -233,7 +233,7 @@ export const LEVELS: Level[] = [
         id: 'sh', letter: 'ʃ', color: '#7030A0', tabLabel: 'Mov', matchWord: 'ʃ',
         words: [
           { text: 'shoe',   mark: 'sh' },
-          { text: 'fish',   mark: 'sh' },
+          { text: 'mission', mark: 'ss' },
           { text: 'nation', mark: 'ti' },
           { text: 'sure',   mark: 's' },
           { text: 'ocean',  mark: 'ce' },
