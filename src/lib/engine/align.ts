@@ -477,6 +477,27 @@ export function align(rawWord: string, rawSegs: Seg[]): RenderNode[] {
   // candle, handle, bottle, uncle, angle, puddle, saddle, turtle, battle) și
   // păstrate (camera, family, chocolate, different, several, vegetable,
   // button, mountain, children, elephant, kitchen, garden, open, seven, cabin).
+  // Explicit lesson display for "mission": first i stays red and underlined;
+  // ss and final ion remain plain black, without additional styling.
+  if (word.toLowerCase() === 'mission') {
+    let letterOffset = 0
+    for (const n of nodes) {
+      const start = letterOffset
+      letterOffset += n.t.length
+      if (start === 1 && n.t.toLowerCase() === 'i') {
+        n.c = '#CC0000'
+        n.u = true
+        n.underlineOverride = 'force'
+        n.colorOverride = true
+      } else if (start >= 2 && n.t.length > 0) {
+        n.c = '#000000'
+        n.u = false
+        n.underlineOverride = 'deny'
+        n.colorOverride = true
+      }
+    }
+  }
+
   const hasOtherRealVowelNucleus = nodes.some(
     n => !n.u && !n.x && n.t.length > 0 && n.s !== '' && !GLIDE_DISPLAYS.has(n.s)
   )
