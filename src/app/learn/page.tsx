@@ -292,10 +292,17 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
    Păstrează excepțiile vizuale (tricolor, diacritică roșie, alb conturat)
    într-un singur loc, ca cele două reprezentări să nu divergă. */
 // Simbolul din CAPUL coloanei poate fi altul decât simbolul lecției: la coloana „đ" (-ed → /t/) capul
-// arată „t", iar la apăsarea simbolului apare lângă el „= đ". Doar capul coloanei; restul (bara de
-// simboluri, jocuri, sunete) rămâne cu simbolul lecției.
+// arată „t". La activare (ritual / click) apare în dreapta un tabel mic cu variantele grafice
+// care corespund sunetului (ex. sh → ŝ, t̂, ŝŝ, ĉ). Doar capul coloanei; restul (bara, jocuri) rămâne
+// cu simbolul lecției.
 const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
   'd-hat': { show: 't', eq: 'đ' },
+}
+// Variante grafice care apar într-un tabel mic la dreapta simbolului activat.
+// Cheie = lesson.id. Valorile = glifele (cu diacritice) care scriu același sunet.
+const HEAD_SYMBOL_VARIANTS: Record<string, string[]> = {
+  // d-hat rămâne pe HEAD_SYMBOL_ALIAS („= đ”); aici doar coloanele cu mai multe variante
+  sh: ['ŝ', 't̂', 'ŝŝ', 'ĉ'],  // s, t, ss, c cu circumflex (sugar / nation / mission / chef)
 }
 const HEAD_EQ_VISIBLE_MS = 2800
 
@@ -1230,11 +1237,11 @@ export default function LearnPage() {
   //   • litera din cap zvâcnește (letterPulseId)
   //   • Aik din colțul coloanei active zvâcnește + undă de sunet din gură
   //   Folosit la startul fiecărei coloane (3×) și la click pe literă (1×).
-  // „= đ" lângă simbolul din capul coloanei, vizibil câteva secunde după apăsare (și în ritualul ×3)
+  // Tabel de variante (sau „= đ") lângă simbolul din cap, vizibil câteva secunde după apăsare / ritual ×3
   const [eqShownId, setEqShownId] = useState<string | null>(null)
   const eqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const showSymbolEq = useCallback((id: string) => {
-    if (!HEAD_SYMBOL_ALIAS[id]) return
+    if (!HEAD_SYMBOL_ALIAS[id] && !HEAD_SYMBOL_VARIANTS[id]) return
     setEqShownId(id)
     if (eqTimerRef.current) clearTimeout(eqTimerRef.current)
     eqTimerRef.current = setTimeout(() => setEqShownId(null), HEAD_EQ_VISIBLE_MS)
@@ -1548,7 +1555,23 @@ export default function LearnPage() {
                         {ringify(HEAD_SYMBOL_ALIAS[l.id]?.show ?? symbolView(l).text)}
                       </span>
                     </div>
-                    {HEAD_SYMBOL_ALIAS[l.id] && eqShownId === l.id && (
+                    {eqShownId === l.id && HEAD_SYMBOL_VARIANTS[l.id] && (
+                      <span className="lesson-letter-variants" aria-hidden="true">
+                        {HEAD_SYMBOL_VARIANTS[l.id].map((g, vi) => (
+                          <span
+                            key={g + vi}
+                            className="lesson-letter-variant"
+                            style={{
+                              color: symbolView(l).color === CONSONANT_BLACK ? '#111' : symbolView(l).color,
+                              animationDelay: `${vi * 60}ms`,
+                            }}
+                          >
+                            {ringify(g)}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    {eqShownId === l.id && !HEAD_SYMBOL_VARIANTS[l.id] && HEAD_SYMBOL_ALIAS[l.id] && (
                       <span className="lesson-letter-eq" aria-hidden="true" style={{ color: symbolView(l).color }}>
                         = {HEAD_SYMBOL_ALIAS[l.id].eq}
                       </span>
