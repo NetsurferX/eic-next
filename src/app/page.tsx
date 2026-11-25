@@ -20,13 +20,6 @@ export default function Gateway() {
   const [playIn, setPlayIn] = useState(false)       // gw-pop s-a terminat
   const [eicFading, setEicFading] = useState(false) // EiC dispare încet
 
-  // Prima intrare din sesiune → animația de început (public/intro.html),
-  // care la final revine aici (și marchează animația ca văzută).
-  useEffect(() => {
-    try {
-      if (!sessionStorage.getItem('eic_intro_seen')) window.location.replace('/intro.html')
-    } catch {}
-  }, [])
 
   // Apăsare pe Play SAU pe EiC → același proces special → /learn
   function handleGatewayPress(e: React.MouseEvent) {

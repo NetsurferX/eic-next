@@ -20,9 +20,11 @@ export const metadata: Metadata = {
   description: 'See English as it sounds — every grapheme coloured by its phoneme.',
 }
 
-// Site-ul începe cu animația vulpii (public/intro.html): la prima intrare din sesiune,
-// pe orice pagină (în afară de /debug), se merge întâi la animație; după ea, înapoi unde voia utilizatorul.
-const INTRO_REDIRECT = `(function(){try{var p=location.pathname;if(p.indexOf('/debug')===0||p==='/intro.html')return;if(!sessionStorage.getItem('eic_intro_seen')){sessionStorage.setItem('eic_after_intro',p+location.search);location.replace('/intro.html')}}catch(e){}})();`
+// Site-ul începe cu animația vulpii (public/intro.html): la fiecare intrare pe site din afară
+// (adresă scrisă, bookmark, link extern, tab nou) se merge întâi la animație, pe orice pagină
+// în afară de /debug. Navigarea în interiorul site-ului (referrer de pe același domeniu) nu o repornește.
+// După animație se merge unde voia utilizatorul (eic_after_intro).
+const INTRO_REDIRECT = `(function(){try{var p=location.pathname;if(p.indexOf('/debug')===0||p==='/intro.html')return;var r=document.referrer,same=false;try{same=!!r&&new URL(r).origin===location.origin}catch(e){}if(same)return;sessionStorage.setItem('eic_after_intro',p+location.search);location.replace('/intro.html')}catch(e){}})();`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
