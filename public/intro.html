@@ -150,9 +150,10 @@ async function letterScene(list,letter,sound,play,cls=""){
     await sleep(r?700:1050);tg[r].forEach(b=>{b.classList.add("lit");if(cls)b.classList.add(cls)});chime();await sleep(250)}
   await sleep(400);cube.style.transition="none";cube.style.opacity=0;await sleep(300);                                  // se duce sub pânză, în dreapta
   cube.style.opacity=0;pose("front",1200);await sleep(500);curtain.classList.add("fly");await sleep(1000);
+  curtain.className="";await sleep(200);   // pânza dispare complet înainte ca vulpea să arate și să pronunțe cuvintele
   const ws=[...document.querySelectorAll(".w")];
   for(let i=0;i<ws.length;i++){ws[i].classList.add("hl");pose("point",900);speak(list[i]);await sleep(1100);ws[i].classList.remove("hl")}
-  hush();curtain.className="";await sleep(500);
+  hush();await sleep(500);
 }
 async function run(){
   $("go").disabled=true;try{sessionStorage.setItem("eic_intro_seen","1")}catch(e){}ac();words.innerHTML="";words.classList.remove("show");pose("front");fade.className="";fade.textContent="";board.className="";board.innerHTML="";
