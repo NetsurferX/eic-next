@@ -3836,3 +3836,24 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
   .lesson-index-words { font-size: .7rem; }
   .lesson-index-sym { font-size: 1.3rem; }
 }
+
+/* ── OnboardingSoundIntro — ecran unic: simbol pulsează → pătrat curge în literă → cuvânt ×3 ── */
+.sound-intro-card--flow { position: relative; }
+.sound-flow-phoneme { display: inline-block; font-size: 4rem; margin-bottom: 1.6rem; }
+.sound-flow-word { margin-bottom: 1.6rem; font-size: 1.8rem; }
+.sound-flow-mark { display: inline-block; transition: color .25s; }
+.sound-flow-phoneme.is-pulsing, .sound-flow-mark.is-pulsing { animation: sound-flow-pulse 520ms ease-in-out; }
+.sound-flow-square {
+  position: absolute; left: 0; top: 0;
+  width: 26px; height: 26px; border-radius: 6px;
+  opacity: 0; pointer-events: none;
+}
+@keyframes sound-flow-pulse {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.32); }
+  65% { transform: scale(.96); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sound-flow-phoneme.is-pulsing, .sound-flow-mark.is-pulsing { animation: none; }
+}
+.sound-intro-card--flow .sound-intro-mascot { display: block; margin: 0 auto .5rem; }
