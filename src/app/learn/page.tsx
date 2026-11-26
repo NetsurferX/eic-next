@@ -301,8 +301,10 @@ const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
 // Variante grafice care apar într-un tabel mic la dreapta simbolului activat.
 // Cheie = lesson.id. Valorile = glifele (cu diacritice) care scriu același sunet.
 const HEAD_SYMBOL_VARIANTS: Record<string, string[]> = {
-  // d-hat rămâne pe HEAD_SYMBOL_ALIAS („= đ”); aici doar coloanele cu mai multe variante
-  sh: ['ŝ', 't̂', 'ŝŝ', 'ĉ'],  // s, t, ss, c cu circumflex (variații sh)
+  // sh: echivalente grafice, afișate la activare.
+  sh: ['ŝ', 't̂', 'ŝŝ', 'ĉ'],
+  // gz: glife echivalente, imitând pulsul simbolului principal x̊.
+  'ring-gz': ['x', 'gz'],
 }
 const HEAD_EQ_VISIBLE_MS = 2800
 
@@ -1565,7 +1567,7 @@ export default function LearnPage() {
                         {HEAD_SYMBOL_VARIANTS[l.id].map((g, vi) => (
                           <span
                             key={g + vi}
-                            className="lesson-letter-variant"
+                            className={`lesson-letter-variant${l.id === 'ring-gz' ? ' lesson-letter-variant-square' : ''}`}
                             style={{
                               color: symbolView(l).color === CONSONANT_BLACK ? '#111' : symbolView(l).color,
                               animationDelay: `${vi * 60}ms`,
