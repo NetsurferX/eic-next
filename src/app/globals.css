@@ -3014,10 +3014,10 @@ button, textarea, input { font-family: var(--font-sans); }
 @keyframes mascot-intro-flip {
   0%   { transform: translateY(0) rotate(0deg) scale(1, 1); }
   14%  { transform: translateY(6px) rotate(0deg) scale(1.06, .92); }   /* se ghemuiește */
-  55%  { transform: translateY(-38px) rotate(-200deg) scale(1, 1); }   /* sare și se rotește */
-  86%  { transform: translateY(0) rotate(-360deg) scale(1, 1); }       /* aterizează */
-  93%  { transform: translateY(3px) rotate(-360deg) scale(1.05, .94); }/* amortizare */
-  100% { transform: translateY(0) rotate(-360deg) scale(1, 1); }
+  55%  { transform: translateY(-38px) rotate(0deg) scale(1, 1); }   /* sare (fără rotire) */
+  86%  { transform: translateY(0) rotate(0deg) scale(1, 1); }       /* aterizează */
+  93%  { transform: translateY(3px) rotate(0deg) scale(1.05, .94); }/* amortizare */
+  100% { transform: translateY(0) rotate(0deg) scale(1, 1); }
 }
 @media (max-width: 720px) {
   /* 100% - 12px offset - 24px (jumătate din avatarul-țintă de 48px) */
