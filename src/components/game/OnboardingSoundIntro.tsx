@@ -8,7 +8,8 @@ import { ringify } from '@/components/SymbolText'
 
 interface Props {
   phoneme: string       // sunetul afișat în capul coloanei — fără slash-uri, ex. 'ʌ'
-  exampleWord: string   // primul cuvânt din lecție, folosit ca demo
+  exampleWord: string   // cuvântul exemplu folosit ca demo
+  exampleMark?: string  // substring-ul din exampleWord care poartă sunetul — doar el se colorează (ex. 'u' în 'bug')
   color: string         // culoarea EiC a sunetului (SOUND_COLORS)
   colorName?: string    // numele culorii în română (Lesson.tabLabel) — pt. mesajul vulpii "Roșu = /i/"
   matchWord?: string    // cuvânt-purtător TTS pt. sunetul izolat (vezi Lesson.matchWord) — dacă lipsește, cade back pe exampleWord
@@ -35,9 +36,23 @@ const MATCH_START_DELAY_MS = 400
 //                   Vulpea poate adăuga "Roșu = /i/" (colorName + phoneme).
 //  2. 'listening' — pauză scurtă înainte de a rosti cuvântul exemplu.
 //  3. 'speaking'  — vulpea rostește cuvântul exemplu întreg, cu accentul corect.
-//  4. 'done'      — elevul poate închide oricând cu "Am înțeles" (auto-
+//  4. 'done'      — elevul poate închide oricând cu "ok" (auto-
 //                   completat și dacă lasă demo-ul să ruleze până la capăt).
-export function OnboardingSoundIntro({ phoneme, exampleWord, color, colorName, matchWord, accent, onComplete }: Props) {
+// Colorează DOAR literele afectate de sunet (mark) în cuvântul exemplu;
+// restul literelor rămân în culoarea normală a textului.
+function renderExampleWord(word: string, mark: string | undefined, color: string) {
+  const i = mark ? word.indexOf(mark) : -1
+  if (!mark || i < 0) return word
+  return (
+    <>
+      {word.slice(0, i)}
+      <span style={{ color }}>{mark}</span>
+      {word.slice(i + mark.length)}
+    </>
+  )
+}
+
+export function OnboardingSoundIntro({ phoneme, exampleWord, exampleMark, color, colorName, matchWord, accent, onComplete }: Props) {
   const [stage, setStage] = useState<Stage>('matching')
   const [pulseTick, setPulseTick] = useState(0)   // incrementat la fiecare redare — key pt. a re-porni animația CSS
   const stopRef = useRef<(() => void) | null>(null)
@@ -123,7 +138,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, color, colorName, m
         <>
           <p className="sound-intro-label">Un sunet nou</p>
           <span className="sound-intro-phoneme" style={{ color }}>{ringify(phoneme)}</span>
-          <p className="sound-intro-word" style={{ color }}>{exampleWord}</p>
+          <p className="sound-intro-word">{renderExampleWord(exampleWord, exampleMark, color)}</p>
         </>
       )}
 
@@ -132,7 +147,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, color, colorName, m
         style={{ background: color }}
         onClick={onComplete}
       >
-        Am înțeles
+        ok
       </button>
     </div>
   )

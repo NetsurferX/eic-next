@@ -341,6 +341,11 @@ export default function LearnPage() {
   const [seenIntros, setSeenIntros] = useState<Set<string>>(() => new Set())
   const [introHydrated, setIntroHydrated] = useState(false)
   const [introLesson, setIntroLesson] = useState<Lesson | null>(null)
+  // Cuvântul demo din cardul „Un sunet nou": coloana /a/ folosește „bug" (doar „u" colorat),
+  // celelalte coloane primul cuvânt. Doar literele din `mark` se colorează.
+  const introExample: LessonWord | null = introLesson
+    ? (introLesson.id === 'a' ? introLesson.words.find(w => w.text === 'bug') : undefined) ?? introLesson.words[0]
+    : null
   useEffect(() => {
     try {
       const raw = localStorage.getItem(SOUND_INTRO_SEEN_KEY)
@@ -1810,13 +1815,14 @@ export default function LearnPage() {
       </section>
 
 
-      {introLesson && (
+      {introLesson && introExample && (
         <div className="sound-intro-overlay" role="dialog" aria-modal="true" aria-label={`Cum sună ${introLesson.letter}`}>
           <OnboardingSoundIntro
             phoneme={introLesson.letter}
-            exampleWord={introLesson.words[0].text}
+            exampleWord={introExample.text}
+            exampleMark={introExample.mark}
             color={introLesson.color}
-            accent={resolveAccent(introLesson.words[0], introLesson)}
+            accent={resolveAccent(introExample, introLesson)}
             onComplete={handleIntroComplete}
           />
         </div>
