@@ -1706,8 +1706,8 @@ export default function LearnPage() {
                       aria-label={`Ascultă cuvântul ${w.text}`}
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      {wordNodes[w.text.toLowerCase()] && l.id !== 'zh'
-                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} />
+                      {wordNodes[w.text.toLowerCase()]
+                        ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} zhDisplay={l.id === 'zh'} />
                         : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />}
                     </button>
                   )
@@ -1872,8 +1872,8 @@ export default function LearnPage() {
                       <div className="lesson-words">
                         {l.words.map((w: LessonWord) => (
                           <div key={w.text} className="lesson-word">
-                            {wordNodes[w.text.toLowerCase()] && l.id !== 'zh'
-                              ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} />
+                            {wordNodes[w.text.toLowerCase()]
+                              ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} zhDisplay={l.id === 'zh'} />
                               : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={false} isPlaying={false} />}
                           </div>
                         ))}
