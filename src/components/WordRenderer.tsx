@@ -18,6 +18,8 @@ interface Props {
   pulseRange?: [number, number]
   //  pulseKeep — cu pulseRange: nodurile din interval își păstrează culorile (nu devin neutre) și primesc clasa `eic-pulse-keep`.
   pulseKeep?: boolean
+  // /ʒ/ lesson: display s as š without bypassing the phonetic color/underline renderer.
+  zhDisplay?: boolean
 }
 
 // ── Tricolor (/əʊ/) vertical-gradient calibration ──────────────────────────
@@ -25,7 +27,7 @@ interface Props {
 // /learn page's hand-curated "ou" column can share the exact same
 // calibration instead of re-deriving its own copy.
 
-export default function WordRenderer({ nodes, wordStr, flatSimple = false, blackD = false, pulseRange, pulseKeep = false }: Props) {
+export default function WordRenderer({ nodes, wordStr, flatSimple = false, blackD = false, pulseRange, pulseKeep = false, zhDisplay = false }: Props) {
   // NOTE: split out + traced (each step reports to /debug/graph's live
   // view via pipelineTrace.ts) at Dorel's explicit request. Purely
   // additive — same three calls, same order, same output as before;
@@ -72,7 +74,8 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, black
         // on 'o'). Split into two inner spans, same pattern as the gradient
         // per-letter split above — the outer span still carries the shared
         // underline decoration.
-        const glyphText = d.glyph ?? d.t
+        const baseGlyphText = d.glyph ?? d.t
+        const glyphText = zhDisplay ? baseGlyphText.replace(/s/gi, ch => ch === 'S' ? 'Š' : 'š') : baseGlyphText
         const splitOffglide = !!d.offglideColor && glyphText.length > 1
         const mainText     = splitOffglide ? glyphText.slice(0, -1) : glyphText
         const offglideText = splitOffglide ? glyphText.slice(-1) : ''
@@ -124,7 +127,7 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, black
         return (
           <span key={i} style={outerStyle} className={classes} title={d.sound || undefined}>
             {splitPerLetter
-              ? [...d.t].map((ch, ci) => <span key={ci} style={style}>{ch}</span>)
+              ? [...glyphText].map((ch, ci) => <span key={ci} style={style}>{ch}</span>)
               : splitOffglide
               ? (
                   <>
@@ -136,7 +139,7 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, black
               ? d.glyph
                 ? <span style={{ color: '#000000', background: 'none', backgroundClip: 'unset', WebkitBackgroundClip: 'unset', WebkitTextFillColor: '#000000' }}>{ringify(d.glyph)}</span>
                 : [...d.t].map((ch, ci) => /d/i.test(ch) ? <span key={ci} style={{ color: '#000000', background: 'none', backgroundClip: 'unset', WebkitBackgroundClip: 'unset', WebkitTextFillColor: '#000000' }}>{ch}</span> : <span key={ci} style={d.gradient ? style : undefined}>{ch}</span>)
-              : ringify(d.glyph ?? d.t)}
+              : ringify(glyphText)}
             {d.superscript && <sup className="eic-superscript">{d.superscript}</sup>}
           </span>
         )
