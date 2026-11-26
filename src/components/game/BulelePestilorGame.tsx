@@ -574,7 +574,6 @@ export function BulelePestilorGame({
     const DROP = (Math.PI / 2) * dir          // cap în jos (peștele păstrează sensul: fără întoarcere în oglindă)
     const endScale = 0.3 * bk
     const t0 = performance.now()
-    let heldSpoken = false
     pullingRef.current = true
     setPull(true)
     // s = sensul peștelui (1 = cu botul spre dreapta, -1 = spre stânga); rămâne același pe tot parcursul prinderii
@@ -584,10 +583,7 @@ export function BulelePestilorGame({
       //           [..TOTAL] zbor DIRECT în taz, din locul unde a stat (fără ridicare intermediară la undiță)
       const el = now - t0
       const flyAt = CAST_MS + HOLD_MS
-      if (!heldSpoken && el >= CAST_MS) {
-        heldSpoken = true
-        sayAnnouncement(f.group.lesson, f.word, level, () => !pausedRef.current)   // se aude încă o dată sunetul (și cuvântul la nivelul 3), exact când cârligul prinde buza
-      }
+      // După prindere NU se mai rostește sunetul antrenat (doar la apariția peștelui, la indiciu și la ajutor).
       // legănare ca un pendul: pornește din 0 și revine la 0 la sfârșitul pauzei (fără salt)
       const hp = Math.min(Math.max((el - CAST_MS) / HOLD_MS, 0), 1)
       const sway = Math.sin(Math.PI * hp) * Math.sin(2 * Math.PI * SWAY_CYCLES * hp)
