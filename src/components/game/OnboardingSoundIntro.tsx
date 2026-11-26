@@ -60,7 +60,7 @@ function unionCenter(els: Element[]) {
 // Un singur ecran „Un sunet nou":
 //  1. 'sound' — simbolul colorat pulsează și se aude de 3 ori (literele-țintă subțiri din cuvinte pulsează odată cu el).
 //  2. 'flow'  — din simbol curge câte un pătrat colorat spre fiecare literă/grup țintă; abia după absorbție se colorează.
-//  3. 'word'  — fiecare cuvânt se aude de 3 ori; simbolul și litera-țintă pulsează în ritmul rostirii.
+//  3. 'word'  — fiecare cuvânt se aude de 3 ori; simbolul și TOATE literele-țintă pulsează împreună în ritmul rostirii.
 //  4. 'done'  — vulpea aplaudă; „ok".
 // Literele-țintă sunt aliniate pe verticală sub simbol.
 export function OnboardingSoundIntro({ phoneme, words, color, matchWord, accent, onComplete }: Props) {
@@ -171,7 +171,7 @@ export function OnboardingSoundIntro({ phoneme, words, color, matchWord, accent,
       setPhase('word')
       for (let wi = 0; wi < ws.length; wi++) {
         for (let r = 0; r < REPS; r++) {
-          await say(ws[wi].text, ws[wi].accent ?? accent, () => { pulse([symRef.current]); pulse(targetsOf(wi)) })
+          await say(ws[wi].text, ws[wi].accent ?? accent, () => { pulse([symRef.current]); ws.forEach((_, k) => pulse(targetsOf(k))) })
           if (cancelled) return
           await sleep(GAP_MS)
         }
