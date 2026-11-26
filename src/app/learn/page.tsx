@@ -293,7 +293,7 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
    într-un singur loc, ca cele două reprezentări să nu divergă. */
 // Simbolul din CAPUL coloanei poate fi altul decât simbolul lecției: la coloana „đ" (-ed → /t/) capul
 // arată „t". La activare (ritual / click) apare în dreapta un tabel mic cu variantele grafice
-// care corespund sunetului (ex. sh → ŝ, ṫ, ŝŝ, ĉ). Capul coloanei + butoane = simbol de BAZĂ
+// care corespund sunetului (ex. sh → ŝ, t̂, ŝŝ, ĉ). Capul coloanei + butoane = simbol de BAZĂ
 // (sh, z, gz…); variantele doar în acest tabel la activare.
 const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
   'd-hat': { show: 't', eq: 'đ' },
@@ -302,7 +302,7 @@ const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
 // Cheie = lesson.id. Valorile = glifele (cu diacritice) care scriu același sunet.
 const HEAD_SYMBOL_VARIANTS: Record<string, string[]> = {
   // d-hat rămâne pe HEAD_SYMBOL_ALIAS („= đ”); aici doar coloanele cu mai multe variante
-  sh: ['ŝ', 'ṫ', 'ŝŝ', 'ĉ'],  // s cu circumflex, t cu punct, ss, c cu circumflex
+  sh: ['ŝ', 't̂', 'ŝŝ', 'ĉ'],  // s, t, ss, c cu circumflex (variații sh)
 }
 const HEAD_EQ_VISIBLE_MS = 2800
 

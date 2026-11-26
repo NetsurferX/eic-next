@@ -166,11 +166,11 @@ const isVowelLike = (ch: string) => /[aeiouwy]/i.test(ch)
 function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: number } {
   const sv = symbolView(lesson)
   // gh/ph: butonul e „f”, dar peștele poartă „ph”/„gh” (după cuvântul lui)
-  // sh: bază „sh” pe buton/cap; pe pește: ṫ (t cu PUNCT, nu circumflex) pt ti/ci/si; ŝ pt s
+  // sh: bază „sh” pe buton/cap; pe pește: t̂ (t cu CIRCUMFLEX) pt ti/ci/si; ŝ pt s
   let txt = lesson.id === 'gh-ph-f' && word ? word.mark : sv.text
   if (lesson.id === 'sh' && word) {
     const m = word.mark.toLowerCase()
-    if (m === 'ti' || m === 'ci' || m === 'si') txt = 'ṫ'
+    if (m === 'ti' || m === 'ci' || m === 'si') txt = 't̂'
     else if (m === 's') txt = 'ŝ'
   }
   const style: CSSProperties = sv.tricolor ? tricolorLetterStyle(6, sv.bands === TRICOLOR_BANDS ? 0.8 : 1, sv.bands)
