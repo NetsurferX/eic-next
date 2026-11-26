@@ -310,7 +310,7 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
           vowelLike && !isMonosyllabic ? 'lesson-word-mark-underline' : '',
         ].filter(Boolean).join(' ')
         const isDiacritic = i === diacriticIdx
-        const display = isDiacritic ? (OFFGLIDE_DIACRITIC[ch] ?? ch) : ch
+        const display = lessonId === 'zh' && ch.toLowerCase() === 's' ? 'š' : (isDiacritic ? (OFFGLIDE_DIACRITIC[ch] ?? ch) : ch)
         const style = isDiacritic ? { color: OFFGLIDE_COLOR } : undefined
         return <span key={i} className={classes || undefined} style={style}>{display}</span>
       })}
@@ -328,6 +328,7 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
 // (sh, z, gz…); variantele doar în acest tabel la activare.
 const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
   'd-hat': { show: 't', eq: 'đ' },
+  zh: { show: 'zh', eq: 'š' },
 }
 // Variante grafice care apar într-un tabel mic la dreapta simbolului activat.
 // Cheie = lesson.id. Valorile = glifele (cu diacritice) care scriu același sunet.
@@ -1705,7 +1706,7 @@ export default function LearnPage() {
                       aria-label={`Ascultă cuvântul ${w.text}`}
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      {wordNodes[w.text.toLowerCase()]
+                      {wordNodes[w.text.toLowerCase()] && l.id !== 'zh'
                         ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} />
                         : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />}
                     </button>
@@ -1871,7 +1872,7 @@ export default function LearnPage() {
                       <div className="lesson-words">
                         {l.words.map((w: LessonWord) => (
                           <div key={w.text} className="lesson-word">
-                            {wordNodes[w.text.toLowerCase()]
+                            {wordNodes[w.text.toLowerCase()] && l.id !== 'zh'
                               ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} />
                               : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={false} isPlaying={false} />}
                           </div>
