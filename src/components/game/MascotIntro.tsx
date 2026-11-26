@@ -16,7 +16,7 @@ import { Mascot } from './Mascot'
 //    unde a aterizat vulpea mare, fără sărituri vizuale. ──
 
 const MASCOT_SIZE = 180   // dimensiunea vulpii mari, la centru (px)
-const HOLD_MS = 850       // cât stă mare, la centru, înainte să plece
+const HOLD_MS = 1150      // cât stă mare, la centru, înainte să plece (include tumbul de ~900ms — vezi `mascot-intro-flip` în globals.css)
 const FLY_MS = 600        // durata zborului spre dock
 
 export function MascotIntro({ onComplete }: { onComplete: () => void }) {
