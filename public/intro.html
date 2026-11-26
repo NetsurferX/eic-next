@@ -37,7 +37,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,sans-serif
 #curtain.down{opacity:1;transform:none;animation:throw .95s cubic-bezier(.3,.7,.4,1),flutter 2.6s ease-in-out .95s infinite}
 @keyframes flutter{0%,100%{transform:skewX(0) translateY(0) scaleX(1)}25%{transform:skewX(.9deg) translateY(-.5%) scaleX(1.004)}50%{transform:skewX(-.7deg) translateY(.4%) scaleX(.997)}75%{transform:skewX(.5deg) translateY(-.3%) scaleX(1.002)}}
 @keyframes throw{0%{opacity:1;transform:translate(-90%,-35%) scale(.1) rotate(-25deg)}45%{opacity:1;transform:translate(-30%,-45%) scale(.55) rotate(12deg)}75%{transform:translate(2%,6%) scale(1.04) rotate(-2deg)}100%{transform:none}}
-#curtain.fly{opacity:1;transform:translate(45%,-135%) rotate(14deg);transition:transform .8s ease-in}
+#curtain.fly{opacity:1;transform:translate(55%,-300%) rotate(14deg);transition:transform .8s ease-in}
 #cube{position:absolute;left:70%;top:-30%;opacity:0;width:15%;aspect-ratio:1;background:#fff;border:6px solid #1fa83a;border-radius:14px;color:#1fa83a;font:700 clamp(40px,10vw,90px)/1 Georgia,serif;display:flex;align-items:center;justify-content:center;z-index:2;transition:top .8s,left .8s,opacity .4s}
 #table{position:absolute;left:34.5%;width:38%;bottom:4%;height:9%;background:linear-gradient(#cf9658,#b07a43) top/100% 42% no-repeat;border-radius:5px;z-index:1}
 #table::before,#table::after{content:"";position:absolute;bottom:0;width:4.5%;height:60%;background:linear-gradient(90deg,#8d5f33,#a06c3a);border-radius:2px}
@@ -149,7 +149,7 @@ async function letterScene(list,letter,sound,play,cls=""){
     place(rx,ly,small,r?650:1000);if(!r){const ct=curtain.getBoundingClientRect().top-sr.top,s0=sr.height*.2,fr=Math.max(0,Math.min(1,(ct-s0)/(ly-s0)));setTimeout(()=>cube.style.zIndex=2,fr*1000)}   // trece sub pânză
     await sleep(r?700:1050);tg[r].forEach(b=>{b.classList.add("lit");if(cls)b.classList.add(cls)});chime();await sleep(250)}
   await sleep(400);cube.style.transition="none";cube.style.opacity=0;await sleep(300);                                  // se duce sub pânză, în dreapta
-  cube.style.opacity=0;pose("front",1200);await sleep(500);curtain.classList.add("fly");await sleep(1000);
+  cube.style.opacity=0;pose("front",1200);await sleep(500);curtain.classList.remove("down");curtain.classList.add("fly");await sleep(1000);
   curtain.className="";await sleep(200);   // pânza dispare complet înainte ca vulpea să arate și să pronunțe cuvintele
   const ws=[...document.querySelectorAll(".w")];
   for(let i=0;i<ws.length;i++){ws[i].classList.add("hl");pose("point",900);speak(list[i]);await sleep(1100);ws[i].classList.remove("hl")}
