@@ -98,6 +98,37 @@ const COLUMN_WORD_OVERRIDES: Record<string, LessonWord[]> = {
   ],
 }
 // Coloanele de consoane sunt NEGRE (culoare + etichetă), nu violet/portocaliu/etc. Local paginii — levels.ts neatins.
+// Lecția terminată se strânge și zboară vizual în butonul ei din linia de simboluri de sus
+// (clonă a coloanelor, animată peste pagină; pagina reală trece imediat la lecția următoare).
+function flyGridToBar(group: number) {
+  if (typeof document === 'undefined') return
+  const grid = document.querySelector('.lesson-grid') as HTMLElement | null
+  const btn = document.querySelector(`[data-symbol-group="${group}"]`) as HTMLElement | null
+  if (!grid || !btn) return
+  const a = grid.getBoundingClientRect()
+  const b = btn.getBoundingClientRect()
+  if (!a.width || !b.width) return
+  const wrap = document.createElement('div')
+  wrap.className = 'lesson-layout lesson-fly'
+  wrap.setAttribute('aria-hidden', 'true')
+  Object.assign(wrap.style, {
+    position: 'fixed', left: `${a.left}px`, top: `${a.top}px`, width: `${a.width}px`, height: `${a.height}px`,
+    margin: '0', padding: '0', zIndex: '9999', pointerEvents: 'none', transformOrigin: '0 0',
+    transition: 'transform 750ms cubic-bezier(.55,0,.25,1), opacity 750ms ease-in',
+  })
+  wrap.appendChild(grid.cloneNode(true))
+  document.body.appendChild(wrap)
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    wrap.style.transform = `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${b.width / a.width}, ${b.height / a.height})`
+    wrap.style.opacity = '0.2'
+  }))
+  window.setTimeout(() => {
+    wrap.remove()
+    btn.classList.add('is-landed')
+    window.setTimeout(() => btn.classList.remove('is-landed'), 600)
+  }, 780)
+}
+
 const LEVELS: Level[] = ALL_LEVELS.map(lvl => ({
   ...lvl,
   lessons: lvl.lessons.map(l => ({
@@ -779,6 +810,11 @@ export default function LearnPage() {
     if (showLevelOverlay) {
       setShowLevelOverlay(false)
       setLevelCelebrating(false)
+      {
+        const g = selectedSymbolGroup
+        const gItems = ALL_SYMBOLS.slice(g * 4, g * 4 + 4)
+        if (gItems.length && gItems.every(it => (starsEarned[it.levelIdx]?.[it.colIdx] ?? 0) >= REPS_PER_LESSON)) flyGridToBar(g)
+      }
       if (nextLevel) {
         const next = levelIndex + 1
         setUnlockedLevels(prev => {
@@ -903,7 +939,7 @@ export default function LearnPage() {
         nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
       })
     }
-  }, [isPlayingRep, showLevelOverlay, nextLevel, levelIndex, active, level, lesson, levelStars, starsEarned, playColumnOnce, isLastLevel, triggerFox, startReward])
+  }, [isPlayingRep, showLevelOverlay, nextLevel, levelIndex, active, level, lesson, levelStars, starsEarned, selectedSymbolGroup, playColumnOnce, isLastLevel, triggerFox, startReward])
 
   // ── Buton „Știu deja acest sunet" — sare direct la 5 stele, fără să mai
   //   redea audio, și avansează coloana la fel ca handleMainButton. ──
@@ -1429,6 +1465,7 @@ export default function LearnPage() {
             return (
               <button
                 key={groupIndex}
+                data-symbol-group={groupIndex}
                 type="button"
                 className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}${groupIndex === selectedSymbolGroup - 1 ? ' is-near-prev' : ''}${groupIndex === selectedSymbolGroup + 1 ? ' is-near-next' : ''}`}
                 disabled={!groupUnlocked}
@@ -1780,39 +1817,70 @@ export default function LearnPage() {
       </aside>
       </div>
 
-      {/* ── Restul lecțiilor, sub coloanele lecției afișate: câte patru coloane,
-          cu titlul „Lesson N". Apăsarea pe un grup deblocat îl afișează deasupra. ── */}
+      {/* ── Restul lecțiilor (cele care nu se lucrează acum), sub coloanele lecției afișate:
+          câte patru coloane în formatul din v2 (antet cu simbol, stele, cuvinte colorate),
+          mai mici, cu titlul „Lesson N". Lecțiile terminate nu mai apar aici: s-au strâns în
+          butonul lor din linia de sus. Apăsarea pe un grup deblocat îl afișează deasupra. ── */}
       <section className="lesson-index" aria-label="Celelalte lecții">
         {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
           if (groupIndex === selectedSymbolGroup) return null
           const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
+          if (items.every(it => (starsEarned[it.levelIdx]?.[it.colIdx] ?? 0) >= REPS_PER_LESSON)) return null
           const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
           return (
             <div className="lesson-index-group" key={groupIndex}>
               <h2 className="lesson-index-title">Lesson {groupIndex + 1}</h2>
-              <button
-                type="button"
-                className="lesson-index-btn"
-                disabled={!groupUnlocked}
+              <div
+                className={`lesson-index-row${groupUnlocked ? '' : ' is-locked'}`}
+                role="button"
+                tabIndex={groupUnlocked ? 0 : -1}
+                aria-disabled={!groupUnlocked}
                 aria-label={`Lesson ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
                 onClick={() => selectSymbolGroup(groupIndex)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSymbolGroup(groupIndex) } }}
               >
                 {items.map(item => {
+                  const l = item.lesson
                   const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
-                  const sv = symbolView(item.lesson)
+                  const stars = starsEarned[item.levelIdx]?.[item.colIdx] ?? 0
                   return (
-                    <span className={`lesson-index-col${unlocked ? '' : ' is-locked'}`} key={item.lesson.id}>
-                      <span className="lesson-letter lesson-index-sym" style={lessonSymbolTextStyle(item.lesson, true)}>
-                        {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
-                        {sv.text}
-                      </span>
-                      <span className="lesson-index-words">
-                        {item.lesson.words.map(w => <span key={w.text}>{w.text}</span>)}
-                      </span>
-                    </span>
+                    <div
+                      key={l.id}
+                      className="lesson-col is-unlocked lesson-col-preview"
+                      style={{ '--lesson-color': l.color } as CSSProperties}
+                    >
+                      <div className="lesson-col-head">
+                        {!unlocked && <span className="lesson-lock" aria-label="blocat">🔒</span>}
+                        <span className="lesson-number" aria-hidden="true">{GLOBAL_LESSON_NUMBER[l.id]}</span>
+                        <div className="aik-speech is-unlocked">
+                          <div className="aik-speech-bubble">
+                            <span className="aik-speech-tail" aria-hidden="true" />
+                            <div className="lesson-letter" style={lessonSymbolTextStyle(l, true)}>
+                              <span>{ringify(HEAD_SYMBOL_ALIAS[l.id]?.show ?? symbolView(l).text)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="lesson-stars" aria-hidden="true">
+                        {Array.from({ length: REPS_PER_LESSON }).map((_, s) => (
+                          <span key={s} className={`lesson-star-slot ${s < stars ? 'is-filled' : ''}`}>
+                            <StarIcon className="lesson-star-icon" />
+                          </span>
+                        ))}
+                      </div>
+                      <div className="lesson-words">
+                        {l.words.map((w: LessonWord) => (
+                          <div key={w.text} className="lesson-word">
+                            {wordNodes[w.text.toLowerCase()]
+                              ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} />
+                              : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={false} isPlaying={false} />}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )
                 })}
-              </button>
+              </div>
             </div>
           )
         })}

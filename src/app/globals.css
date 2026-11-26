@@ -3820,21 +3820,21 @@ button, textarea, input { font-family: var(--font-sans); }
 em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 
 
-/* ── Lista celorlalte lecții (Lesson 2, Lesson 3 …), sub coloanele lecției afișate ── */
-.lesson-index { max-width: 1180px; margin: 28px auto 64px; padding: 0 16px; display: flex; flex-direction: column; gap: 26px; }
-.lesson-index-title { margin: 0 0 10px; font-family: var(--font-lora, Georgia, serif); font-size: 1.35rem; font-weight: 600; line-height: 1.1; color: #2b2b2b; }
-.lesson-index-btn { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; padding: 14px 12px; border: 1.5px solid #e6e1d8; border-radius: 16px; background: #fff; text-align: center; cursor: pointer; font: inherit; color: inherit; }
-.lesson-index-btn:hover:not(:disabled) { border-color: #c9c2b4; }
-.lesson-index-btn:disabled { cursor: not-allowed; }
-.lesson-index-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
-.lesson-index-col.is-locked { opacity: 1; }
-.lesson-index-sym { font-size: 1.6rem; line-height: 1.2; }
-.lesson-index-words { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: #4a4a4a; }
+/* ── Lista celorlalte lecții (Lesson 2, Lesson 3 …): coloane în formatul din v2, mai mici ── */
+.lesson-index { max-width: 1180px; margin: 28px auto 64px; padding: 0 16px; display: flex; flex-direction: column; gap: 30px; }
+.lesson-index-title { margin: 0 0 12px; font-family: var(--font-lora, Georgia, serif); font-size: 1.35rem; font-weight: 600; line-height: 1.1; color: #2b2b2b; }
+.lesson-index-row { display: grid; grid-template-columns: repeat(4, max-content); justify-content: start; gap: 14px; cursor: pointer; }
+.lesson-index-row.is-locked { cursor: not-allowed; }
+.lesson-index-row:focus-visible { outline: 3px solid #1c7ed6; outline-offset: 6px; border-radius: 12px; }
+.lesson-col-preview { width: 200px; zoom: .7; opacity: .86; pointer-events: none; }
+.lesson-col-preview .lesson-word { cursor: inherit; }
+/* butonul din bara de sus „primește" lecția terminată */
+.symbol-group-btn.is-landed { animation: symbol-landed 520ms ease-out; }
+@keyframes symbol-landed { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
 @media (max-width: 700px) {
-  .lesson-index { margin-top: 20px; gap: 20px; }
-  .lesson-index-btn { gap: 6px; padding: 10px 8px; }
-  .lesson-index-words { font-size: .7rem; }
-  .lesson-index-sym { font-size: 1.3rem; }
+  .lesson-index { margin-top: 20px; gap: 22px; }
+  .lesson-index-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .lesson-col-preview { zoom: 1; width: auto; min-width: 0; }
 }
 
 /* ── OnboardingSoundIntro — ecran unic: simbol pulsează → pătrat curge în literă → cuvânt ×3 ── */
