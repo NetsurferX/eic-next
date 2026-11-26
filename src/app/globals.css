@@ -3786,3 +3786,21 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* Corecție suplimentară doar când x̊ este în text italic */
 em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
+
+
+/* ── Lista celorlalte lecții (Lesson 2, Lesson 3 …), sub coloanele lecției afișate ── */
+.lesson-index { max-width: 1180px; margin: 28px auto 64px; padding: 0 16px; display: flex; flex-direction: column; gap: 26px; }
+.lesson-index-title { margin: 0 0 10px; font-family: var(--font-lora, Georgia, serif); font-size: 1.35rem; font-weight: 600; line-height: 1.1; color: #2b2b2b; }
+.lesson-index-btn { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; padding: 14px 12px; border: 1.5px solid #e6e1d8; border-radius: 16px; background: #fff; text-align: center; cursor: pointer; font: inherit; color: inherit; }
+.lesson-index-btn:hover:not(:disabled) { border-color: #c9c2b4; }
+.lesson-index-btn:disabled { cursor: not-allowed; }
+.lesson-index-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.lesson-index-col.is-locked { opacity: .55; }
+.lesson-index-sym { font-size: 1.6rem; line-height: 1.2; }
+.lesson-index-words { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: #6b6b6b; }
+@media (max-width: 700px) {
+  .lesson-index { margin-top: 20px; gap: 20px; }
+  .lesson-index-btn { gap: 6px; padding: 10px 8px; }
+  .lesson-index-words { font-size: .7rem; }
+  .lesson-index-sym { font-size: 1.3rem; }
+}

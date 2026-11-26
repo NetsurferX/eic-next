@@ -1710,7 +1710,7 @@ export default function LearnPage() {
       </div>
 
       <aside className="lesson-header lesson-sidebar">
-        <h1 className="lesson-title">EiC · English in Colours</h1>
+        <h1 className="lesson-title">Lesson {selectedSymbolGroup + 1}</h1>
 
         <button type="button" className="lesson-reset-btn lesson-reset-btn-sidebar" onClick={() => setShowResetConfirm(true)}>
           ↺ Reia de la început
@@ -1770,6 +1770,44 @@ export default function LearnPage() {
 
       </aside>
       </div>
+
+      {/* ── Restul lecțiilor, sub coloanele lecției afișate: câte patru coloane,
+          cu titlul „Lesson N". Apăsarea pe un grup deblocat îl afișează deasupra. ── */}
+      <section className="lesson-index" aria-label="Celelalte lecții">
+        {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
+          if (groupIndex === selectedSymbolGroup) return null
+          const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
+          const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
+          return (
+            <div className="lesson-index-group" key={groupIndex}>
+              <h2 className="lesson-index-title">Lesson {groupIndex + 1}</h2>
+              <button
+                type="button"
+                className="lesson-index-btn"
+                disabled={!groupUnlocked}
+                aria-label={`Lesson ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
+                onClick={() => selectSymbolGroup(groupIndex)}
+              >
+                {items.map(item => {
+                  const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
+                  const sv = symbolView(item.lesson)
+                  return (
+                    <span className={`lesson-index-col${unlocked ? '' : ' is-locked'}`} key={item.lesson.id}>
+                      <span className="lesson-letter lesson-index-sym" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
+                        {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
+                        {sv.text}
+                      </span>
+                      <span className="lesson-index-words">
+                        {item.lesson.words.map(w => <span key={w.text}>{w.text}</span>)}
+                      </span>
+                    </span>
+                  )
+                })}
+              </button>
+            </div>
+          )
+        })}
+      </section>
 
 
       {introLesson && (
