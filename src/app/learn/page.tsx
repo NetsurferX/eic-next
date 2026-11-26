@@ -303,6 +303,7 @@ const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
 const HEAD_SYMBOL_VARIANTS: Record<string, string[]> = {
   // d-hat rămâne pe HEAD_SYMBOL_ALIAS („= đ”); aici doar coloanele cu mai multe variante
   sh: ['ŝ', 't̂', 'ŝŝ', 'ĉ'],  // s, t, ss, c cu circumflex (variații sh)
+  'c-hook': ['ƈ'],             // cent: baza = „s” (cap + butoane); ƈ = variantă
 }
 const HEAD_EQ_VISIBLE_MS = 2800
 
@@ -1818,7 +1819,7 @@ export default function LearnPage() {
       {introLesson && introExample && (
         <div className="sound-intro-overlay" role="dialog" aria-modal="true" aria-label={`Cum sună ${introLesson.letter}`}>
           <OnboardingSoundIntro
-            phoneme={introLesson.letter}
+            phoneme={symbolView(introLesson).text}
             exampleWord={introExample.text}
             exampleMark={introExample.mark}
             matchWord={introLesson.matchWord}

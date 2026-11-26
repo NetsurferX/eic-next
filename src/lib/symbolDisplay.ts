@@ -37,6 +37,7 @@ const TEXT_BY_ID: Record<string, string> = {
   'dot-z': 'z',            // nu ṡ
   'ring-gz': 'gz',         // nu x̊
   'syllabic-lm': 'ə+',     // schwa cu plus
+  'c-hook': 's',           // c → /s/ (cent): simbolul de BAZĂ e „s”; ƈ e doar variantă (tabelul de la activare)
   'gh-ph-f': 'f',          // butonul/bula arată „f”; doar peștele poartă gh/ph (vezi fishLabelFor)
 }
 
