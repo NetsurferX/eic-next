@@ -386,19 +386,6 @@ export const LEVELS: Level[] = [
     name: 'Nivelul 8 · Vocale suplimentare',
     lessons: [
       {
-        id: 'rotic-o', letter: 'o', color: '#FF3399', tabLabel: 'Roz', matchWord: 'or',
-        // [o] rotic (door/force) — distinct de [ɒ] non-rotic (hot/dog, deja
-        // acoperit în Nivelul 1) prin lipsa gradientului: rotic e flat.
-        words: [
-          { text: 'door',  mark: 'oor' },
-          { text: 'force', mark: 'or' },
-          { text: 'floor', mark: 'oor' },
-          { text: 'four',  mark: 'our' },
-          { text: 'sport', mark: 'or' },
-          { text: 'short', mark: 'or' },
-        ],
-      },
-      {
         // /wɒ/ — simbolul „wa" e în trei benzi negru–galben–negru (vezi bandsFor în lib/tricolorStyle.ts).
         // Accent britanic: ɒ (în americană „wa-" iese /wɑ/). matchWord 'wa' = înregistrarea din speak.ts.
         id: 'wa', letter: 'wa', color: '#000000', tabLabel: 'Negru-galben', matchWord: 'wa',
