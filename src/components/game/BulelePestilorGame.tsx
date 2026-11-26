@@ -687,7 +687,7 @@ export function BulelePestilorGame({
     heartsRef.current -= 1
     setHearts(heartsRef.current)
     sayAnnouncement(fish.group.lesson, fish.word, level, () => !pausedRef.current)
-    setHelpMessage(fish.group.lesson.letter)
+    setHelpMessage(symbolView(fish.group.lesson).text)
     later(() => setHelpMessage(null), 1400)
   }
 
