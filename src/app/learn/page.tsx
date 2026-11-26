@@ -1793,7 +1793,7 @@ export default function LearnPage() {
                   const sv = symbolView(item.lesson)
                   return (
                     <span className={`lesson-index-col${unlocked ? '' : ' is-locked'}`} key={item.lesson.id}>
-                      <span className="lesson-letter lesson-index-sym" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
+                      <span className="lesson-letter lesson-index-sym" style={lessonSymbolTextStyle(item.lesson, true)}>
                         {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
                         {sv.text}
                       </span>

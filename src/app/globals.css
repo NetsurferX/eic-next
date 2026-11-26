@@ -3795,9 +3795,9 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 .lesson-index-btn:hover:not(:disabled) { border-color: #c9c2b4; }
 .lesson-index-btn:disabled { cursor: not-allowed; }
 .lesson-index-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
-.lesson-index-col.is-locked { opacity: .55; }
+.lesson-index-col.is-locked { opacity: 1; }
 .lesson-index-sym { font-size: 1.6rem; line-height: 1.2; }
-.lesson-index-words { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: #6b6b6b; }
+.lesson-index-words { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: #4a4a4a; }
 @media (max-width: 700px) {
   .lesson-index { margin-top: 20px; gap: 20px; }
   .lesson-index-btn { gap: 6px; padding: 10px 8px; }
