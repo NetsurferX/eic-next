@@ -1851,17 +1851,17 @@ export default function LearnPage() {
               />
               <Mascot state="cheering" size={64} className="level-overlay-mascot" />
             </div>
-            <p className="level-overlay-title">🏆 Nivelul {levelIndex + 1}</p>
-            <p className="level-overlay-sub">
-              {nextLevel ? <>Se deschide <strong>Nivelul {levelIndex + 2}</strong></> : 'Ai finalizat tot EiC — felicitări!'}
-            </p>
-            <button
-              className="level-overlay-btn"
-              onClick={handleMainButton}
-              style={{ background: nextLevel ? nextLevel.lessons[0].color : '#FFB300' }}
-            >
-              {nextLevel ? `Spre Nivelul ${levelIndex + 2} →` : '🎉 Minunat!'}
-            </button>
+            <div className="level-overlay-actions">
+              <span className="level-overlay-cup-mini" aria-hidden="true">🏆</span>
+              <button
+                className="level-overlay-btn"
+                onClick={handleMainButton}
+                aria-label={nextLevel ? `Spre Nivelul ${levelIndex + 2}` : 'Gata'}
+                style={{ background: nextLevel ? nextLevel.lessons[0].color : '#FFB300' }}
+              >
+                {nextLevel ? 'Level' : '🎉'}
+              </button>
+            </div>
           </div>
         </div>
       )}
