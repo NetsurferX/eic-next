@@ -16,6 +16,8 @@ interface Props {
   flatSimple?: boolean
   blackD?: boolean
   pulseRange?: [number, number]
+  //  pulseKeep — cu pulseRange: nodurile din interval își păstrează culorile (nu devin neutre) și primesc clasa `eic-pulse-keep`.
+  pulseKeep?: boolean
 }
 
 // ── Tricolor (/əʊ/) vertical-gradient calibration ──────────────────────────
@@ -23,7 +25,7 @@ interface Props {
 // /learn page's hand-curated "ou" column can share the exact same
 // calibration instead of re-deriving its own copy.
 
-export default function WordRenderer({ nodes, wordStr, flatSimple = false, blackD = false, pulseRange }: Props) {
+export default function WordRenderer({ nodes, wordStr, flatSimple = false, blackD = false, pulseRange, pulseKeep = false }: Props) {
   // NOTE: split out + traced (each step reports to /debug/graph's live
   // view via pipelineTrace.ts) at Dorel's explicit request. Purely
   // additive — same three calls, same order, same output as before;
@@ -54,7 +56,7 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, black
           ? d0.gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0]
           : undefined
         const inPulse = !!pulseRange && offsets[i] < pulseRange[1] && offsets[i] + d0.t.length > pulseRange[0]
-        const d = inPulse
+        const d = inPulse && !pulseKeep
           ? { ...d0, gradient: false, gradientCss: undefined, perLetterGradient: false, color: '#333', underline: false, offglideColor: undefined }
           : flatHex ? { ...d0, gradient: false, gradientCss: undefined, color: flatHex } : d0
 
@@ -116,7 +118,7 @@ export default function WordRenderer({ nodes, wordStr, flatSimple = false, black
           d.syllabicVR ? 'eic-syllabic-vr' : '',
           d.underline  ? 'eic-stressed'    : '',
           d.mute       ? 'eic-silent'      : '',
-          inPulse      ? 'eic-pulse'       : '',
+          inPulse      ? (pulseKeep ? 'eic-pulse-keep' : 'eic-pulse') : '',
         ].filter(Boolean).join(' ')
 
         return (

@@ -1823,8 +1823,15 @@ export default function LearnPage() {
         <div className="sound-intro-overlay" role="dialog" aria-modal="true" aria-label={`Cum sună ${introLesson.letter}`}>
           <OnboardingSoundIntro
             phoneme={symbolView(introLesson).text}
-            exampleWord={introExample.text}
-            exampleMark={introExample.mark}
+            words={
+              introLesson.id === 'gh-ph-f'
+                // f: laugh (gh) deasupra, alphabet (ph) dedesubt — randate cu motorul real; gh/ph aliniate sub simbol
+                ? ['laugh', 'alphabet'].map(t => {
+                    const w = introLesson.words.find(x => x.text === t) ?? introLesson.words[0]
+                    return { text: w.text, mark: w.mark, nodes: wordNodes[w.text.toLowerCase()], accent: resolveAccent(w, introLesson) }
+                  })
+                : [{ text: introExample.text, mark: introExample.mark }]
+            }
             matchWord={introLesson.matchWord}
             color={introLesson.color}
             accent={resolveAccent(introExample, introLesson)}

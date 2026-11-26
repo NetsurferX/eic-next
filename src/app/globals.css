@@ -3868,3 +3868,11 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 /* overlay nivel finalizat: cupa mică lângă buton, fără text */
 .level-overlay-actions { display: flex; align-items: center; justify-content: center; gap: .75rem; margin-top: 1rem; }
 .level-overlay-cup-mini { font-size: 2.2rem; line-height: 1; }
+
+/* sunet nou — cuvinte multiple, litere-țintă subțiri până la absorbție */
+.sound-flow-words { display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-bottom: 1.4rem; }
+.sound-flow-words .sound-flow-word { margin-bottom: 0; }
+.sound-flow-wordwrap { display: inline-block; }
+.sound-flow-wordwrap .eic-pulse, .sound-flow-wordwrap .eic-pulse-keep { display: inline-block; transform-origin: center; }
+.sound-flow-wordwrap .eic-pulse { font-weight: 300; }
+.sound-flow-wordwrap.is-neutral .eic-pulse { color: inherit !important; }
