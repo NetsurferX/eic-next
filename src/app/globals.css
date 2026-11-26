@@ -3400,7 +3400,7 @@ button, textarea, input { font-family: var(--font-sans); }
   from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
   to   { opacity: 1; transform: translateY(-50%) translateX(0); }
 }
-/* Tabel mic de variante grafice (sh → ŝ t̂ ŝŝ ĉ) lângă simbolul activat */
+/* Variante grafice lângă simbolul activat; gz are glife în pătrățele mici. */
 .lesson-letter-variants {
   position: absolute;
   left: calc(100% + 10px);
@@ -3427,6 +3427,20 @@ button, textarea, input { font-family: var(--font-sans); }
   text-align: center;
   opacity: 0;
   animation: lesson-variant-pop .28s ease-out forwards;
+}
+.lesson-letter-variant-square {
+  width: 69%;
+  min-width: 1.5em;
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 2px 4px;
+  font-size: .72rem;
+  line-height: 1.15;
+  box-sizing: content-box;
 }
 @keyframes lesson-variant-pop {
   from { opacity: 0; transform: scale(0.7) translateX(-4px); }
