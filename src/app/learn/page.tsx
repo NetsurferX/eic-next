@@ -302,7 +302,7 @@ const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
 // Cheie = lesson.id. Valorile = glifele (cu diacritice) care scriu același sunet.
 const HEAD_SYMBOL_VARIANTS: Record<string, string[]> = {
   // d-hat rămâne pe HEAD_SYMBOL_ALIAS („= đ”); aici doar coloanele cu mai multe variante
-  sh: ['ŝ', 't̂', 'ŝŝ', 'ĉ'],  // s, t, ss, c cu circumflex (sugar / nation / mission / chef)
+  sh: ['ŝ', 'ṫ', 'ŝŝ', 'ĉ'],  // s cu circumflex, t cu punct, ss, c cu circumflex
 }
 const HEAD_EQ_VISIBLE_MS = 2800
 
