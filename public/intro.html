@@ -23,11 +23,13 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,sans-serif
 @keyframes bob{50%{transform:scaleY(1.012)}}
 @keyframes hop{40%{transform:translateY(-8%)}}
 #words:empty{display:none}
+#cube.pulse{animation:pulse .6s}
+@keyframes pulse{50%{transform:scale(1.35)}}
 #words{position:absolute;left:37%;bottom:13%;display:flex;flex-direction:column;gap:calc(var(--k)*.12);padding:calc(var(--k)*.22) calc(var(--k)*.3) calc(var(--k)*.08);margin-left:calc(var(--k)*-.3);z-index:1}
 #words::before{content:"";position:absolute;inset:calc(var(--k)*-.7) calc(var(--k)*-1) calc(var(--k)*-.4);z-index:-1;pointer-events:none;background:#ffffff00;backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);transition:backdrop-filter 1.4s ease,-webkit-backdrop-filter 1.4s ease;-webkit-mask-image:linear-gradient(to right,transparent,#000 24%,#000 76%,transparent),linear-gradient(to bottom,transparent,#000 26%,#000 80%,transparent);mask-image:linear-gradient(to right,transparent,#000 24%,#000 76%,transparent),linear-gradient(to bottom,transparent,#000 26%,#000 80%,transparent);-webkit-mask-composite:source-in;mask-composite:intersect}
 #words.show::before{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.w{display:flex;gap:calc(var(--k)*.05);padding:3px;border-radius:12px}
-.w.hl{}
+.w{display:flex;gap:calc(var(--k)*.05);padding:3px;border-radius:12px;transition:transform .25s ease}
+.w.hl{transform:scale(1.1);transform-origin:left}
 .k{width:var(--k);height:var(--k);display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #000;border-radius:10px;font:700 calc(var(--k)*.64)/1 Georgia,serif;color:#2b3a4d;opacity:0}
 .w.on .k{opacity:1}
 .k.t.lit{color:#1fa83a}
@@ -144,7 +146,7 @@ async function letterScene(list,letter,sound,play,cls=""){
   const place=(x,y,w,ms)=>{cube.style.transition="left "+ms+"ms ease-in-out,top "+ms+"ms ease-in-out,width "+ms+"ms,font-size "+ms+"ms";cube.style.width=w+"px";cube.style.fontSize=w*.62+"px";cube.style.left=(x-w/2)+"px";cube.style.top=(y-w/2)+"px"};
   cube.className=cls;cube.textContent=letter;cube.style.zIndex=4;cube.style.opacity=1;
   place(cx,-W*.12,big,0);await sleep(60);place(cx,sr.height*.2,big,800);await sleep(900);   // apare sus
-  for(let i=0;i<3;i++){play();await sleep(1000)}   // micul joc
+  for(let i=0;i<3;i++){cube.classList.remove("pulse");void cube.offsetWidth;cube.classList.add("pulse");play();await sleep(1000)}   // micul joc
   hush();let ly=0;
   for(let r=0;r<rows.length;r++){                                             // coboară prin litere, colorându-le
     const rc=tg[r].map(e=>e.getBoundingClientRect()),t=rc[0],rx=rc.reduce((s,q)=>s+q.left+q.width/2,0)/rc.length-sr.left;ly=t.top+t.height/2-sr.top;
