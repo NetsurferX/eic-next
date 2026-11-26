@@ -1821,6 +1821,7 @@ export default function LearnPage() {
             phoneme={introLesson.letter}
             exampleWord={introExample.text}
             exampleMark={introExample.mark}
+            matchWord={introLesson.matchWord}
             color={introLesson.color}
             accent={resolveAccent(introExample, introLesson)}
             onComplete={handleIntroComplete}
