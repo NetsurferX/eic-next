@@ -293,8 +293,8 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
    într-un singur loc, ca cele două reprezentări să nu divergă. */
 // Simbolul din CAPUL coloanei poate fi altul decât simbolul lecției: la coloana „đ" (-ed → /t/) capul
 // arată „t". La activare (ritual / click) apare în dreapta un tabel mic cu variantele grafice
-// care corespund sunetului (ex. sh → ŝ, t̂, ŝŝ, ĉ). Doar capul coloanei; restul (bara, jocuri) rămâne
-// cu simbolul lecției.
+// care corespund sunetului (ex. sh → ŝ, ṫ, ŝŝ, ĉ). Capul coloanei + butoane = simbol de BAZĂ
+// (sh, z, gz…); variantele doar în acest tabel la activare.
 const HEAD_SYMBOL_ALIAS: Record<string, { show: string; eq: string }> = {
   'd-hat': { show: 't', eq: 'đ' },
 }

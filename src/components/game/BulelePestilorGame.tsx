@@ -166,7 +166,7 @@ const isVowelLike = (ch: string) => /[aeiouwy]/i.test(ch)
 function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: number } {
   const sv = symbolView(lesson)
   // gh/ph: butonul e „f”, dar peștele poartă „ph”/„gh” (după cuvântul lui)
-  // sh: ŝ implicit (s cu circumflex); alternativ ṫ (t cu punct) când scrierea e ti/ci/si
+  // sh: bază „sh” pe buton/cap; pe pește: ṫ (t cu PUNCT, nu circumflex) pt ti/ci/si; ŝ pt s
   let txt = lesson.id === 'gh-ph-f' && word ? word.mark : sv.text
   if (lesson.id === 'sh' && word) {
     const m = word.mark.toLowerCase()

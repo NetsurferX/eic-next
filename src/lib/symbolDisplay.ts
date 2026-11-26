@@ -28,12 +28,14 @@ const TEXT_BY_ID: Record<string, string> = {
   u: 'u',
   ou: 'ə\u200Dw',          // schwa + U+200D (SYLLABIC_MARKER) + w — ca la əʊ
   oi: 'ỷ',                 // oɪ → ỷ (dacă vrei „oỷ”, schimbă aici)
-  // Coloana /ʃ/: simbol principal ŝ (s cu circumflex); alternativ ṫ (t cu punct)
-  // pentru cazurile ti→ʃ (nation). Pe pește / buton / bulă se arată ŝ.
-  sh: 'ŝ',
+  // Simboluri de BAZĂ pe butoane / cap de coloană (nu diacriticele din cuvinte).
+  // Variantele (ŝ, ṫ, ṡ, x̊…) apar doar în tabelul de la activarea simbolului și în motor.
+  sh: 'sh',
   ch: 'ch',
   dj: 'j',
-  th: 'tɦ',
+  th: 'th',
+  'dot-z': 'z',            // nu ṡ
+  'ring-gz': 'gz',         // nu x̊
   'syllabic-lm': 'ə+',     // schwa cu plus
   'gh-ph-f': 'f',          // butonul/bula arată „f”; doar peștele poartă gh/ph (vezi fishLabelFor)
 }
