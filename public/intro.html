@@ -104,7 +104,9 @@ const POSES={"idle": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQQAAAEECAYA
 const WORDS=[["f","a","rm"],["s","o","n"],["b","u","g"]];       // litera din mijloc se luminează
 const E_WORDS=[["b","e","d"],["h","ea","d"],["s","ai","d"]];                                               // ex: [["b","e","d"],["m","e","n"],["p","e","n"]]; null = scena „e” se sare
 const SLOGAN="Let’s make English easy";
-const SITE=(function(){try{var s=sessionStorage.getItem("eic_after_intro");if(s&&s.charAt(0)==="/"&&s.charAt(1)!=="/"&&s.indexOf("/intro.html")!==0)return s}catch(e){}return "/"})();   // după animație → pagina pe care voia utilizatorul (implicit poarta)
+let SITE=(function(){try{var s=sessionStorage.getItem("eic_after_intro");if(s&&s.charAt(0)==="/"&&s.charAt(1)!=="/"&&s.indexOf("/intro.html")!==0)return s}catch(e){}return "/"})();
+// dacă adresa salvată (eic_after_intro) nu mai există (404), „Sari peste" / „Go to" duc la pagina principală
+try{fetch(SITE,{method:"HEAD",credentials:"same-origin"}).then(function(r){if(r.status===404||r.status===410)SITE="/"}).catch(function(){})}catch(e){}   // după animație → pagina pe care voia utilizatorul (implicit poarta)
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const fox=$("fox"),words=$("words"),cube=$("cube"),curtain=$("curtain"),bubble=$("bubble"),board=$("board"),fade=$("fade");
 fox.src=POSES.front;let poseT=0;
