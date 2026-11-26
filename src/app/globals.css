@@ -3001,6 +3001,24 @@ button, textarea, input { font-family: var(--font-sans); }
   transform: translate(-50%, -50%) scale(0.311); /* 56px / 180px */
   opacity: 0;
 }
+/* ── Tumb: la intro, vulpea se dă peste cap o dată, înainte să zboare spre medalion.
+   Se aplică pe `.mascot-fox-visual` (fără alte transformări), NU pe containerul
+   `.mascot-intro-fox` (a cărui transformare e folosită pentru zbor) și NU pe
+   întreaga mascotă (ar roti și balonul „Salut, sînt Aik"). Durata totală de
+   „stat" e HOLD_MS din MascotIntro.tsx — delay + durata tumbului trebuie să încapă în ea. ── */
+.mascot-intro-fox:not(.flying) .mascot-fox-visual {
+  transform-origin: 50% 58%;
+  animation: mascot-intro-flip 650ms cubic-bezier(.45, .05, .35, 1) 250ms both;
+  will-change: transform;
+}
+@keyframes mascot-intro-flip {
+  0%   { transform: translateY(0) rotate(0deg) scale(1, 1); }
+  14%  { transform: translateY(6px) rotate(0deg) scale(1.06, .92); }   /* se ghemuiește */
+  55%  { transform: translateY(-38px) rotate(-200deg) scale(1, 1); }   /* sare și se rotește */
+  86%  { transform: translateY(0) rotate(-360deg) scale(1, 1); }       /* aterizează */
+  93%  { transform: translateY(3px) rotate(-360deg) scale(1.05, .94); }/* amortizare */
+  100% { transform: translateY(0) rotate(-360deg) scale(1, 1); }
+}
 @media (max-width: 720px) {
   /* 100% - 12px offset - 24px (jumătate din avatarul-țintă de 48px) */
   .mascot-intro-fox.flying {
