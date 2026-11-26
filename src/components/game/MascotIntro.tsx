@@ -66,7 +66,7 @@ export function MascotIntro({ onComplete }: { onComplete: () => void }) {
         } as CSSProperties}
       >
         <Mascot
-          state={phase === 'enter' ? 'cheering' : 'idle'}
+          state="cheering"   // aceeași poză pe tot intro-ul — fără schimbare de cadru (și de orientare) la zbor
           size={MASCOT_SIZE}
           message={phase === 'enter' && !seenBefore ? 'Salut, sînt Aik 🦊' : null}   // fără „Bine ai revenit" la reveniri
         />
