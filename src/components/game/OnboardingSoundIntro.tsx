@@ -36,6 +36,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, exampleMark, color,
   const [symPulse, setSymPulse] = useState(0)      // key — repornește animația de puls a simbolului
   const [markPulse, setMarkPulse] = useState(0)    // key — idem pentru litera din cuvânt
   const [absorbed, setAbsorbed] = useState(false)  // litera devine colorată după absorbție
+  const [wordSpeaking, setWordSpeaking] = useState(false)  // cuvântul e mărit cât timp se aude
 
   const cardRef = useRef<HTMLDivElement>(null)
   const symRef = useRef<HTMLSpanElement>(null)
@@ -85,7 +86,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, exampleMark, color,
     }
 
     const run = async () => {
-      setPhase('sound'); setSymPulse(0); setMarkPulse(0); setAbsorbed(false)
+      setPhase('sound'); setSymPulse(0); setMarkPulse(0); setAbsorbed(false); setWordSpeaking(false)
       await sleep(START_DELAY_MS)
 
       // 1. sunetul izolat ×3, simbolul pulsează
@@ -109,8 +110,9 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, exampleMark, color,
       // 3. cuvântul ×3, simbol + literă pulsează în ritm
       setPhase('word')
       for (let r = 0; r < REPS; r++) {
-        await say(exampleWord, () => { setSymPulse(t => t + 1); setMarkPulse(t => t + 1) })
+        await say(exampleWord, () => { setSymPulse(t => t + 1); setMarkPulse(t => t + 1); setWordSpeaking(true) })
         if (cancelled) return
+        setWordSpeaking(false)   // redarea s-a terminat → cuvântul revine la mărimea normală
         await sleep(GAP_MS)
       }
       if (!cancelled) setPhase('done')
@@ -141,7 +143,7 @@ export function OnboardingSoundIntro({ phoneme, exampleWord, exampleMark, color,
         {ringify(phoneme)}
       </span>
 
-      <p className="sound-intro-word sound-flow-word">
+      <p className={`sound-intro-word sound-flow-word${wordSpeaking ? ' is-speaking' : ''}`}>
         {hasMark ? (
           <>
             {exampleWord.slice(0, i)}

@@ -3840,7 +3840,14 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 /* ── OnboardingSoundIntro — ecran unic: simbol pulsează → pătrat curge în literă → cuvânt ×3 ── */
 .sound-intro-card--flow { position: relative; }
 .sound-flow-phoneme { display: inline-block; font-size: 4rem; margin-bottom: 1.6rem; }
-.sound-flow-word { margin-bottom: 1.6rem; font-size: 1.8rem; }
+.sound-flow-word {
+  margin-bottom: 1.6rem; font-size: 1.8rem;
+  transform-origin: center;
+  transition: transform 260ms cubic-bezier(.2,1.4,.4,1);
+}
+/* cuvântul rămâne mărit cât timp e rostit, apoi revine la mărimea normală */
+.sound-flow-word.is-speaking { transform: scale(1.3); }
+@media (prefers-reduced-motion: reduce) { .sound-flow-word { transition: none; } }
 .sound-flow-mark { display: inline-block; transition: color .25s; }
 .sound-flow-phoneme.is-pulsing, .sound-flow-mark.is-pulsing { animation: sound-flow-pulse 520ms ease-in-out; }
 .sound-flow-square {
