@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { speakWord, type Accent } from '@/lib/speak'
 import type { Lesson } from '@/lib/levels'
 // Actualizare (2026-10-02): jocul montat e varianta cu pești. Revenire la baloane =
@@ -224,21 +224,21 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
 
     // 1) Vulpea arată fiecare vocală (se umflă) și te îndeamnă s-o spui.
     setSay('Look! I point at each vowel — then you say it.')
-    await wait(2400); if (!alive()) return
+    await wait(800); if (!alive()) return
     let n = 0
     for (const s of VOWELS) {
       if (!alive()) return
       setActive(s.idx)
       if (s.v!.silent) {
         setSay('Shhh… silent e! We do not say it.')
-        await wait(2800)
+        await wait(930)
       } else {
         setSay(`Listen: ${s.v!.say}`)
-        await wait(600); if (!alive()) return
+        await wait(200); if (!alive()) return
         await until(speakWord(s.v!.key, { accent: s.v!.accent }), 3500)
         if (!alive()) return
         setSay(`${CHEERS[n++ % CHEERS.length]} Say ${s.v!.say}`)
-        await wait(2200)
+        await wait(730)
       }
     }
     if (!alive()) return
@@ -246,7 +246,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
     // 2) O dată rar, pe vocale: cuvânt cu cuvânt, vocalele se aprind pe rând.
     setActive(null)
     setSay('Now we read slowly — vowel by vowel.')
-    await wait(2400)
+    await wait(800)
     for (let wi = 0; wi < CHALLENGE.length; wi++) {
       if (!alive()) return
       const w = CHALLENGE[wi]
@@ -255,7 +255,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
       for (const sg of w.segs) {
         if (sg.idx < 0) continue
         setActive(sg.idx)
-        await wait(700)
+        await wait(233)
         if (!alive()) return
       }
       await until(h, 3000)
@@ -267,9 +267,17 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
     // 3) O dată complet, toată propoziția.
     setSay('And now the whole sentence!')
     setAllLit(true)
-    await wait(1500); if (!alive()) return
-    await until(speakWord(FULL_SENTENCE), 6000)
+    await wait(500); if (!alive()) return
+    const hs = speakWord(FULL_SENTENCE)
+    for (let wi = 0; wi < CHALLENGE.length; wi++) {
+      if (!alive()) return
+      setWordLit(null); await wait(30)          // repornește animația „umflă–desumflă”
+      setWordLit(wi)
+      await wait(450)
+    }
+    await until(hs, 6000)
     if (!alive()) return
+    setWordLit(null); setAllLit(false)
     setSay('Great reading! 🎉')
     setDone(true)
   }, [])
@@ -305,21 +313,23 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
         )}
         <p className="read-challenge-sentence" aria-label={FULL_SENTENCE}>
           {CHALLENGE.map((word, wi) => (
-            <span key={wi} className={`read-challenge-word${wordLit === wi ? ' is-lit' : ''}`}>
+            <Fragment key={wi}>
+            <span className={`read-challenge-word${wordLit === wi ? ' is-lit' : ''}`}>
               {word.segs.map((sg, si) =>
                 sg.idx >= 0 ? (
                   <span
                     key={si}
                     ref={el => { vowelEls.current[sg.idx] = el }}
                     className={`rc-vowel${active === sg.idx ? ' is-on' : ''}${allLit ? ' is-all' : ''}`}
-                    style={{ color: sg.c }}
+                    style={sg.c === C_GREEN ? { color: sg.c, textDecoration: 'underline', textDecorationColor: sg.c, textDecorationThickness: '.08em', textUnderlineOffset: '.12em' } : { color: sg.c }}
                   >{sg.t}</span>
                 ) : (
                   <span key={si} style={{ color: sg.c }}>{sg.t}</span>
                 )
               )}
-              {wi === CHALLENGE.length - 1 ? '.' : ' '}
             </span>
+            {wi === CHALLENGE.length - 1 ? '.' : ' '}
+            </Fragment>
           ))}
         </p>
       </div>
