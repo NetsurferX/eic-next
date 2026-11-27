@@ -3947,13 +3947,16 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
   50%  { transform: scale(1.3); }
   100% { transform: scale(1); }
 }
-/* vocala activă se umflă și se desumflă în același ritm (aceeași durată și curbă) */
+/* Challenge: vocala indicată de vulpe se ridică și revine, fără să se mărească. */
 .rc-vowel {
   display: inline-block; position: relative;
-  transition: transform 350ms ease-in-out;
 }
-.rc-vowel.is-on { transform: scale(1.8) translateY(-.05em); z-index: 3; }
+.rc-vowel.is-on { animation: rc-vowel-lift 700ms ease-in-out; z-index: 3; }
+@keyframes rc-vowel-lift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.38em); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .rc-vowel { transition: none; }
+  .rc-vowel.is-on { animation: none; }
   .read-challenge-word.is-lit { animation: none; }
 }
