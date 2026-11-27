@@ -3896,3 +3896,14 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
   color: #fff; font-family: var(--font-sans); font-weight: 700; font-size: 15px;
   box-shadow: 0 4px 14px rgba(0,0,0,.35);
 }
+
+/* Coloane în așteptare (cardurile „Lesson N" de sub coloana activă = .lesson-col-preview, plus cele blocate):
+   sublinierea stă mai aproape de baza literelor. Suprascrie offset-urile puse inline de WordRenderer (6px)
+   și MarkedWord/StyledWaWord (4.7px), precum și clasa .lesson-word-mark-underline. Ajustabil din variabilă. */
+.lesson-col.lesson-col-preview, .lesson-col.is-locked { --waiting-underline-offset: 2px; }
+.lesson-col.lesson-col-preview .lesson-word [style*="text-underline-offset"],
+.lesson-col.is-locked .lesson-word [style*="text-underline-offset"],
+.lesson-col.lesson-col-preview .lesson-word .lesson-word-mark-underline,
+.lesson-col.is-locked .lesson-word .lesson-word-mark-underline {
+  text-underline-offset: var(--waiting-underline-offset) !important;
+}
