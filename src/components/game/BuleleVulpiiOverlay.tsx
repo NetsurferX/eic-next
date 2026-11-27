@@ -45,14 +45,14 @@ export function BuleleVulpiiOverlay({
   const [result, setResult] = useState<BulelePestilorResult | null>(null)
   const [closing, setClosing] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
-  // După jocul cu pești la coloana „a”, apare cardul „Challenge - Read with EiC”.
+  // După jocul cu pești la coloana „i”, apare cardul „Challenge - Read with EiC”.
   const [challenge, setChallenge] = useState(false)
 
   // Închide cu un fade scurt (nu instant) — folosit la sfârșitul jocului,
   // la „Sari peste" și la „Ieși" din joc, ca revenirea în /learn să nu
   // fie un pop brusc.
   function closeAndFinish() {
-    if (config.lesson.id === 'a' && !challenge) {
+    if (config.lesson.id === 'i' && !challenge) {
       setChallenge(true)
       return
     }
@@ -144,7 +144,7 @@ export function BuleleVulpiiOverlay({
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Card „Challenge - Read with EiC” (după jocul cu pești la coloana „a”).
+// Card „Challenge - Read with EiC” (după jocul cu pești la coloana „i”).
 // Propoziția e colorată literă cu literă, ca în codul EiC: e roșu (i),
 // e portocaliu, „ou” roz (ɔ), o verde (ʌ), e gri (mut), y roșu (i),
 // a albastru (æ, ca la „cat”). Consoanele rămân negre.
