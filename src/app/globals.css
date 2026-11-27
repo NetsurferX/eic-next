@@ -3901,9 +3901,10 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
    (.lesson-col-preview), coloanele blocate și cele deblocate dar neactive din grila principală.
    Sublinierea stă mai aproape de baza literelor: suprascrie offset-urile puse inline de WordRenderer (6px)
    și MarkedWord/StyledWaWord (4.7px), precum și clasa .lesson-word-mark-underline.
-   Valoarea e în em, ca să urmeze mărimea textului (13px în carduri → ~2px, 27px în grilă → ~4px).
+   Valoarea e în em, ca să urmeze mărimea textului. NB: offset-ul se adaugă la poziția implicită a liniuței din font
+   (0 = suprapusă pe baza literelor, deci invizibilă); .04em e cea mai strânsă valoare la care liniuța rămâne vizibilă (~.5px la 13px).
    Coloana activă rămâne neschimbată. Ajustabil din variabilă. */
-.lesson-col:not(.is-active) { --waiting-underline-offset: .14em; }
+.lesson-col:not(.is-active) { --waiting-underline-offset: .04em; }
 .lesson-col:not(.is-active) .lesson-word [style*="text-underline-offset"],
 .lesson-col:not(.is-active) .lesson-word .lesson-word-mark-underline {
   text-underline-offset: var(--waiting-underline-offset) !important;
