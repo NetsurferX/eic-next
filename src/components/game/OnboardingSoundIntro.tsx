@@ -14,6 +14,7 @@ export interface DemoWord {
   mark?: string          // substring-ul care poartă sunetul (ex. 'u' în 'bug', 'gh' în 'laugh')
   nodes?: RenderNode[]   // dacă există: cuvântul se randează cu motorul real (culori, subliniere); mark-ul e subțire până la absorbție
   accent?: Accent        // override de accent pentru acest cuvânt
+  markAfter?: string     // cum se scrie mark-ul DUPĂ absorbție (ex. y → ỷ la coloana oi)
   leadColor?: string     // vocalele (a,e,i,o,u,w,y) lipite chiar înaintea mark-ului au culoarea asta de la început (ex. o roz în „boy", unde ținta e doar y)
 }
 
@@ -240,7 +241,7 @@ export function OnboardingSoundIntro({ phoneme, words, color, bands, matchWord, 
                   <>
                     {leadSplit(w.text.slice(0, i), w.leadColor)}
                     <span data-mark className="sound-flow-mark" style={absorbed && !bands ? { color } : undefined}>
-                      {bands
+                      {absorbed && w.markAfter ? w.markAfter : bands
                         // fiecare literă-vocală își ia propriul ciclu tricolor complet (ca MarkedWord din /learn)
                         ? [...w.mark!].map((ch, k) => (
                             <span key={k} style={absorbed && /[aeiouwy]/i.test(ch) ? tricolorLetterStyle(2, 1, bands) : undefined}>{ch}</span>

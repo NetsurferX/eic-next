@@ -314,6 +314,10 @@ export function BulelePestilorGame({
   const [announceWord, setAnnounceWord] = useState<string | null>(null)   // nivelul 3: și cuvântul, în bulă
   const [buzzId, setBuzzId] = useState<string | null>(null)       // butonul care „protestează” (răspuns greșit)
   const [sharkApproaching, setSharkApproaching] = useState(false)
+  // Rechinul traversează scena pe lângă pește (de la dreapta la stânga) și fură literele-țintă când ajunge la ele;
+  // apoi își continuă drumul până iese din scenă (de aceea are stare proprie după mușcătură).
+  const [sharkLeaving, setSharkLeaving] = useState(false)
+  const [sharkSpec, setSharkSpec] = useState<{ id: number; top: number; start: number; end: number; dur: number } | null>(null)
   const sharkTimers = useRef<number[]>([])
 
   const stageRef = useRef<HTMLDivElement>(null)
@@ -403,6 +407,7 @@ export function BulelePestilorGame({
     sharkTimers.current.forEach(t => window.clearTimeout(t))
     sharkTimers.current = []
     setSharkApproaching(false)
+    setSharkLeaving(false)
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const q = buildQueue(currentGroup, distractorGroups, nextGroup)
     queueRef.current = q
@@ -508,17 +513,29 @@ export function BulelePestilorGame({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fish?.id, paused, fish?.state])
 
-  // ── Nivelul 3: peștele apare în centru, stă 3,5 s; apoi rechinul are 3 s să-l ajungă. ──
+  // ── Nivelul 3: peștele apare în centru, stă 3,5 s; apoi rechinul trece pe lângă el și, în 3 s, ajunge la
+  //    literele-țintă (cele subțiri care oscilează) și le fură; peștele rămâne fără ele și dispare. ──
   useEffect(() => {
     if (level !== 3 || !fish || fish.state !== 'swimming' || paused) return
     const fishId = fish.id
     const startShark = window.setTimeout(() => {
+      // Unde stau literele-țintă pe etichetă (aprox.): centrul etichetei + poziția grupului în cuvânt.
+      const W = stageRef.current?.clientWidth ?? 680
+      const text = fish.word.text, n = Math.max(text.length, 1)
+      const idx = Math.max(text.toLowerCase().indexOf(fish.word.mark.toLowerCase()), 0)
+      const textUnits = Math.min(26 * (0.65 + LABEL.ls) * n, LABEL.w - 2)            // lățimea textului, în unități viewBox
+      const labelCenter = W / 2 + ((LABEL.x + LABEL.w / 2 - 50) / 100) * FISH_W        // centrul etichetei, în px
+      const lettersX = labelCenter + (((idx + fish.word.mark.length / 2) / n) - 0.5) * (textUnits * FISH_W / 100)
+      const startX = W + 10, endX = -90, biteX = lettersX - 10                          // 10 px = botul rechinului față de marginea stângă
+      const dur = Math.round(3000 * (startX - endX) / Math.max(startX - biteX, 1))      // la 3000 ms ajunge exact la litere
+      setSharkSpec({ id: fishId, top: fish.y - 24, start: startX, end: endX, dur })
       setSharkApproaching(true)
       const eat = window.setTimeout(() => {
         setFish(prev => prev && prev.id === fishId && prev.state === 'swimming'
           ? { ...prev, state: 'miss' }
           : prev)
-        window.setTimeout(() => setSharkApproaching(false), 350)
+        setSharkApproaching(false)
+        setSharkLeaving(true)   // rechinul își continuă drumul spre stânga, pe lângă pește
       }, 3000)
       sharkTimers.current.push(eat)
     }, 3500)
@@ -669,6 +686,7 @@ export function BulelePestilorGame({
     sharkTimers.current.forEach(t => window.clearTimeout(t))
     sharkTimers.current = []
     setSharkApproaching(false)
+    setSharkLeaving(false)
     scoreRef.current += fish.group.kind === 'next' ? 2 : 1
     setScore(scoreRef.current)
     correctRef.current += 1
@@ -952,13 +970,14 @@ export function BulelePestilorGame({
           return (
             <div
               ref={swimElRef}
+              className={fish.state === 'miss' && level === 3 ? 'pf-robbed' : undefined}
               style={{
                 position: 'absolute', left: 0, top: 0, willChange: 'transform', zIndex: 2,
                 transform: level === 3
                   ? `translate3d(${(W / 2).toFixed(1)}px, ${fish.y.toFixed(1)}px, 0) translate(-50%,-50%)`
                   : swimTransform(fish, progressRef.current, W),
                 animation: fish.state === 'miss'
-                  ? (level === 3 ? 'pf-eaten 350ms ease-in forwards' : `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards`)
+                  ? (level === 3 ? 'pf-robbed-away 400ms ease-in 250ms forwards' : `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards`)
                   : undefined,
                 ['--flip' as string]: fish.dir ?? 1,
               }}
@@ -973,11 +992,18 @@ export function BulelePestilorGame({
             </div>
           )
         })()}
-        {level === 3 && sharkApproaching && fish?.state === 'swimming' && !pull && (
+        {level === 3 && sharkSpec && ((sharkApproaching && fish?.state === 'swimming' && !pull) || sharkLeaving) && (
           <div
+            key={sharkSpec.id}
             aria-hidden="true"
             className="pf-shark-approach"
-            style={{ top: fish.y - 24, ['--shark-start' as string]: `${(stageRef.current?.clientWidth ?? 680) / 2 + 100}px` } as CSSProperties}
+            onAnimationEnd={() => setSharkLeaving(false)}
+            style={{
+              top: sharkSpec.top,   // înălțime fixă: rămâne la nivelul peștelui și după ce acesta dispare
+              ['--shark-start' as string]: `${sharkSpec.start}px`,
+              ['--shark-end' as string]: `${sharkSpec.end}px`,
+              ['--shark-dur' as string]: `${sharkSpec.dur}ms`,
+            } as CSSProperties}
           >
             🦈
           </div>
@@ -1075,8 +1101,11 @@ export function BulelePestilorGame({
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
         @keyframes pf-away-l { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: -70px } }
         @keyframes pf-eaten { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(5px); } }
-        @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(-50%); } }
-        .pf-shark-approach { position: absolute; left: 50%; z-index: 4; font-size: 58px; line-height: 1; pointer-events: none; animation: pf-shark-approach 3s linear forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+        @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(var(--shark-end)); } }
+        .pf-shark-approach { position: absolute; left: 0; z-index: 4; font-size: 58px; line-height: 1; pointer-events: none; animation: pf-shark-approach var(--shark-dur, 6000ms) linear forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+        @keyframes pf-robbed-away { 0% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes pf-stolen { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateX(-12px) scale(.15); } }
+        .pf-robbed .eic-pulse { animation: pf-stolen 220ms ease-in forwards; }
         @keyframes pf-pop { 0% { transform: scale(.3); opacity: 0 } 70% { transform: scale(1.2); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
         @keyframes pf-tailpop { 0% { transform: translateY(14px); opacity: 0 } 60% { transform: translateY(-3px); opacity: 1 } 100% { transform: translateY(0); opacity: 1 } }
         .pf-tailpop { animation: pf-tailpop 400ms ease-out; }

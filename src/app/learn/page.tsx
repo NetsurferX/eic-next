@@ -1931,7 +1931,7 @@ export default function LearnPage() {
                   })
                 : introLesson.id === 'oi'
                   // oi: ținta e doar offglide-ul (y/i) — vocala o rămâne roz (culoarea lui „o"), neatinsă de pătrat
-                  ? [{ text: introExample.text, mark: introExample.mark.slice(-1), leadColor: LEVELS.flatMap(l => l.lessons).find(x => x.id === 'o')?.color }]
+                  ? [{ text: introExample.text, mark: introExample.mark.slice(-1), markAfter: ({ y: 'ỷ', i: 'ỉ' } as Record<string, string>)[introExample.mark.slice(-1).toLowerCase()], leadColor: LEVELS.flatMap(l => l.lessons).find(x => x.id === 'o')?.color }]
                   : [{ text: introExample.text, mark: introExample.mark }]
             }
             matchWord={introLesson.matchWord}
