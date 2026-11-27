@@ -711,22 +711,15 @@ export function BulelePestilorGame({
     if (!fish || fish.state !== 'swimming' || pausedRef.current || heartsRef.current <= 0) return
     heartsRef.current -= 1
     setHearts(heartsRef.current)
-    // Ajutorul afișează mesajul vulpii și rostește pronunția lecției curente.
-    sayAnnouncement(fish.group.lesson, fish.word, level, () => !pausedRef.current)
-    setHelpMessage(
-      level === 1
-        ? 'Ascultă sunetul și alege butonul cu simbolul potrivit.'
-        : level === 2
-          ? 'Ascultă sunetul și alege simbolul. Peștele va primi culoarea lui.'
-          : 'Ascultă sunetul din cuvânt și alege simbolul potrivit.'
-    )
+    // Ajutorul păstrează mesajul standard al vulpii: simbolul lecției + pronunția lui.
+    speakWord(ttsWordFor(fish.group.lesson), { accent: fish.group.lesson.accent ?? 'en-US' })
+    setHelpMessage(null)
     setAnnounce(fish.group.lesson)
-    setAnnounceWord(level === 3 ? fish.word.text : null)
+    setAnnounceWord(null)
     later(() => {
-      setHelpMessage(null)
       setAnnounce(null)
       setAnnounceWord(null)
-    }, 3500)
+    }, 1400)
   }
 
   function togglePause() {
