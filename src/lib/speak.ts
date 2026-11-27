@@ -149,6 +149,7 @@ function playRecordedSample(src: string): { promise: Promise<void>; stop: () => 
 export interface SpeakOptions {
   onBoundary?: (charIndex: number, charLength: number) => void
   accent?: Accent   // implicit 'en-US' dacă lipsește
+  rate?: number     // viteza TTS; implicit 0.85 (mai mic = mai rar)
 }
 
 export function speakWord(word: string, options: SpeakOptions = {}): { promise: Promise<void>; stop: () => void } {
@@ -178,7 +179,7 @@ export function speakWord(word: string, options: SpeakOptions = {}): { promise: 
   const accent = options.accent ?? 'en-US'
   const utterance = new SpeechSynthesisUtterance(word)
   liveUtterance = utterance // see comment above — prevents the GC-drop bug
-  utterance.rate = 0.85
+  utterance.rate = options.rate ?? 0.85
   utterance.pitch = 1.0
   utterance.lang = accent
 

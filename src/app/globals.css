@@ -3911,13 +3911,44 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 }
 
 /* ── Card „Challenge - Read with EiC” (după jocul cu pești, coloana „a”) ── */
-.read-challenge-card { max-width: 520px; padding-top: 1rem; }
-.read-challenge-fox { display: block; margin: 0 auto .25rem; height: 140px; width: auto; }
+.read-challenge-card { max-width: 560px; padding-top: 1rem; }
+.read-challenge-say {
+  min-height: 2.6em; margin: .2rem 0 0;
+  font-family: var(--font-serif); font-style: italic; font-size: 1.05rem;
+  color: var(--color-text-secondary);
+}
+.read-challenge-stage { position: relative; padding: 0 .5rem; }
+.read-challenge-fox {
+  display: block; margin: 0 auto; height: 150px; width: auto;
+  transition: transform .3s ease;
+}
+.read-challenge-fox.is-flipped { transform: scaleX(-1); }
+/* bagheta: o linie rotită din laba vulpii spre vocală */
+.read-challenge-stick {
+  position: absolute; height: 5px; border-radius: 3px; z-index: 2; pointer-events: none;
+  background: linear-gradient(#c89a5b, #8a5a2b);
+  transform-origin: 0 50%;
+  transition: transform .45s ease, width .45s ease, left .3s ease, top .3s ease;
+}
+.read-challenge-stick::after {
+  content: ''; position: absolute; right: -4px; top: 50%; width: 11px; height: 11px;
+  border-radius: 50%; background: #CC0000; transform: translateY(-50%);
+}
 .read-challenge-sentence {
-  font-family: var(--font-serif);
-  font-size: clamp(1.8rem, 6vw, 2.6rem);
-  font-weight: 700;
-  line-height: 1.3;
-  margin: .6rem 0 .4rem;
+  position: relative; z-index: 1;
+  font-family: var(--font-serif); font-size: clamp(1.8rem, 6vw, 2.6rem);
+  font-weight: 700; line-height: 1.5; margin: 1.1rem 0 .6rem;
 }
 .read-challenge-word { white-space: nowrap; }
+.read-challenge-word.is-lit { background: rgba(255, 220, 120, .35); border-radius: .25em; }
+.rc-vowel {
+  display: inline-block; position: relative;
+  transition: transform .3s cubic-bezier(.2, 1.6, .4, 1);
+}
+.rc-vowel.is-on { transform: scale(1.8) translateY(-.05em); z-index: 3; animation: rc-pulse 700ms ease-in-out infinite alternate; }
+.rc-vowel.is-all { transform: scale(1.2); }
+@keyframes rc-pulse {
+  from { transform: scale(1.7) translateY(-.05em); }
+  to   { transform: scale(1.95) translateY(-.05em); }
+}
+@media (prefers-reduced-motion: reduce) { .rc-vowel.is-on { animation: none; } }

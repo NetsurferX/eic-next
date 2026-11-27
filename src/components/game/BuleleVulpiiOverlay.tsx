@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { speakWord, type Accent } from '@/lib/speak'
 import type { Lesson } from '@/lib/levels'
 // Actualizare (2026-10-02): jocul montat e varianta cu pești. Revenire la baloane =
 // import { BuleleVulpiiGame } from './BuleleVulpiiGame' + <BuleleVulpiiGame> mai jos.
@@ -151,39 +152,183 @@ export function BuleleVulpiiOverlay({
 const C_RED = '#CC0000', C_ORANGE = '#EE5B00', C_PINK = '#FF3399'
 const C_GREEN = '#008E40', C_GREY = '#8A8578', C_BLUE = '#00A2E0', C_INK = '#111'
 
-const CHALLENGE_WORDS: Array<Array<[string, string]>> = [
-  [['H', C_INK], ['e', C_RED]],
-  [['h', C_INK], ['e', C_ORANGE], ['lps', C_INK]],
-  [['f', C_INK], ['ou', C_PINK], ['r', C_INK]],
-  [['l', C_INK], ['o', C_GREEN], ['v', C_INK], ['e', C_GREY], ['l', C_INK], ['y', C_RED]],
-  [['c', C_INK], ['a', C_BLUE], ['ts', C_INK]],
+interface Vow { key: string; say: string; silent?: boolean; accent?: Accent }
+type RawSeg = [string, string, Vow?]
+
+// key = textul pentru speakWord (are înregistrare MP3 pentru it / egg / odd / æ).
+const RAW: Array<{ speak: string; segs: RawSeg[] }> = [
+  { speak: 'He', segs: [['H', C_INK], ['e', C_RED, { key: 'it', say: '/i/' }]] },
+  { speak: 'helps', segs: [['h', C_INK], ['e', C_ORANGE, { key: 'egg', say: '/e/' }], ['lps', C_INK]] },
+  { speak: 'four', segs: [['f', C_INK], ['ou', C_PINK, { key: 'odd', say: '/o/', accent: 'en-GB' }], ['r', C_INK]] },
+  { speak: 'lovely', segs: [['l', C_INK], ['o', C_GREEN, { key: 'ah', say: '/a/' }], ['v', C_INK],
+    ['e', C_GREY, { key: '', say: '', silent: true }], ['l', C_INK], ['y', C_RED, { key: 'it', say: '/i/' }]] },
+  { speak: 'cats', segs: [['c', C_INK], ['a', C_BLUE, { key: 'æ', say: '/æ/', accent: 'en-GB' }], ['ts', C_INK]] },
 ]
+let vowelCounter = 0
+const CHALLENGE = RAW.map(w => ({
+  speak: w.speak,
+  segs: w.segs.map(([t, c, v]) => ({ t, c, v, idx: v ? vowelCounter++ : -1 })),
+}))
+const VOWELS = CHALLENGE.flatMap(w => w.segs).filter(s => s.idx >= 0)
+const FULL_SENTENCE = 'He helps four lovely cats.'
+const CHEERS = ['Your turn!', 'Say it with me!', 'Great, again in your head!', 'Wonderful!', 'You can do it!']
+
+// Piciorul pozei „arată” (public/mascot/v2/14_glasses_point.png): vârful labei, ca fracție din imagine.
+const PAW_X = 0.89, PAW_Y = 0.41
 
 function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
+  const [active, setActive] = useState<number | null>(null)
+  const [wordLit, setWordLit] = useState<number | null>(null)
+  const [allLit, setAllLit] = useState(false)
+  const [say, setSay] = useState('')
+  const [done, setDone] = useState(false)
+  const [stick, setStick] = useState<{ x: number; y: number; len: number; deg: number } | null>(null)
+  const [flip, setFlip] = useState(false)
+
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const foxRef = useRef<HTMLImageElement | null>(null)
+  const vowelEls = useRef<(HTMLSpanElement | null)[]>([])
+  const tokRef = useRef(0)
+
+  // ── Bagheta: de la laba vulpii până deasupra vocalei active (vulpea se oglindește
+  //    când vocala e în stânga ei). ──
+  const measure = useCallback(() => {
+    if (active === null) { setStick(null); return }
+    const stage = stageRef.current, fox = foxRef.current, el = vowelEls.current[active]
+    if (!stage || !fox || !el) return
+    const sr = stage.getBoundingClientRect(), fr = fox.getBoundingClientRect(), vr = el.getBoundingClientRect()
+    const tx = vr.left + vr.width / 2 - sr.left
+    const ty = vr.top + vr.height / 2 - el.offsetHeight * 0.9 - 2 - sr.top   // deasupra literei umflate
+    const foxCx = fr.left + fr.width / 2 - sr.left
+    const flipped = tx < foxCx
+    setFlip(flipped)
+    const px = fr.left - sr.left + fr.width * (flipped ? 1 - PAW_X : PAW_X)
+    const py = fr.top - sr.top + fr.height * PAW_Y
+    setStick({ x: px, y: py, len: Math.hypot(tx - px, ty - py), deg: (Math.atan2(ty - py, tx - px) * 180) / Math.PI })
+  }, [active])
+
+  useEffect(() => {
+    measure()
+    const t = setTimeout(measure, 60)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(t); window.removeEventListener('resize', measure) }
+  }, [measure])
+
+  const run = useCallback(async () => {
+    const tok = ++tokRef.current
+    const alive = () => tokRef.current === tok
+    const wait = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+    const until = (h: { promise: Promise<void> }, max: number) => Promise.race([h.promise, wait(max)])
+
+    setDone(false); setActive(null); setWordLit(null); setAllLit(false)
+
+    // 1) Vulpea arată fiecare vocală (se umflă) și te îndeamnă s-o spui.
+    setSay('Look! I point at each vowel — then you say it.')
+    await wait(2400); if (!alive()) return
+    let n = 0
+    for (const s of VOWELS) {
+      if (!alive()) return
+      setActive(s.idx)
+      if (s.v!.silent) {
+        setSay('Shhh… silent e! We do not say it.')
+        await wait(2800)
+      } else {
+        setSay(`Listen: ${s.v!.say}`)
+        await wait(600); if (!alive()) return
+        await until(speakWord(s.v!.key, { accent: s.v!.accent }), 3500)
+        if (!alive()) return
+        setSay(`${CHEERS[n++ % CHEERS.length]} Say ${s.v!.say}`)
+        await wait(2200)
+      }
+    }
+    if (!alive()) return
+
+    // 2) O dată rar, pe vocale: cuvânt cu cuvânt, vocalele se aprind pe rând.
+    setActive(null)
+    setSay('Now we read slowly — vowel by vowel.')
+    await wait(2400)
+    for (let wi = 0; wi < CHALLENGE.length; wi++) {
+      if (!alive()) return
+      const w = CHALLENGE[wi]
+      setWordLit(wi)
+      const h = speakWord(w.speak, { rate: 0.5 })
+      for (const sg of w.segs) {
+        if (sg.idx < 0) continue
+        setActive(sg.idx)
+        await wait(700)
+        if (!alive()) return
+      }
+      await until(h, 3000)
+      await wait(500)
+    }
+    setWordLit(null); setActive(null)
+    if (!alive()) return
+
+    // 3) O dată complet, toată propoziția.
+    setSay('And now the whole sentence!')
+    setAllLit(true)
+    await wait(1500); if (!alive()) return
+    await until(speakWord(FULL_SENTENCE), 6000)
+    if (!alive()) return
+    setSay('Great reading! 🎉')
+    setDone(true)
+  }, [])
+
+  useEffect(() => {
+    void run()
+    return () => {
+      tokRef.current++
+      if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
+    }
+  }, [run])
+
   return (
     <div className="bulele-overlay-card read-challenge-card">
-      <img
-        className="read-challenge-fox"
-        src="/mascot/v2/13_glasses_front.png"
-        alt="Vulpea cu ochelari"
-        width={140}
-        height={140}
-      />
       <p className="bulele-overlay-title">Challenge - Read with EiC</p>
-      <p className="read-challenge-sentence" aria-label="He helps four lovely cats.">
-        {CHALLENGE_WORDS.map((word, wi) => (
-          <span key={wi} className="read-challenge-word">
-            {word.map(([txt, color], si) => (
-              <span key={si} style={{ color }}>{txt}</span>
-            ))}
-            {wi === CHALLENGE_WORDS.length - 1 ? '.' : ' '}
-          </span>
-        ))}
-      </p>
+      <p className="read-challenge-say" aria-live="polite">{say}</p>
+
+      <div className="read-challenge-stage" ref={stageRef}>
+        <img
+          ref={foxRef}
+          className={`read-challenge-fox${flip ? ' is-flipped' : ''}`}
+          src="/mascot/v2/14_glasses_point.png"
+          alt="Vulpea cu ochelari arată cu bagheta"
+          width={150}
+          height={150}
+        />
+        {stick && (
+          <div
+            className="read-challenge-stick"
+            aria-hidden="true"
+            style={{ left: stick.x, top: stick.y, width: stick.len, transform: `rotate(${stick.deg}deg)` }}
+          />
+        )}
+        <p className="read-challenge-sentence" aria-label={FULL_SENTENCE}>
+          {CHALLENGE.map((word, wi) => (
+            <span key={wi} className={`read-challenge-word${wordLit === wi ? ' is-lit' : ''}`}>
+              {word.segs.map((sg, si) =>
+                sg.idx >= 0 ? (
+                  <span
+                    key={si}
+                    ref={el => { vowelEls.current[sg.idx] = el }}
+                    className={`rc-vowel${active === sg.idx ? ' is-on' : ''}${allLit ? ' is-all' : ''}`}
+                    style={{ color: sg.c }}
+                  >{sg.t}</span>
+                ) : (
+                  <span key={si} style={{ color: sg.c }}>{sg.t}</span>
+                )
+              )}
+              {wi === CHALLENGE.length - 1 ? '.' : ' '}
+            </span>
+          ))}
+        </p>
+      </div>
+
       <div className="bulele-overlay-actions">
-        <button className="bulele-overlay-skip" onClick={onContinue}>
-          Continuă →
-        </button>
+        {done && (
+          <button className="bulele-overlay-skip" onClick={() => void run()}>↺ Again</button>
+        )}
+        <button className="bulele-overlay-skip" onClick={onContinue}>Continuă →</button>
       </div>
     </div>
   )
