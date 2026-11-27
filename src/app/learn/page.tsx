@@ -411,7 +411,7 @@ function lessonSymbolTextStyle(lesson: Lesson, unlocked: boolean): CSSProperties
   if (!unlocked) return undefined
   const sv = symbolView(lesson)
   const tri = bandsFor(lesson.id)
-  if (tri) return tricolorLetterStyle(8, 0.7, tri, 2.33, 0.9)
+  if (tri) return tricolorLetterStyle(8, 0.63, tri, 1.17, 0.9)
   if (sv.whiteOutlined) return WHITE_OUTLINED_TEXT_STYLE
   if (lesson.id === 'oi') return { color: OFFGLIDE_COLOR }
   return { color: sv.color }
