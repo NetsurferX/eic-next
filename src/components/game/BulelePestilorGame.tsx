@@ -63,6 +63,16 @@ function sayAnnouncement(lesson: Lesson, word: LessonWord, level: Level, stillOn
   speakWord(ttsWordFor(lesson), { accent })
 }
 
+// Râsul răutăcios al rechinului (voce joasă, lentă); tăcut dacă browserul nu are sinteză vocală.
+function evilLaugh() {
+  try {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    const u = new SpeechSynthesisUtterance('Mwa ha ha ha!')
+    u.lang = 'en-US'; u.pitch = 0.2; u.rate = 0.75; u.volume = 1
+    window.speechSynthesis.speak(u)
+  } catch { /* fără sunet */ }
+}
+
 const TOTAL = 5
 // Secvența peștilor (și a sunetelor lor) e FIXĂ, în ordinea asta:
 //   1. sunetul de antrenat — prima redare
@@ -535,7 +545,8 @@ export function BulelePestilorGame({
           ? { ...prev, state: 'miss' }
           : prev)
         setSharkApproaching(false)
-        setSharkLeaving(true)   // rechinul își continuă drumul spre stânga, pe lângă pește
+        setSharkLeaving(true)   // rechinul își continuă drumul spre stânga, pe lângă pește — râzând răutăcios
+        evilLaugh()
       }, 3000)
       sharkTimers.current.push(eat)
     }, 3500)
@@ -1005,7 +1016,8 @@ export function BulelePestilorGame({
               ['--shark-dur' as string]: `${sharkSpec.dur}ms`,
             } as CSSProperties}
           >
-            🦈
+            <span className={`pf-shark-body${sharkLeaving ? ' is-laughing' : ''}`}>🦈</span>
+            {sharkLeaving && <span className="pf-shark-laugh">Mua-ha-ha!</span>}
           </div>
         )}
         {/* peștele prins, atârnat de undiță / în zbor spre celulă (poziția o scrie rAF) */}
@@ -1103,6 +1115,17 @@ export function BulelePestilorGame({
         @keyframes pf-eaten { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(5px); } }
         @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(var(--shark-end)); } }
         .pf-shark-approach { position: absolute; left: 0; z-index: 4; font-size: 58px; line-height: 1; pointer-events: none; animation: pf-shark-approach var(--shark-dur, 6000ms) linear forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+        .pf-shark-body { display: inline-block; transform-origin: 60% 60%; }
+        .pf-shark-body.is-laughing { animation: pf-shark-giggle 150ms ease-in-out infinite alternate; }
+        @keyframes pf-shark-giggle { from { transform: rotate(-9deg) translateY(-2px); } to { transform: rotate(7deg) translateY(2px); } }
+        .pf-shark-laugh {
+          position: absolute; left: 18px; bottom: 100%; margin-bottom: 2px; white-space: nowrap;
+          font-size: 15px; font-weight: 800; font-style: italic; color: #b00020; line-height: 1;
+          background: #fff; border: 2px solid #1a1006; border-radius: 12px; padding: 4px 9px;
+          animation: pf-laugh-bubble 2600ms ease forwards; filter: none;
+        }
+        @keyframes pf-laugh-bubble { 0% { opacity: 0; transform: scale(.3); } 12% { opacity: 1; transform: scale(1.15); } 22% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .pf-shark-body.is-laughing { animation: none; } }
         @keyframes pf-robbed-away { 0% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes pf-stolen { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateX(-12px) scale(.15); } }
         .pf-robbed .eic-pulse { animation: pf-stolen 220ms ease-in forwards; }
