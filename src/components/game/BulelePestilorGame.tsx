@@ -711,9 +711,22 @@ export function BulelePestilorGame({
     if (!fish || fish.state !== 'swimming' || pausedRef.current || heartsRef.current <= 0) return
     heartsRef.current -= 1
     setHearts(heartsRef.current)
+    // Ajutorul afișează mesajul vulpii și rostește pronunția lecției curente.
     sayAnnouncement(fish.group.lesson, fish.word, level, () => !pausedRef.current)
-    setHelpMessage(symbolView(fish.group.lesson).text)
-    later(() => setHelpMessage(null), 1400)
+    setHelpMessage(
+      level === 1
+        ? 'Ascultă sunetul și alege butonul cu simbolul potrivit.'
+        : level === 2
+          ? 'Ascultă sunetul și alege simbolul. Peștele va primi culoarea lui.'
+          : 'Ascultă sunetul din cuvânt și alege simbolul potrivit.'
+    )
+    setAnnounce(fish.group.lesson)
+    setAnnounceWord(level === 3 ? fish.word.text : null)
+    later(() => {
+      setHelpMessage(null)
+      setAnnounce(null)
+      setAnnounceWord(null)
+    }, 3500)
   }
 
   function togglePause() {
@@ -874,6 +887,7 @@ export function BulelePestilorGame({
             }}>
               <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{ringify(sv.text)}</span>
               {announceWord && <span style={{ marginLeft: 10, fontSize: 20, fontStyle: 'normal', fontWeight: 700, color: '#333' }}>{announceWord}</span>}
+              {helpMessage && <div style={{ marginTop: 5, maxWidth: 260, width: 'max-content', fontSize: 13, lineHeight: 1.3, fontStyle: 'normal', fontWeight: 600, color: '#333', whiteSpace: 'normal' }}>{helpMessage}</div>}
               <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />
             </div>
           )
