@@ -434,6 +434,12 @@ export default function LearnPage() {
   // ── Level-scope celebration state ──
   const [levelCelebrating, setLevelCelebrating]   = useState(false)
   const [showLevelOverlay, setShowLevelOverlay]   = useState(false)
+  // Overlay victorie: 'savor' = 3 s doar cupa mare + vulpea; 'list' = apare lista de succese,
+  // cupa mare se micșorează în locul ei din listă, iar în locul ei apare „Next →".
+  const [victoryPhase, setVictoryPhase]             = useState<'savor' | 'list'>('savor')
+  const [cupLanded, setCupLanded]                   = useState(false)
+  const victoryCupRef = useRef<HTMLDivElement>(null)
+  const slotCupRef = useRef<HTMLSpanElement>(null)
   // Bulele Vulpii — config-ul jocului de baloane deschis după coloana curentă
   // (null = nu rulează). Avansul normal (deblocare coloană/nivel), calculat
   // în handleMainButton/handleStudiedButton, e ținut minte aici și rulat
@@ -642,6 +648,30 @@ export default function LearnPage() {
       currentAudio.current?.pause()
     }
   }, [])
+
+  // ── Overlay victorie: 3 secunde savurat, apoi lista de succese + zborul cupei în locul ei ──
+  useEffect(() => {
+    setVictoryPhase('savor'); setCupLanded(false)
+    if (!showLevelOverlay) return
+    const t = setTimeout(() => setVictoryPhase('list'), 3000)
+    return () => clearTimeout(t)
+  }, [showLevelOverlay])
+
+  useEffect(() => {
+    if (!showLevelOverlay || victoryPhase !== 'list') return
+    const big = victoryCupRef.current, slot = slotCupRef.current
+    if (!big || !slot || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setCupLanded(true); return }
+    const a = big.getBoundingClientRect(), b = slot.getBoundingClientRect()
+    const sc = b.height / (a.height || 1)
+    const dx = (b.left + b.width / 2) - (a.left + a.width / 2)
+    const dy = (b.top + b.height / 2) - (a.top + a.height / 2)
+    const anim = big.animate(
+      [{ transform: 'translate(0, 0) scale(1)' }, { transform: `translate(${dx}px, ${dy}px) scale(${sc})` }],
+      { duration: 900, easing: 'cubic-bezier(.5, 0, .2, 1)', fill: 'forwards' },
+    )
+    anim.finished.then(() => setCupLanded(true)).catch(() => {})
+    return () => anim.cancel()
+  }, [showLevelOverlay, victoryPhase])
 
   // ── Overlay-ul de nivel e un modal pe tot ecranul — blocăm scroll-ul de fundal cât e deschis ──
   useEffect(() => {
@@ -1913,31 +1943,50 @@ export default function LearnPage() {
       {showLevelOverlay && (
         <div className="level-overlay" role="dialog" aria-modal="true" aria-label="Nivel finalizat">
           <div className="level-overlay-card">
-            <div className="level-overlay-cupwrap">
+            <div className={`level-overlay-cupwrap${victoryPhase === 'list' ? ' is-listed' : ''}`}>
               <span className="level-overlay-rays" style={{ '--ray-color': '#FFB300' } as CSSProperties} aria-hidden="true" />
-              <Cup
-                progressPct={100}
-                size={132}
-                color="#FFB300"
-                celebrating={levelCelebrating}
-                allFull
-                idSuffix={`overlay-${level.id}`}
-                confettiCount={32}
-                big
-                showBubbles
-              />
+              <div ref={victoryCupRef} className="level-overlay-bigcup" style={cupLanded ? { visibility: 'hidden' } : undefined}>
+                <Cup
+                  progressPct={100}
+                  size={132}
+                  color="#FFB300"
+                  celebrating={levelCelebrating}
+                  allFull
+                  idSuffix={`overlay-${level.id}`}
+                  confettiCount={32}
+                  big
+                  showBubbles
+                />
+              </div>
               <Mascot state="cheering" size={64} className="level-overlay-mascot" />
+              {cupLanded && (
+                <div className="level-overlay-nextwrap">
+                  <button
+                    className="level-overlay-btn level-overlay-next"
+                    onClick={handleMainButton}
+                    aria-label={nextLevel ? `Spre Nivelul ${levelIndex + 2}` : 'Gata'}
+                    style={{ background: nextLevel ? nextLevel.lessons[0].color : '#FFB300' }}
+                  >
+                    {nextLevel ? 'Next →' : '🎉'}
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="level-overlay-actions">
-              <span className="level-overlay-cup-mini" aria-hidden="true">🏆</span>
-              <button
-                className="level-overlay-btn"
-                onClick={handleMainButton}
-                aria-label={nextLevel ? `Spre Nivelul ${levelIndex + 2}` : 'Gata'}
-                style={{ background: nextLevel ? nextLevel.lessons[0].color : '#FFB300' }}
-              >
-                {nextLevel ? 'Level' : '🎉'}
-              </button>
+            {/* Lista succeselor: câte o cupă + numărul nivelului, de sus în jos, apoi de la stânga la dreapta */}
+            <div className={`level-overlay-list${victoryPhase === 'list' ? ' is-shown' : ''}`}>
+              {LEVELS.map((lv, i) => ({ lv, i }))
+                .filter(({ i }) => i === levelIndex || isLevelDone(i))
+                .map(({ lv, i }) => (
+                  <div className="level-overlay-trophy" key={lv.id}>
+                    <span
+                      ref={i === levelIndex ? slotCupRef : undefined}
+                      className="level-overlay-cup-mini"
+                      style={i === levelIndex && !cupLanded ? { visibility: 'hidden' } : undefined}
+                      aria-hidden="true"
+                    >🏆</span>
+                    <span className="level-overlay-num" style={{ background: lv.lessons[0].color }} aria-label={`Nivelul ${i + 1} terminat`}>{i + 1}</span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

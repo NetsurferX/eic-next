@@ -3876,3 +3876,23 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 .sound-flow-wordwrap .eic-pulse, .sound-flow-wordwrap .eic-pulse-keep { display: inline-block; transform-origin: center; }
 .sound-flow-wordwrap .eic-pulse { font-weight: 300; }
 .sound-flow-wordwrap.is-neutral .eic-pulse { color: inherit !important; }
+
+/* overlay victorie: lista succeselor (cupă + număr nivel), cupa mare zboară în locul ei, „Next →" în locul cupei */
+.level-overlay-bigcup { display: inline-block; }
+.level-overlay-cupwrap .level-overlay-rays, .level-overlay-cupwrap .level-overlay-mascot { transition: opacity .4s; }
+.level-overlay-cupwrap.is-listed .level-overlay-rays, .level-overlay-cupwrap.is-listed .level-overlay-mascot { opacity: 0 !important; visibility: hidden; transition: opacity .4s, visibility 0s .4s; }
+.level-overlay-nextwrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; animation: level-overlay-in 350ms ease; }
+.level-overlay-next { white-space: nowrap; }
+.level-overlay-list {
+  display: grid; grid-auto-flow: column; grid-template-rows: repeat(4, auto);
+  justify-content: center; gap: .5rem 1.6rem; margin-top: 1rem;
+  opacity: 0; transition: opacity .4s;
+}
+.level-overlay-list.is-shown { opacity: 1; }
+.level-overlay-trophy { display: flex; align-items: center; gap: .5rem; }
+.level-overlay-num {
+  min-width: 2.4rem; height: 2.4rem; padding: 0 .6rem; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-family: var(--font-sans); font-weight: 700; font-size: 15px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
