@@ -179,7 +179,6 @@ const PAW_X = 0.89, PAW_Y = 0.41
 function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
   const [active, setActive] = useState<number | null>(null)
   const [wordLit, setWordLit] = useState<number | null>(null)
-  const [allLit, setAllLit] = useState(false)
   const [say, setSay] = useState('')
   const [done, setDone] = useState(false)
   const [stick, setStick] = useState<{ x: number; y: number; len: number; deg: number } | null>(null)
@@ -220,7 +219,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
     const wait = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
     const until = (h: { promise: Promise<void> }, max: number) => Promise.race([h.promise, wait(max)])
 
-    setDone(false); setActive(null); setWordLit(null); setAllLit(false)
+    setDone(false); setActive(null); setWordLit(null)
 
     // 1) Vulpea arată fiecare vocală (se umflă) și te îndeamnă s-o spui.
     setSay('Look! I point at each vowel — then you say it.')
@@ -266,18 +265,10 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
 
     // 3) O dată complet, toată propoziția.
     setSay('And now the whole sentence!')
-    setAllLit(true)
-    await wait(500); if (!alive()) return
-    const hs = speakWord(FULL_SENTENCE)
-    for (let wi = 0; wi < CHALLENGE.length; wi++) {
-      if (!alive()) return
-      setWordLit(null); await wait(30)          // repornește animația „umflă–desumflă”
-      setWordLit(wi)
-      await wait(450)
-    }
-    await until(hs, 6000)
+    // la citirea cu ritm normal literele nu fac nimic (fără umflare, fără efecte)
+    await wait(1500); if (!alive()) return
+    await until(speakWord(FULL_SENTENCE), 6000)
     if (!alive()) return
-    setWordLit(null); setAllLit(false)
     setSay('Great reading! 🎉')
     setDone(true)
   }, [])
@@ -320,7 +311,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
                   <span
                     key={si}
                     ref={el => { vowelEls.current[sg.idx] = el }}
-                    className={`rc-vowel${active === sg.idx ? ' is-on' : ''}${allLit ? ' is-all' : ''}`}
+                    className={`rc-vowel${active === sg.idx ? ' is-on' : ''}`}
                     style={sg.c === C_GREEN ? { color: sg.c, textDecoration: 'underline', textDecorationColor: sg.c, textDecorationThickness: '.08em', textUnderlineOffset: '.12em' } : { color: sg.c }}
                   >{sg.t}</span>
                 ) : (
