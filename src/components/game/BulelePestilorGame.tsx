@@ -178,6 +178,9 @@ function symbolNode(lesson: Lesson, word?: LessonWord): { node: ReactNode; len: 
   // gh/ph: butonul e „f”, dar peștele poartă „ph”/„gh” (după cuvântul lui)
   // sh: bază „sh” pe buton/cap; pe pește: t̂ (t cu CIRCUMFLEX) pt ti/ci/si; ŝ pt s
   let txt = lesson.id === 'gh-ph-f' && word ? word.mark : sv.text
+  // ə+: butonul/bula arată „ə+”, dar peștele poartă varianta cuvântului (l din little/table, m din rhythm…),
+  // albă cu chenar negru, formatată ca simbolul de bază (sv.whiteOutlined → WHITE_OUTLINED_TEXT_STYLE)
+  if (lesson.id === 'syllabic-lm' && word) txt = word.mark.toLowerCase() === 'le' ? 'l' : word.mark
   if (lesson.id === 'sh' && word) {
     const m = word.mark.toLowerCase()
     if (m === 'ti' || m === 'ci' || m === 'si') txt = 't̂'
