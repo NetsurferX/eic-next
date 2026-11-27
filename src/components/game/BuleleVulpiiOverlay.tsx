@@ -44,11 +44,17 @@ export function BuleleVulpiiOverlay({
   const [result, setResult] = useState<BulelePestilorResult | null>(null)
   const [closing, setClosing] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  // După jocul cu pești la coloana „a”, apare cardul „Challenge - Read with EiC”.
+  const [challenge, setChallenge] = useState(false)
 
   // Închide cu un fade scurt (nu instant) — folosit la sfârșitul jocului,
   // la „Sari peste" și la „Ieși" din joc, ca revenirea în /learn să nu
   // fie un pop brusc.
   function closeAndFinish() {
+    if (config.lesson.id === 'a' && !challenge) {
+      setChallenge(true)
+      return
+    }
     setClosing(true)
     setTimeout(onDone, 260)
   }
@@ -71,7 +77,7 @@ export function BuleleVulpiiOverlay({
   }, [result, level])
 
   useEffect(() => {
-    if (countdown !== 0) return
+    if (countdown !== 0 || challenge) return
     if (advancesLevel) {
       setLevel(l => (l + 1) as BulelePestilorLevel)
       setResult(null)
@@ -91,6 +97,9 @@ export function BuleleVulpiiOverlay({
     >
       {/* dock-ul FoxHelper stă deasupra overlay-ului — îl ascundem cât joacă */}
       <style>{`.fox-helper { display: none !important; }`}</style>
+      {challenge ? (
+        <ReadChallengeCard onContinue={closeAndFinish} />
+      ) : (
       <div className="bulele-overlay-card">
         <p className="bulele-overlay-title">🐟 Vulpea la pescuit</p>
         <p className="bulele-overlay-sub">
@@ -127,6 +136,54 @@ export function BuleleVulpiiOverlay({
             )}
           </div>
         )}
+      </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Card „Challenge - Read with EiC” (după jocul cu pești la coloana „a”).
+// Propoziția e colorată literă cu literă, ca în codul EiC: e roșu (i),
+// e portocaliu, „ou” roz (ɔ), o verde (ʌ), e gri (mut), y roșu (i),
+// a albastru (æ, ca la „cat”). Consoanele rămân negre.
+// ─────────────────────────────────────────────────────────────────────────
+const C_RED = '#CC0000', C_ORANGE = '#EE5B00', C_PINK = '#FF3399'
+const C_GREEN = '#008E40', C_GREY = '#8A8578', C_BLUE = '#00A2E0', C_INK = '#111'
+
+const CHALLENGE_WORDS: Array<Array<[string, string]>> = [
+  [['H', C_INK], ['e', C_RED]],
+  [['h', C_INK], ['e', C_ORANGE], ['lps', C_INK]],
+  [['f', C_INK], ['ou', C_PINK], ['r', C_INK]],
+  [['l', C_INK], ['o', C_GREEN], ['v', C_INK], ['e', C_GREY], ['l', C_INK], ['y', C_RED]],
+  [['c', C_INK], ['a', C_BLUE], ['ts', C_INK]],
+]
+
+function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
+  return (
+    <div className="bulele-overlay-card read-challenge-card">
+      <img
+        className="read-challenge-fox"
+        src="/mascot/v2/13_glasses_front.png"
+        alt="Vulpea cu ochelari"
+        width={140}
+        height={140}
+      />
+      <p className="bulele-overlay-title">Challenge - Read with EiC</p>
+      <p className="read-challenge-sentence" aria-label="He helps four lovely cats.">
+        {CHALLENGE_WORDS.map((word, wi) => (
+          <span key={wi} className="read-challenge-word">
+            {word.map(([txt, color], si) => (
+              <span key={si} style={{ color }}>{txt}</span>
+            ))}
+            {wi === CHALLENGE_WORDS.length - 1 ? '.' : ' '}
+          </span>
+        ))}
+      </p>
+      <div className="bulele-overlay-actions">
+        <button className="bulele-overlay-skip" onClick={onContinue}>
+          Continuă →
+        </button>
       </div>
     </div>
   )

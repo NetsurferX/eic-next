@@ -3909,3 +3909,15 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 .lesson-col:not(.is-active) .lesson-word .lesson-word-mark-underline {
   text-underline-offset: var(--waiting-underline-offset) !important;
 }
+
+/* ── Card „Challenge - Read with EiC” (după jocul cu pești, coloana „a”) ── */
+.read-challenge-card { max-width: 520px; padding-top: 1rem; }
+.read-challenge-fox { display: block; margin: 0 auto .25rem; height: 140px; width: auto; }
+.read-challenge-sentence {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: .6rem 0 .4rem;
+}
+.read-challenge-word { white-space: nowrap; }
