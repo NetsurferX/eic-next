@@ -31,7 +31,7 @@ const AUTO_DELAY_KEY = 'eic-auto-delay-ms'
 const SOUND_INTRO_SEEN_KEY = 'eic-sound-intro-seen'
 const BEGINNER_NOTE_SEEN_KEY = 'eic-beginner-note-seen'
 const REVIEW_THRESHOLD = 3      // clicking one word this many times sends it to "Cuvinte de exersat"
-const LETTER_FOX_PROMPT = "Let's play!"   // mesajul vulpii la click pe litera din capul coloanei
+const LETTER_FOX_PROMPT = "Repeat after me!"   // mesajul vulpii la click pe litera din capul coloanei
 
 // Alege accentul efectiv al unui cuvânt: override-ul cuvântului > accentul
 // coloanei > 'en-US' implicit.
