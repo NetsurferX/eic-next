@@ -1903,6 +1903,7 @@ export default function LearnPage() {
             }
             matchWord={introLesson.matchWord}
             color={introLesson.color}
+            bands={bandsFor(introLesson.id) ?? undefined}
             accent={resolveAccent(introExample, introLesson)}
             onComplete={handleIntroComplete}
           />

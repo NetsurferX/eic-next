@@ -7,6 +7,7 @@ import type { RenderNode } from '@/lib/renderNode'
 import WordRenderer from '@/components/WordRenderer'
 import { Mascot } from './Mascot'
 import { ringify } from '@/components/SymbolText'
+import { tricolorLetterStyle, bandsCssVertical, type Bands } from '@/lib/tricolorStyle'
 
 export interface DemoWord {
   text: string
@@ -19,6 +20,7 @@ interface Props {
   phoneme: string        // simbolul de bază afișat sus (ex. 'a', 'f')
   words: DemoWord[]      // cuvintele demo, de sus în jos
   color: string          // culoarea EiC a sunetului
+  bands?: Bands          // sunete tricolore (ex. əw): simbolul, pătratul și literele-țintă primesc stilul tricolor, ca în capul coloanei
   matchWord?: string     // text TTS / înregistrare pt. sunetul izolat; dacă lipsește, primul cuvânt
   accent: Accent
   onComplete: () => void
@@ -63,7 +65,7 @@ function unionCenter(els: Element[]) {
 //  3. 'word'  — fiecare cuvânt se aude de 3 ori; simbolul și TOATE literele-țintă pulsează împreună în ritmul rostirii.
 //  4. 'done'  — vulpea aplaudă; „ok".
 // Literele-țintă sunt aliniate pe verticală sub simbol.
-export function OnboardingSoundIntro({ phoneme, words, color, matchWord, accent, onComplete }: Props) {
+export function OnboardingSoundIntro({ phoneme, words, color, bands, matchWord, accent, onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>('sound')
   const [absorbed, setAbsorbed] = useState(false)
 
@@ -196,7 +198,14 @@ export function OnboardingSoundIntro({ phoneme, words, color, matchWord, accent,
       <Mascot state={foxState} size={72} className="sound-intro-mascot" />
       <p className="sound-intro-label">Un sunet nou</p>
 
-      <span ref={symRef} className="sound-intro-phoneme sound-flow-phoneme" style={{ color }}>
+      <span
+        ref={symRef}
+        className={`sound-intro-phoneme sound-flow-phoneme${bands ? ' lesson-letter' : ''}`}
+        style={bands
+          // identic cu capul coloanei: lessonSymbolTextStyle → tricolorLetterStyle(8, 0.7, benzi), font sans italic bold
+          ? { ...tricolorLetterStyle(8, 0.7, bands), fontFamily: 'var(--font-sans)', fontStyle: 'italic', fontWeight: 700 }
+          : { color }}
+      >
         {ringify(phoneme)}
       </span>
 
@@ -220,7 +229,14 @@ export function OnboardingSoundIntro({ phoneme, words, color, matchWord, accent,
                 ) : hasMark ? (
                   <>
                     {w.text.slice(0, i)}
-                    <span data-mark className="sound-flow-mark" style={absorbed ? { color } : undefined}>{w.mark}</span>
+                    <span data-mark className="sound-flow-mark" style={absorbed && !bands ? { color } : undefined}>
+                      {bands
+                        // fiecare literă-vocală își ia propriul ciclu tricolor complet (ca MarkedWord din /learn)
+                        ? [...w.mark!].map((ch, k) => (
+                            <span key={k} style={absorbed && /[aeiouwy]/i.test(ch) ? tricolorLetterStyle(2, 1, bands) : undefined}>{ch}</span>
+                          ))
+                        : w.mark}
+                    </span>
                     {w.text.slice(i + w.mark!.length)}
                   </>
                 ) : (
@@ -237,7 +253,7 @@ export function OnboardingSoundIntro({ phoneme, words, color, matchWord, accent,
           key={`sq-${w.text}`}
           ref={el => { sqRefs.current[wi] = el }}
           className="sound-flow-square"
-          style={{ background: color }}
+          style={{ background: bands ? bandsCssVertical(bands) : color }}
           aria-hidden="true"
         />
       ))}
