@@ -183,6 +183,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
   const [done, setDone] = useState(false)
   const [stick, setStick] = useState<{ x: number; y: number; len: number; deg: number } | null>(null)
   const [flip, setFlip] = useState(false)
+  const [vowelPop, setVowelPop] = useState(true)   // true = doar vocala se umflă (arătarea vocalelor); false = citirea înceată: toate literele cuvântului, egal
 
   const stageRef = useRef<HTMLDivElement | null>(null)
   const foxRef = useRef<HTMLImageElement | null>(null)
@@ -219,7 +220,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
     const wait = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
     const until = (h: { promise: Promise<void> }, max: number) => Promise.race([h.promise, wait(max)])
 
-    setDone(false); setActive(null); setWordLit(null)
+    setDone(false); setActive(null); setWordLit(null); setVowelPop(true)
 
     // 1) Vulpea arată fiecare vocală (se umflă) și te îndeamnă s-o spui.
     setSay('Look! I point at each vowel — then you say it.')
@@ -244,6 +245,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
 
     // 2) O dată rar, pe vocale: cuvânt cu cuvânt, vocalele se aprind pe rând.
     setActive(null)
+    setVowelPop(false)
     setSay('Now we read slowly — vowel by vowel.')
     await wait(800)
     for (let wi = 0; wi < CHALLENGE.length; wi++) {
@@ -311,7 +313,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
                   <span
                     key={si}
                     ref={el => { vowelEls.current[sg.idx] = el }}
-                    className={`rc-vowel${active === sg.idx ? ' is-on' : ''}`}
+                    className={`rc-vowel${active === sg.idx && vowelPop ? ' is-on' : ''}`}
                     style={sg.c === C_GREEN ? { color: sg.c, textDecoration: 'underline', textDecorationColor: sg.c, textDecorationThickness: '.08em', textUnderlineOffset: '.12em' } : { color: sg.c }}
                   >{sg.t}</span>
                 ) : (
