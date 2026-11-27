@@ -1,11 +1,11 @@
-/* Challenge: vocala indicată de vulpe se ridică și revine, fără să se mărească. */
+/* Challenge: vocala indicată de vulpe se umflă și se desumflă, fără deplasare verticală. */
 .rc-vowel {
   display: inline-block; position: relative;
 }
-.rc-vowel.is-on { animation: rc-vowel-lift 700ms ease-in-out; z-index: 3; }
-@keyframes rc-vowel-lift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-0.38em); }
+.rc-vowel.is-on { animation: rc-vowel-pulse 700ms ease-in-out; z-index: 3; }
+@keyframes rc-vowel-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.65); }
 }
 @media (prefers-reduced-motion: reduce) {
   .rc-vowel.is-on { animation: none; }
