@@ -152,7 +152,7 @@ export const LEVELS: Level[] = [
         words: [
           { text: 'go',   mark: 'o' },
           { text: 'boat', mark: 'oa' },
-          { text: 'road', mark: 'oa' },
+          { text: 'low',  mark: 'ow' },
           { text: 'home', mark: 'o' },
           { text: 'snow', mark: 'ow' },
           { text: 'show', mark: 'ow' },
