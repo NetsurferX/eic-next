@@ -14,6 +14,7 @@ import { ringify } from '@/components/SymbolText'
 import { HelpSign } from '@/components/game/HelpSign'
 import { tricolorLetterStyle, bandsFor, underlineColorFor, bandsCssHorizontal } from '@/lib/tricolorStyle'
 import WordRenderer from '@/components/WordRenderer'
+import { COLOR_SILENT } from '@/lib/renderNode'
 import { OnboardingSoundIntro } from '@/components/game/OnboardingSoundIntro'
 import { MascotIntro } from '@/components/game/MascotIntro'
 import { FoxReel, FACE_IDLE_REEL, FACE_SPEAK_REEL } from '@/components/game/useFrameCycle'
@@ -96,6 +97,24 @@ const COLUMN_WORD_OVERRIDES: Record<string, LessonWord[]> = {
     { text: 'apple',  mark: 'le' },
     { text: 'uncle',  mark: 'le', accent: 'en-GB' },
   ],
+  // wa: want (exemplul de bază) + one, someone, croissant — stilul fiecărei litere e în WA_STYLED_WORDS
+  wa: [
+    { text: 'want',      mark: 'wa' },
+    { text: 'one',       mark: 'o' },
+    { text: 'someone',   mark: 'o' },
+    { text: 'croissant', mark: 'oi' },
+  ],
+}
+
+// Cuvinte din coloana „wa" cu stil pe fiecare literă (cerut explicit):
+//   wa     = stilul simbolului wa (negru–galben–negru; subliniat doar în cuvintele cu mai multe silabe)
+//   a      = verde ca simbolul „a”, subliniat
+//   silent = gri (litera e mută)
+type WaSeg = { t: string; k: 'plain' | 'wa' | 'a' | 'silent' }
+const WA_STYLED_WORDS: Record<string, WaSeg[]> = {
+  one:       [{ t: 'o', k: 'wa' }, { t: 'n', k: 'plain' }, { t: 'e', k: 'silent' }],
+  someone:   [{ t: 's', k: 'plain' }, { t: 'o', k: 'a' }, { t: 'm', k: 'plain' }, { t: 'e', k: 'silent' }, { t: 'o', k: 'wa' }, { t: 'n', k: 'plain' }, { t: 'e', k: 'silent' }],
+  croissant: [{ t: 'cr', k: 'plain' }, { t: 'oi', k: 'wa' }, { t: 'ss', k: 'plain' }, { t: 'a', k: 'a' }, { t: 'nt', k: 'plain' }],
 }
 // Coloanele de consoane sunt NEGRE (culoare + etichetă), nu violet/portocaliu/etc. Local paginii — levels.ts neatins.
 // Lecția terminată se strânge și zboară vizual în butonul ei din linia de simboluri de sus
@@ -225,6 +244,52 @@ const OFFGLIDE_COLOR = '#CC0000'
 // din interiorul mark-ului sunt vocale+w+y; consoanele adevărate rămân
 // negre/gri, niciodată colorate. La cuvinte monosilabice sublinierea
 // dispare complet, culoarea rămâne.
+function StyledWaWord({ text, segs, isLocked, isPlaying }: { text: string; segs: WaSeg[]; isLocked?: boolean; isPlaying?: boolean }) {
+  const bands = bandsFor('wa')
+  const polysyllabic = countSyllables(text) > 1
+  const aColor = ALL_LEVELS[0].lessons[0].color   // verdele simbolului „a”
+  return (
+    <>
+      {segs.map((s, i) => {
+        if (s.k === 'plain') return <span key={i}>{s.t}</span>
+        if (s.k === 'silent') return <span key={i} style={{ color: COLOR_SILENT }}>{s.t}</span>
+        if (isLocked) return <span key={i} className="lesson-word-mark">{s.t}</span>   // coloanele blocate: fără gradient
+        if (s.k === 'a') {
+          return (
+            <span
+              key={i}
+              style={{
+                color: aColor,
+                textDecoration: 'underline',
+                textDecorationColor: aColor,
+                textUnderlineOffset: '4.7px',
+                textDecorationThickness: '2px',
+              }}
+            >{s.t}</span>
+          )
+        }
+        return [...s.t].map((ch, j) => (
+          <span
+            key={`${i}-${j}`}
+            style={{
+              ...tricolorLetterStyle(2, 1, bands ?? undefined),
+              ...(isPlaying ? { filter: 'drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #FCD116)' } : {}),
+              ...(polysyllabic
+                ? {
+                    textDecoration: 'underline',
+                    textDecorationColor: underlineColorFor(bands!),
+                    textUnderlineOffset: '4.7px',
+                    textDecorationThickness: '2px',
+                  }
+                : {}),
+            }}
+          >{ch}</span>
+        ))
+      })}
+    </>
+  )
+}
+
 function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: string; mark: string; lessonId?: string; isLocked?: boolean; isPlaying?: boolean }) {
   const idx = text.toLowerCase().indexOf(mark.toLowerCase())
   const isMonosyllabic = countSyllables(text) === 1
@@ -1736,7 +1801,9 @@ export default function LearnPage() {
                       aria-label={`Ascultă cuvântul ${w.text}`}
                       title="Apasă ca să auzi doar acest cuvânt"
                     >
-                      {wordNodes[w.text.toLowerCase()]
+                      {l.id === 'wa' && WA_STYLED_WORDS[w.text.toLowerCase()]
+                        ? <StyledWaWord text={w.text} segs={WA_STYLED_WORDS[w.text.toLowerCase()]} isLocked={!isUnlocked} isPlaying={isPlaying} />
+                        : wordNodes[w.text.toLowerCase()]
                         ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} zhDisplay={l.id === 'zh'} />
                         : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={!isUnlocked} isPlaying={isPlaying} />}
                     </button>
@@ -1902,7 +1969,9 @@ export default function LearnPage() {
                       <div className="lesson-words">
                         {l.words.map((w: LessonWord) => (
                           <div key={w.text} className="lesson-word">
-                            {wordNodes[w.text.toLowerCase()]
+                            {l.id === 'wa' && WA_STYLED_WORDS[w.text.toLowerCase()]
+                              ? <StyledWaWord text={w.text} segs={WA_STYLED_WORDS[w.text.toLowerCase()]} isLocked={false} isPlaying={false} />
+                              : wordNodes[w.text.toLowerCase()]
                               ? <WordRenderer nodes={wordNodes[w.text.toLowerCase()]} wordStr={w.text} flatSimple={l.id === 'o'} blackD={l.id === 'd-hat'} zhDisplay={l.id === 'zh'} />
                               : <MarkedWord text={w.text} mark={w.mark} lessonId={l.id} isLocked={false} isPlaying={false} />}
                           </div>
