@@ -14,6 +14,7 @@ export interface DemoWord {
   mark?: string          // substring-ul care poartă sunetul (ex. 'u' în 'bug', 'gh' în 'laugh')
   nodes?: RenderNode[]   // dacă există: cuvântul se randează cu motorul real (culori, subliniere); mark-ul e subțire până la absorbție
   accent?: Accent        // override de accent pentru acest cuvânt
+  leadColor?: string     // vocalele (a,e,i,o,u,w,y) lipite chiar înaintea mark-ului au culoarea asta de la început (ex. o roz în „boy", unde ținta e doar y)
 }
 
 interface Props {
@@ -50,6 +51,15 @@ function pulse(els: Iterable<Element | null | undefined>) {
       { duration: 520, easing: 'ease-in-out' },
     )
   }
+}
+
+// Vocalele de la finalul lui `before` primesc `leadColor` (dacă e dat); restul rămâne neschimbat.
+function leadSplit(before: string, leadColor?: string) {
+  if (!leadColor) return before
+  const m = before.match(/[aeiouwy]+$/i)
+  if (!m) return before
+  const head = before.slice(0, before.length - m[0].length)
+  return (<>{head}<span style={{ color: leadColor }}>{m[0]}</span></>)
 }
 
 function unionCenter(els: Element[]) {
@@ -228,7 +238,7 @@ export function OnboardingSoundIntro({ phoneme, words, color, bands, matchWord, 
                   />
                 ) : hasMark ? (
                   <>
-                    {w.text.slice(0, i)}
+                    {leadSplit(w.text.slice(0, i), w.leadColor)}
                     <span data-mark className="sound-flow-mark" style={absorbed && !bands ? { color } : undefined}>
                       {bands
                         // fiecare literă-vocală își ia propriul ciclu tricolor complet (ca MarkedWord din /learn)

@@ -1929,7 +1929,10 @@ export default function LearnPage() {
                     const w = introLesson.words.find(x => x.text === t) ?? introLesson.words[0]
                     return { text: w.text, mark: w.mark, nodes: wordNodes[w.text.toLowerCase()], accent: resolveAccent(w, introLesson) }
                   })
-                : [{ text: introExample.text, mark: introExample.mark }]
+                : introLesson.id === 'oi'
+                  // oi: ținta e doar offglide-ul (y/i) — vocala o rămâne roz (culoarea lui „o"), neatinsă de pătrat
+                  ? [{ text: introExample.text, mark: introExample.mark.slice(-1), leadColor: LEVELS.flatMap(l => l.lessons).find(x => x.id === 'o')?.color }]
+                  : [{ text: introExample.text, mark: introExample.mark }]
             }
             matchWord={introLesson.matchWord}
             color={introLesson.color}
