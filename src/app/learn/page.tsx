@@ -348,7 +348,7 @@ function MarkedWord({ text, mark, lessonId, isLocked, isPlaying }: { text: strin
             <span
               key={i}
               style={{
-                ...tricolorLetterStyle(2, 1, triBands ?? undefined),
+                ...tricolorLetterStyle(2, 0.9, triBands ?? undefined, 3.33, 0.9),
                 // `currentColor` (used by .lesson-word.is-playing's glow
                 // rule) is 'transparent' here since the gradient fill sets
                 // color:transparent — so the playing-glow needs its own
