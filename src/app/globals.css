@@ -3897,13 +3897,14 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
   box-shadow: 0 4px 14px rgba(0,0,0,.35);
 }
 
-/* Coloane în așteptare (cardurile „Lesson N" de sub coloana activă = .lesson-col-preview, plus cele blocate):
-   sublinierea stă mai aproape de baza literelor. Suprascrie offset-urile puse inline de WordRenderer (6px)
-   și MarkedWord/StyledWaWord (4.7px), precum și clasa .lesson-word-mark-underline. Ajustabil din variabilă. */
-.lesson-col.lesson-col-preview, .lesson-col.is-locked { --waiting-underline-offset: 2px; }
-.lesson-col.lesson-col-preview .lesson-word [style*="text-underline-offset"],
-.lesson-col.is-locked .lesson-word [style*="text-underline-offset"],
-.lesson-col.lesson-col-preview .lesson-word .lesson-word-mark-underline,
-.lesson-col.is-locked .lesson-word .lesson-word-mark-underline {
+/* Coloane în așteptare = orice coloană care NU e cea activă (antrenată acum): cardurile „Lesson N" de sub ea
+   (.lesson-col-preview), coloanele blocate și cele deblocate dar neactive din grila principală.
+   Sublinierea stă mai aproape de baza literelor: suprascrie offset-urile puse inline de WordRenderer (6px)
+   și MarkedWord/StyledWaWord (4.7px), precum și clasa .lesson-word-mark-underline.
+   Valoarea e în em, ca să urmeze mărimea textului (13px în carduri → ~2px, 27px în grilă → ~4px).
+   Coloana activă rămâne neschimbată. Ajustabil din variabilă. */
+.lesson-col:not(.is-active) { --waiting-underline-offset: .14em; }
+.lesson-col:not(.is-active) .lesson-word [style*="text-underline-offset"],
+.lesson-col:not(.is-active) .lesson-word .lesson-word-mark-underline {
   text-underline-offset: var(--waiting-underline-offset) !important;
 }
