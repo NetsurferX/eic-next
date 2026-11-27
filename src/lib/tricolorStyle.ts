@@ -102,13 +102,16 @@ export const TRICOLOR_CSS_HORIZONTAL =
 // vertical window and were getting clipped top/bottom at the tight margin.
 // `yellowScale` (implicit 1 = neschimbat): înmulțește grosimea benzii galbene;
 // albastrul și roșul își împart egal restul (ex. 0.7 → galben cu 30% mai subțire).
-export function tricolorLetterStyle(marginPct: number = 2, yellowScale: number = 1, bands: Bands = TRICOLOR_BANDS): CSSProperties {
+export function tricolorLetterStyle(marginPct: number = 2, yellowScale: number = 1, bands: Bands = TRICOLOR_BANDS, blueBoostPct: number = 0, yellowBrightness: number = 1): CSSProperties {
   const { sizeY, positionY } = inkWindow(marginPct)
   let bg = TRICOLOR_CSS
-  if (yellowScale !== 1 || bands !== TRICOLOR_BANDS) {
+  if (yellowScale !== 1 || bands !== TRICOLOR_BANDS || blueBoostPct !== 0 || yellowBrightness !== 1) {
     const y = (100 / 3) * yellowScale
-    const b = (100 - y) / 2
-    bg = `linear-gradient(to bottom, ${bands[0]} 0%, ${bands[0]} ${b.toFixed(2)}%, ${bands[1]} ${b.toFixed(2)}%, ${bands[1]} ${(b + y).toFixed(2)}%, ${bands[2]} ${(b + y).toFixed(2)}%, ${bands[2]} 100%)`
+    const b = (100 - y) / 2 + blueBoostPct
+    const r = 100 - y - b
+    const yellowRgb = bands[1].match(/[0-9a-f]{2}/gi)?.map(v => Math.round(parseInt(v, 16) * yellowBrightness)) ?? [252, 209, 22]
+    const yellow = `#${yellowRgb.map(v => v.toString(16).padStart(2, '0')).join('')}`
+    bg = `linear-gradient(to bottom, ${bands[0]} 0%, ${bands[0]} ${b.toFixed(2)}%, ${yellow} ${b.toFixed(2)}%, ${yellow} ${(b + y).toFixed(2)}%, ${bands[2]} ${(b + y).toFixed(2)}%, ${bands[2]} 100%)`
   }
   return {
     background:           bg,
