@@ -3968,7 +3968,7 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 }
 .lesson-replay-btn.is-hinting { box-shadow: 0 0 0 0 rgba(0, 142, 64, .55); }
 .lesson-start-hand {
-  display: inline-block; font-size: 1.6rem; line-height: 1;
+  display: inline-block; flex: none;
   animation-name: start-hint-hand;
 }
 @keyframes start-hint-pulse {

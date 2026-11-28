@@ -1757,7 +1757,12 @@ export default function LearnPage() {
               {isActive && isUnlocked && !buleleVulpiiConfig && (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', width: '100%', margin: '6px 0' }}>
                   {startHintOn && l.id === 'a' && stars === 0 && !isPlayingRep && (
-                    <span className="lesson-start-hand" aria-hidden="true">👉</span>
+                    <svg className="lesson-start-hand" viewBox="0 0 32 24" width="22" height="17" aria-hidden="true" focusable="false">
+                      <rect x="14" y="6" width="17" height="5" rx="2.5" fill="#008E40" />
+                      <rect x="3" y="9" width="16" height="13" rx="4" fill="#008E40" />
+                      <rect x="6" y="3.5" width="9" height="5.5" rx="2.7" fill="#008E40" />
+                      <path d="M12 13.5h6M12 16.5h6M12 19.5h6" stroke="#fff" strokeOpacity=".55" strokeWidth="1" strokeLinecap="round" />
+                    </svg>
                   )}
                   <button
                     type="button"
