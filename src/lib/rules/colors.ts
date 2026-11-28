@@ -68,7 +68,7 @@ export const SOUND_COLORS: SoundColor[] = [
   },
   {
     sounds: ['eɪ', 'ey̓'], hex: '#0041B3', label: 'eɪ', example: 'day, name', category: 'vowel',
-    neighbors: ['#4472C4'],
+    neighbors: ['#178FC2'],
     note: 'SPEC CORRECTION (§9): own dark blue, not a variant of e/ɛ.',
   },
   {
@@ -77,7 +77,7 @@ export const SOUND_COLORS: SoundColor[] = [
     note: 'SPEC ADDITION (§9): was previously unmapped.',
   },
   {
-    sounds: ['aɪ', 'ay̓'], hex: '#4472C4', label: 'aɪ', example: 'night, my', category: 'vowel',
+    sounds: ['aɪ', 'ay̓'], hex: '#178FC2', label: 'aɪ', example: 'night, my', category: 'vowel',
     neighbors: ['#0041B3'],
   },
   {
