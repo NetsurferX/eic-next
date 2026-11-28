@@ -755,8 +755,10 @@ export default function LearnPage() {
   const symbolGroupCount = Math.ceil(ALL_SYMBOLS.length / 4)
   const symbolGroupUnlocked = (g: number) =>
     ALL_SYMBOLS.slice(g * 4, g * 4 + 4).some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
-  const canGoPrevGroup = selectedSymbolGroup > 0 && symbolGroupUnlocked(selectedSymbolGroup - 1)
-  const canGoNextGroup = selectedSymbolGroup < symbolGroupCount - 1 && symbolGroupUnlocked(selectedSymbolGroup + 1)
+  // Săgețile și swipe-ul parcurg TOATE grupurile (și pe cele blocate, ca să le poți vedea);
+  // doar butoanele/rândurile de grup blocate nu se pot alege prin click.
+  const canGoPrevGroup = selectedSymbolGroup > 0
+  const canGoNextGroup = selectedSymbolGroup < symbolGroupCount - 1
 
   // Bara urmărește coloana de antrenat: când se schimbă coloana activă (avans, săgeți, click),
   // grupul ei devine grupul selectat (mare, la mijloc).
@@ -769,8 +771,8 @@ export default function LearnPage() {
   // coloana activă (mare, sus), iar celelalte trei stau mici dedesubt. Dacă grupul conține deja
   // coloana activă, rămâne ea. Coloana nouă se activează ca la selectarea unui simbol
   // (fără start automat dacă ai întrerupt o coloană; antrenamentul pornește la REPEAT).
-  const selectSymbolGroup = (n: number) => {
-    if (n === selectedSymbolGroup || n < 0 || n >= symbolGroupCount || !symbolGroupUnlocked(n)) return
+  const selectSymbolGroup = (n: number, allowLocked = false) => {
+    if (n === selectedSymbolGroup || n < 0 || n >= symbolGroupCount || (!allowLocked && !symbolGroupUnlocked(n))) return
     const items = ALL_SYMBOLS.slice(n * 4, n * 4 + 4)
     setSelectedSymbolGroup(n)
     setGroupSlide(prev => ({ dir: n > selectedSymbolGroup ? 1 : -1, n: prev.n + 1 }))
@@ -779,7 +781,7 @@ export default function LearnPage() {
     if (first) selectSymbol(first.levelIdx, first.colIdx)
   }
   // dir: 1 = grupul următor, -1 = grupul anterior (săgeți sau swipe)
-  const goSymbolGroup = (dir: 1 | -1) => selectSymbolGroup(selectedSymbolGroup + dir)
+  const goSymbolGroup = (dir: 1 | -1) => selectSymbolGroup(selectedSymbolGroup + dir, true)
   // Swipe stânga/dreapta pe linia de simboluri și pe coloane (doar telefon):
   // deget spre stânga → grupul următor; spre dreapta → grupul anterior.
   const swipeProps = {
