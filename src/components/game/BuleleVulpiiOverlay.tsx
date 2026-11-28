@@ -29,6 +29,15 @@ import { FoxFlight, type FlightOrigin } from './FoxFlight'
 // pentru cazul sub prag, ca să nu aștepți numărătoarea dacă nu vrei.
 // ─────────────────────────────────────────────────────────────────────────
 
+// ── Lansarea jocului, la relanti (~3 s): un buton rotund apare în centru și e „apăsat" → jocul crește din el
+//    (CSS `.is-launching`) → vulpea se ghemuiește la medalion, sare, se dă peste cap și aterizează în joc.
+//    Primul pește pornește abia după aterizare. Cu „reduce motion": jocul se deschide direct. ──
+const LAUNCH_MS = 3000          // durata totală a tranziției = când pornește primul pește
+const FOX_DELAY_MS = 1200       // cât stă vulpea la medalion înainte să sară (jocul crește între timp)
+const FOX_FLIGHT_MS = LAUNCH_MS - FOX_DELAY_MS   // săritura aterizează exact la sfârșitul tranziției
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
 export interface BuleleVulpiiOverlayConfig {
   lesson: Lesson
   distractorLessons: Lesson[]
@@ -51,8 +60,17 @@ export function BuleleVulpiiOverlay({
   const [countdown, setCountdown] = useState<number | null>(null)
   // După jocul cu pești la coloana „i”, apare cardul „Challenge - Read with EiC”.
   const [challenge, setChallenge] = useState(false)
-  // Zborul vulpii de la medalion la joc: cât durează, vulpea din joc rămâne ascunsă (FoxFlight o arată la aterizare).
-  const [flying, setFlying] = useState(!!config.fromRect)
+  // Lansarea (buton central → joc care crește): `introMs` = cât amânăm primul pește (doar la prima deschidere).
+  const [introMs] = useState(() => (prefersReducedMotion() ? 0 : LAUNCH_MS))
+  const [launching, setLaunching] = useState(introMs > 0)
+  useEffect(() => {
+    if (!launching) return
+    const t = setTimeout(() => setLaunching(false), LAUNCH_MS)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // Săritura vulpii de la medalion în joc: cât durează, vulpea din joc rămâne ascunsă (FoxFlight o arată la aterizare).
+  const [flying, setFlying] = useState(introMs > 0 && !!config.fromRect)
   const handleLanded = useCallback(() => setFlying(false), [])
 
   // Închide cu un fade scurt (nu instant) — folosit la sfârșitul jocului,
@@ -98,7 +116,7 @@ export function BuleleVulpiiOverlay({
 
   return (
     <div
-      className={`bulele-overlay${closing ? ' bulele-overlay-closing' : ''}`}
+      className={`bulele-overlay${launching ? ' is-launching' : ''}${closing ? ' bulele-overlay-closing' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label="Vulpea la pescuit"
@@ -107,7 +125,10 @@ export function BuleleVulpiiOverlay({
       {/* medalionul din coloană (în spatele overlay-ului) își ascunde vulpea cât joacă: ea e acum în joc;
           vulpea din joc rămâne ascunsă cât zboară cea de la medalion */}
       <style>{`.fox-helper { display: none !important; } .aik-corner .aik-corner-head { visibility: hidden !important; }${flying ? ' .pf-fox { visibility: hidden !important; }' : ''}`}</style>
-      {flying && config.fromRect && <FoxFlight from={config.fromRect} onLand={handleLanded} />}
+      {flying && config.fromRect && (
+        <FoxFlight from={config.fromRect} onLand={handleLanded} delayMs={FOX_DELAY_MS} durationMs={FOX_FLIGHT_MS} />
+      )}
+      {launching && <div className="bulele-launch-btn" aria-hidden="true">🐟</div>}
       {challenge ? (
         <ReadChallengeCard onContinue={closeAndFinish} />
       ) : (
@@ -126,6 +147,7 @@ export function BuleleVulpiiOverlay({
             distractorLessons={config.distractorLessons}
             nextLesson={config.nextLesson}
             level={level}
+            startDelayMs={level === 1 ? introMs : 0}
             onFinish={setResult}
             onExit={closeAndFinish}
           />

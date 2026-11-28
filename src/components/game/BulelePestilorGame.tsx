@@ -41,6 +41,8 @@ export interface BulelePestilorGameProps {
   onFinish?: (result: BulelePestilorResult) => void
   /** Dacă e dat, apare butonul „Ieși” (cu confirmare). */
   onExit?: () => void
+  /** Amână (ms de la montare) doar primul pește + anunțul vocal — folosit de tranziția de lansare din overlay. */
+  startDelayMs?: number
 }
 type GroupKind = 'current' | 'distractor' | 'next'
 interface Group { kind: GroupKind; lesson: Lesson }
@@ -299,7 +301,7 @@ function playBuzzer() {
 }
 
 export function BulelePestilorGame({
-  lesson, distractorLessons = [], nextLesson = null, level = 1, onFinish, onExit,
+  lesson, distractorLessons = [], nextLesson = null, level = 1, onFinish, onExit, startDelayMs = 0,
 }: BulelePestilorGameProps) {
   const currentGroup: Group = { kind: 'current', lesson }
   const distractorGroups: Group[] = distractorLessons.map(l => ({ kind: 'distractor', lesson: l }))
@@ -351,6 +353,7 @@ export function BulelePestilorGame({
   const pullingRef = useRef(false)
   const pendingSpawnRef = useRef<null | (() => void)>(null)
   const timers = useRef<number[]>([])
+  const mountedAtRef = useRef(Date.now())   // pentru startDelayMs: amână DOAR primul pește după montare
   const rafRef = useRef<number | null>(null)
   const progressRef = useRef(0)
   const holdUntilRef = useRef(0)
@@ -445,7 +448,11 @@ export function BulelePestilorGame({
     setScore(0)
     setHearts(10)
     setDone(null)
-    spawnAt(0, q)
+    // Tranziția de lansare (overlay): scena, inimile și bara stau gata, dar primul pește (și anunțul vocal)
+    // apar abia după `startDelayMs` de la montare. La un restart ulterior, așteptarea a trecut deja → imediat.
+    const wait = Math.max(0, startDelayMs - (Date.now() - mountedAtRef.current))
+    if (wait > 0) later(() => spawnAt(0, q), wait)
+    else spawnAt(0, q)
   }
 
   // ── Culorile reale din motor: nodurile cuvintelor (ca /learn), accent per cuvânt ──
