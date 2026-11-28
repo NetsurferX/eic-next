@@ -3653,7 +3653,7 @@ button, textarea, input { font-family: var(--font-sans); }
   position: relative;
   z-index: 1;
   font-family: var(--font-sans);
-  font-style: normal;
+  font-style: italic;   /* ca în capul coloanei (.lesson-letter) */
   font-weight: 700;
   font-size: 0.875rem;
   line-height: 1;

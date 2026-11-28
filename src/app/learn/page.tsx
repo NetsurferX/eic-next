@@ -1583,12 +1583,13 @@ export default function LearnPage() {
               >
                 {items.map(item => {
                   const unlocked = !!colUnlocked[item.levelIdx]?.[item.colIdx]
+                  // aceeași sursă de text și de stil ca în capul coloanei (alias + ringify + lessonSymbolTextStyle)
                   const sv = symbolView(item.lesson)
                   return (
                     <span className="symbol-group-symbol" key={item.lesson.id}>
                       {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
                       <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
-                        {sv.text}
+                        {ringify(HEAD_SYMBOL_ALIAS[item.lesson.id]?.show ?? sv.text)}
                       </span>
                     </span>
                   )
