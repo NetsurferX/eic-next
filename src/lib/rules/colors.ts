@@ -67,7 +67,7 @@ export const SOUND_COLORS: SoundColor[] = [
       + 'placeholder until that lands.',
   },
   {
-    sounds: ['eɪ', 'ey̓'], hex: '#264582', label: 'eɪ', example: 'day, name', category: 'vowel',
+    sounds: ['eɪ', 'ey̓'], hex: '#0041B3', label: 'eɪ', example: 'day, name', category: 'vowel',
     neighbors: ['#4472C4'],
     note: 'SPEC CORRECTION (§9): own dark blue, not a variant of e/ɛ.',
   },
@@ -78,7 +78,7 @@ export const SOUND_COLORS: SoundColor[] = [
   },
   {
     sounds: ['aɪ', 'ay̓'], hex: '#4472C4', label: 'aɪ', example: 'night, my', category: 'vowel',
-    neighbors: ['#264582'],
+    neighbors: ['#0041B3'],
   },
   {
     sounds: ['aw', 'aʊ'], hex: '#23D300', label: 'aʊ', example: 'loud, cow', category: 'vowel',
