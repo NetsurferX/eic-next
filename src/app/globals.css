@@ -3989,3 +3989,7 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
   50%      { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(0, 0, 0, 0); }
 }
 @media (prefers-reduced-motion: reduce) { .lesson-col-btn.is-nudging { animation: none; } }
+
+/* „Next →” din cardul Challenge: pulsează discret (aceeași mișcare ca NEXT din coloană) */
+.read-challenge-next { animation: next-nudge 1800ms ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .read-challenge-next { animation: none; } }

@@ -331,7 +331,7 @@ function ReadChallengeCard({ onContinue }: { onContinue: () => void }) {
         {done && (
           <button className="bulele-overlay-skip" onClick={() => void run()}>↺ Again</button>
         )}
-        <button className="bulele-overlay-skip" onClick={onContinue}>Continuă →</button>
+        <button className="bulele-overlay-skip read-challenge-next" onClick={onContinue}>Next →</button>
       </div>
     </div>
   )
