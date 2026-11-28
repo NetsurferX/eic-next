@@ -1535,16 +1535,19 @@ export default function LearnPage() {
       <div className="lesson-top-row">
         <div className="lesson-top-links">
           <Link href="/" className="lesson-back-btn" onClick={stopPlayback}>← Pagina principală</Link>
+          <button type="button" className="lesson-reset-btn" onClick={() => setShowResetConfirm(true)}>
+            Re-start
+          </button>
           <div className="lesson-step-nav">
             <button type="button" className="lesson-step-btn" aria-label="Lecția anterioară" title="Lecția anterioară (←)"
               disabled={isPlayingRep || !stepTarget(-1)} onClick={() => stepLesson(-1)}>←</button>
             <button type="button" className="lesson-step-btn" aria-label="Lecția următoare" title="Lecția următoare (→)"
               disabled={isPlayingRep || !stepTarget(1)} onClick={() => stepLesson(1)}>→</button>
           </div>
-          <Link href="/debug/games/oua-vulpii" onClick={stopPlayback}
-            style={{ background: '#fff7e6', color: '#5a4620', border: '1px solid #efcf87', borderRadius: 999, padding: '8px 13px', fontWeight: 900, fontSize: 12, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 2px 7px #8a682019' }}>
+          <button type="button" disabled aria-disabled="true" title="Blocat momentan"
+            style={{ background: '#fff7e6', color: '#5a4620', border: '1px solid #efcf87', borderRadius: 999, padding: '8px 13px', fontWeight: 900, fontSize: 12, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 2px 7px #8a682019' , opacity: .45, cursor: 'not-allowed', fontFamily: 'inherit' }}>
             🦊 Joacă cu vulpița
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -1870,10 +1873,6 @@ export default function LearnPage() {
       <aside className="lesson-header lesson-sidebar">
         <h1 className="lesson-title">Lesson {selectedSymbolGroup + 1}</h1>
 
-        <button type="button" className="lesson-reset-btn lesson-reset-btn-sidebar" onClick={() => setShowResetConfirm(true)}>
-          ↺ Reia de la început
-        </button>
-
         <p className="lesson-subhead">
           {allDone ? 'Repetă cuvintele cu voce tare' : 'Ascultă coloana de 3 ori și repetă fiecare cuvânt cu voce tare'}
         </p>
@@ -1911,20 +1910,6 @@ export default function LearnPage() {
             )}
           </div>
         )}
-
-        <div className="lesson-speed-control">
-          <label htmlFor="speed-slider" className="lesson-speed-label">Viteză</label>
-          <input
-            id="speed-slider"
-            type="range"
-            min={800}
-            max={3000}
-            step={50}
-            value={autoDelayMs}
-            onChange={(e) => setAutoDelayMs(Number(e.target.value))}
-            className="lesson-speed-slider"
-          />
-        </div>
 
       </aside>
       </div>
