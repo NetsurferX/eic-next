@@ -1567,7 +1567,7 @@ export default function LearnPage() {
           </button>
           <button type="button" disabled aria-disabled="true" title="Blocat momentan"
             style={{ background: '#fff7e6', color: '#5a4620', border: '1px solid #efcf87', borderRadius: 999, padding: '5px 11px', fontWeight: 900, fontSize: 12, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 2px 7px #8a682019' , opacity: .45, cursor: 'not-allowed', fontFamily: 'inherit' }}>
-            🦊 Joacă cu vulpița
+            🦊 Jocuri
           </button>
           <p className="lesson-subhead lesson-top-hint">
             {allDone ? 'Repetă cuvintele cu voce tare' : 'Ascultă coloana de 3 ori și repetă fiecare cuvânt cu voce tare'}
