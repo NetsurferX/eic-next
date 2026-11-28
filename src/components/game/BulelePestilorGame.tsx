@@ -1115,8 +1115,8 @@ export function BulelePestilorGame({
         @keyframes pf-wrong { 0%,100% { transform: translateX(0) } 15% { transform: translateX(-8px) rotate(-6deg) } 30% { transform: translateX(8px) rotate(6deg) } 45% { transform: translateX(-7px) rotate(-5deg) } 60% { transform: translateX(7px) rotate(5deg) } 80% { transform: translateX(-3px) } }
         .pf-wrong { animation: pf-wrong 420ms linear; outline: 4px solid rgba(204,0,0,.55); outline-offset: 2px; }
         /* Literele-țintă rămân subțiri și oscilează sus-jos; o oscilație completă durează 1,2 secunde. */
-        @keyframes pf-float { 0%,100% { transform: translateY(-4px) } 50% { transform: translateY(4px) } }
-        .eic-pulse { display: inline-block; transform-origin: center; font-weight: 300; animation: pf-float 1200ms ease-in-out infinite; }
+        @keyframes pf-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+        .eic-pulse { display: inline-block; transform-origin: center; font-weight: 300; animation: pf-float 1200ms ease-in-out 2; }   /* salt de 2 ori, apoi stă pe loc */
         @media (prefers-reduced-motion: reduce) { .eic-pulse { animation: none; } }
         @keyframes pf-tail { 0% { transform: rotate(0) } 50% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
         .pf-tail { transform-origin: 80px 25px; animation: pf-tail 650ms ease-in-out infinite; }
