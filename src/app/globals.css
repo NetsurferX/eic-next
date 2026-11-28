@@ -2006,6 +2006,12 @@ button, textarea, input { font-family: var(--font-sans); }
   animation: bulele-card-grow 1800ms cubic-bezier(.22, .75, .25, 1) 900ms backwards;
   pointer-events: none;
 }
+/* La sfârșitul lansării clasa `is-launching` dispare și cardul ar reveni la animația lui de bază
+   (`level-overlay-card-in`: fade + săritură de jos, 550 ms) — adică jocul s-ar „redeschide" vizibil după ce vulpea a aterizat.
+   Cu `is-launched` nu mai primește nicio animație de intrare; starea naturală e identică cu finalul creșterii, deci fără salt.
+   (Excepție: la închidere rămân animațiile de ieșire — `.bulele-overlay-closing`.) */
+.bulele-overlay.is-launched:not(.bulele-overlay-closing),
+.bulele-overlay.is-launched:not(.bulele-overlay-closing) .bulele-overlay-card { animation: none; }
 @keyframes bulele-card-grow {
   0%   { transform: scale(.05); opacity: 0; border-radius: 50%; }
   14%  { opacity: 1; }

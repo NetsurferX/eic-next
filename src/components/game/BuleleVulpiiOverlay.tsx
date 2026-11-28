@@ -117,7 +117,8 @@ export function BuleleVulpiiOverlay({
 
   return (
     <div
-      className={`bulele-overlay${launching ? ' is-launching' : ''}${closing ? ' bulele-overlay-closing' : ''}`}
+      // is-launched: lansarea s-a terminat — cardul NU mai primește animația de apariție de bază (altfel s-ar „redeschide" după aterizare)
+      className={`bulele-overlay${launching ? ' is-launching' : introMs > 0 ? ' is-launched' : ''}${closing ? ' bulele-overlay-closing' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label="Vulpea la pescuit"
