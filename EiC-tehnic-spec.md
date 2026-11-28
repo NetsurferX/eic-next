@@ -346,7 +346,7 @@ literei. Grupate pe fonem:
 | /uː/ | /u/ | Violet `#7030A0` (solid) | food, room |
 | /əʊ/ | /əw/ | **Gradient tricolor**: `#002B7F → #FCD116 → #CE1126` | go, snow |
 | /aɪ/ | /aỷ/ | Albastru mediu `#4472C4` | time, my |
-| /eɪ/ | /eỷ/ | Albastru închis `#00246C` | name, day |
+| /eɪ/ | /eỷ/ | Albastru închis `#264582` | name, day |
 | /juː/ | /ỷu/ | Maro `#833C0B` | cute, beauty |
 | /ɔɪ/ | /o/+/ỷ/ | Roz `#FF3399` → Roșu `#CC0000` (bicolor, nu gradient continuu) | boỷ, coỉn |
 
