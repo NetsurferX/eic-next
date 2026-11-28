@@ -116,6 +116,15 @@ const WA_STYLED_WORDS: Record<string, WaSeg[]> = {
   someone:   [{ t: 's', k: 'plain' }, { t: 'o', k: 'a' }, { t: 'm', k: 'plain' }, { t: 'e', k: 'silent' }, { t: 'o', k: 'wa' }, { t: 'n', k: 'plain' }, { t: 'e', k: 'silent' }],
   croissant: [{ t: 'cr', k: 'plain' }, { t: 'oi', k: 'wa' }, { t: 'ss', k: 'plain' }, { t: 'a', k: 'a' }, { t: 'nt', k: 'plain' }],
 }
+// Poziția medalionului vulpii din coloana activă, în coordonate viewport — de aici decolează vulpea
+// când se deschide jocul (vezi FoxFlight). `undefined` dacă medalionul nu e pe ecran: jocul se deschide direct.
+function foxOrigin() {
+  if (typeof document === 'undefined') return undefined
+  const el = document.querySelector('.aik-corner-head') as HTMLElement | null
+  if (!el) return undefined
+  const r = el.getBoundingClientRect()
+  return r.width > 0 && r.height > 0 ? { x: r.left, y: r.top, w: r.width, h: r.height } : undefined
+}
 // Coloanele de consoane sunt NEGRE (culoare + etichetă), nu violet/portocaliu/etc. Local paginii — levels.ts neatins.
 // Lecția terminată se strânge și zboară vizual în butonul ei din linia de simboluri de sus
 // (clonă a coloanelor, animată peste pagină; pagina reală trece imediat la lecția următoare).
@@ -1051,6 +1060,7 @@ export default function LearnPage() {
         lesson,
         distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
         nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+        fromRect: foxOrigin(),
       })
     }
   }, [isPlayingRep, showLevelOverlay, nextLevel, levelIndex, active, level, lesson, levelStars, starsEarned, selectedSymbolGroup, playColumnOnce, isLastLevel, triggerFox, startReward])
@@ -1107,6 +1117,7 @@ export default function LearnPage() {
       lesson,
       distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
       nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+      fromRect: foxOrigin(),
     })
   }, [buleleVulpiiConfig, starsEarned, levelIndex, active, levelStars, level, lesson, isLastLevel, triggerFox])
 
@@ -1148,6 +1159,7 @@ export default function LearnPage() {
       lesson: replayLesson,
       distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
       nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+      fromRect: foxOrigin(),
     })
   }, [isPlayingRep, buleleVulpiiConfig, showLevelOverlay, introLesson, starsEarned, levelIndex, active, lesson, playColumnOnce])
 
@@ -1188,6 +1200,7 @@ export default function LearnPage() {
       lesson,
       distractorLessons: FLAT_LESSONS.slice(Math.max(0, flatIdx - 2), flatIdx).reverse(),
       nextLesson: FLAT_LESSONS[flatIdx + 1] ?? null,
+      fromRect: foxOrigin(),
     })
   }, [buleleVulpiiConfig, showLevelOverlay, introLesson, isPlayingRep, handleReplayOmite, starsEarned, levelIndex, active, lesson])
 

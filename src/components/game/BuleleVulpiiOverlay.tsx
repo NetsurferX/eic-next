@@ -6,6 +6,7 @@ import type { Lesson } from '@/lib/levels'
 // Actualizare (2026-10-02): jocul montat e varianta cu pești. Revenire la baloane =
 // import { BuleleVulpiiGame } from './BuleleVulpiiGame' + <BuleleVulpiiGame> mai jos.
 import { BulelePestilorGame, type BulelePestilorLevel, type BulelePestilorResult } from './BulelePestilorGame'
+import { FoxFlight, type FlightOrigin } from './FoxFlight'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Overlay full-screen deschis din /learn imediat după ce o coloană e
@@ -32,6 +33,9 @@ export interface BuleleVulpiiOverlayConfig {
   lesson: Lesson
   distractorLessons: Lesson[]
   nextLesson: Lesson | null
+  // Unde e medalionul vulpii din coloană (coordonate viewport) în clipa deschiderii. Dacă există,
+  // vulpea zboară de acolo la vulpea din joc; dacă lipsește, jocul se deschide direct, ca înainte.
+  fromRect?: FlightOrigin
 }
 
 export function BuleleVulpiiOverlay({
@@ -47,6 +51,9 @@ export function BuleleVulpiiOverlay({
   const [countdown, setCountdown] = useState<number | null>(null)
   // După jocul cu pești la coloana „i”, apare cardul „Challenge - Read with EiC”.
   const [challenge, setChallenge] = useState(false)
+  // Zborul vulpii de la medalion la joc: cât durează, vulpea din joc rămâne ascunsă (FoxFlight o arată la aterizare).
+  const [flying, setFlying] = useState(!!config.fromRect)
+  const handleLanded = useCallback(() => setFlying(false), [])
 
   // Închide cu un fade scurt (nu instant) — folosit la sfârșitul jocului,
   // la „Sari peste" și la „Ieși" din joc, ca revenirea în /learn să nu
@@ -97,7 +104,10 @@ export function BuleleVulpiiOverlay({
       aria-label="Vulpea la pescuit"
     >
       {/* dock-ul FoxHelper stă deasupra overlay-ului — îl ascundem cât joacă */}
-      <style>{`.fox-helper { display: none !important; }`}</style>
+      {/* medalionul din coloană (în spatele overlay-ului) își ascunde vulpea cât joacă: ea e acum în joc;
+          vulpea din joc rămâne ascunsă cât zboară cea de la medalion */}
+      <style>{`.fox-helper { display: none !important; } .aik-corner .aik-corner-head { visibility: hidden !important; }${flying ? ' .pf-fox { visibility: hidden !important; }' : ''}`}</style>
+      {flying && config.fromRect && <FoxFlight from={config.fromRect} onLand={handleLanded} />}
       {challenge ? (
         <ReadChallengeCard onContinue={closeAndFinish} />
       ) : (
