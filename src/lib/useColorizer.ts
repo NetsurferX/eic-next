@@ -54,7 +54,7 @@ function colorToLabel(c: string): string {
   const m: Record<string, string> = {
     '#00b0f0': 'æ', '#008E40': 'ɑ/ʌ', '#888888': 'ə',
     '#EE5B00': 'e/ɛ', '#CC0000': 'i/ɪ', '#FF3399': 'ɒ/ɔ',
-    '#7030A0': 'u/ʊ', '#1688B8': 'aɪ/aʊ', '#E57373': 'j/w',
+    '#7030A0': 'u/ʊ', '#1581AF': 'aɪ/aʊ', '#E57373': 'j/w',
   }
   return m[c] ?? c
 }

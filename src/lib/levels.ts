@@ -187,7 +187,7 @@ export const LEVELS: Level[] = [
         ],
       },
       {
-        id: 'ai', letter: 'aỷ', color: '#1688B8', tabLabel: 'Albastru', matchWord: 'eye',
+        id: 'ai', letter: 'aỷ', color: '#1581AF', tabLabel: 'Albastru', matchWord: 'eye',
         words: [
           { text: 'night', mark: 'i' },
           { text: 'my',    mark: 'y' },
