@@ -1538,16 +1538,13 @@ export default function LearnPage() {
           <button type="button" className="lesson-reset-btn" onClick={() => setShowResetConfirm(true)}>
             Re-start
           </button>
-          <div className="lesson-step-nav">
-            <button type="button" className="lesson-step-btn" aria-label="Lecția anterioară" title="Lecția anterioară (←)"
-              disabled={isPlayingRep || !stepTarget(-1)} onClick={() => stepLesson(-1)}>←</button>
-            <button type="button" className="lesson-step-btn" aria-label="Lecția următoare" title="Lecția următoare (→)"
-              disabled={isPlayingRep || !stepTarget(1)} onClick={() => stepLesson(1)}>→</button>
-          </div>
           <button type="button" disabled aria-disabled="true" title="Blocat momentan"
-            style={{ background: '#fff7e6', color: '#5a4620', border: '1px solid #efcf87', borderRadius: 999, padding: '8px 13px', fontWeight: 900, fontSize: 12, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 2px 7px #8a682019' , opacity: .45, cursor: 'not-allowed', fontFamily: 'inherit' }}>
+            style={{ background: '#fff7e6', color: '#5a4620', border: '1px solid #efcf87', borderRadius: 999, padding: '5px 11px', fontWeight: 900, fontSize: 12, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 2px 7px #8a682019' , opacity: .45, cursor: 'not-allowed', fontFamily: 'inherit' }}>
             🦊 Joacă cu vulpița
           </button>
+          <p className="lesson-subhead lesson-top-hint">
+            {allDone ? 'Repetă cuvintele cu voce tare' : 'Ascultă coloana de 3 ori și repetă fiecare cuvânt cu voce tare'}
+          </p>
         </div>
       </div>
 
@@ -1872,10 +1869,6 @@ export default function LearnPage() {
 
       <aside className="lesson-header lesson-sidebar">
         <h1 className="lesson-title">Lesson {selectedSymbolGroup + 1}</h1>
-
-        <p className="lesson-subhead">
-          {allDone ? 'Repetă cuvintele cu voce tare' : 'Ascultă coloana de 3 ori și repetă fiecare cuvânt cu voce tare'}
-        </p>
 
         {allDone && (
           <div className="eic2-menu">

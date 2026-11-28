@@ -2184,11 +2184,14 @@ button, textarea, input { font-family: var(--font-sans); }
    pagina de prezentare (hero), unul sub altul, fără să lărgească rândul. ── */
 .lesson-top-links {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;          /* Pagina principală · Re-start · Joacă cu vulpița, pe același rând */
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
-  justify-self: start;
+  grid-column: 1 / -1;
+  justify-self: stretch;
 }
+.lesson-top-hint { flex-basis: 100%; margin: 6px 0 0; }
 .lesson-hero-btn {
   opacity: 0.75;
 }
