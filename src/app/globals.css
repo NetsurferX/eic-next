@@ -3960,3 +3960,25 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
   .rc-vowel.is-on { animation: none; }
   .read-challenge-word.is-lit { animation: none; }
 }
+
+/* ── Indiciu START la prima deschidere a coloanei „a”: buton + mânuță pulsează împreună ── */
+.lesson-replay-btn.is-hinting,
+.lesson-start-hand {
+  animation: start-hint-pulse 900ms ease-in-out infinite;
+}
+.lesson-replay-btn.is-hinting { box-shadow: 0 0 0 0 rgba(0, 142, 64, .55); }
+.lesson-start-hand {
+  display: inline-block; font-size: 1.6rem; line-height: 1;
+  animation-name: start-hint-hand;
+}
+@keyframes start-hint-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(0, 142, 64, .55); }
+  50%      { transform: scale(1.1);  box-shadow: 0 0 0 10px rgba(0, 142, 64, 0); }
+}
+@keyframes start-hint-hand {
+  0%, 100% { transform: translateX(0) scale(1); }
+  50%      { transform: translateX(6px) scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lesson-replay-btn.is-hinting, .lesson-start-hand { animation: none; }
+}

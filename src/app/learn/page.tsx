@@ -494,6 +494,10 @@ export default function LearnPage() {
   const [freePracticeCount, setFreePracticeCount] = useState(0)
   // ── Zvâcnirea literei din capul coloanei (ex. coloana /a/ la start: 3× sunet + pulse)
   const [letterPulseId, setLetterPulseId] = useState<string | null>(null)
+  // Coloana „a”, prima deschidere: după a 2-a pronunțare a simbolului din cap,
+  // butonul START pulsează și o mânuță 👉 din stânga lui pulsează odată cu el.
+  // Dispare la apăsarea butonului sau când coloana pornește singură.
+  const [startHintOn, setStartHintOn] = useState(false)
   const letterPulseDoneRef = useRef<Set<string>>(new Set())
 
   // ── Level-scope celebration state ──
@@ -1411,6 +1415,7 @@ export default function LearnPage() {
       try { await promise } catch { /* ignore */ }
       if (letterSoundStopRef.current === stop) letterSoundStopRef.current = null
       if (autoCancel.current) break
+      if (i === 1 && times > 1 && l.id === 'a') setStartHintOn(true)
       if (i < times - 1) {
         // interval mai mare la startul coloanei (×3); click pe literă (×1) nu ajunge aici
         await new Promise(r => setTimeout(r, LETTER_PULSE_GAP_MS))
@@ -1425,6 +1430,13 @@ export default function LearnPage() {
     void playLetterPulse(l, 1)
   }, [introDone, isPlayingRep, playingWord, colUnlocked, levelIndex, seenIntros, playLetterPulse])
   useEffect(() => () => { letterSoundStopRef.current?.() }, [])
+
+  // Mânuța + pulsul dispar când coloana rulează (apăsat START sau pornit singur),
+  // când s-a câștigat deja o stea sau când se schimbă coloana.
+  useEffect(() => {
+    if (!startHintOn) return
+    if (isPlayingRep || earned > 0 || lesson?.id !== 'a') setStartHintOn(false)
+  }, [startHintOn, isPlayingRep, earned, lesson])
 
   // ── La prima activare a FIECĂREI coloane (după intro-uri, earned === 0):
   //   sunetul coloanei de 3 ori + litera + Aik zvâcnesc de fiecare dată.
@@ -1743,12 +1755,16 @@ export default function LearnPage() {
               )}
 
               {isActive && isUnlocked && !buleleVulpiiConfig && (
-                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '6px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', width: '100%', margin: '6px 0' }}>
+                  {startHintOn && l.id === 'a' && stars === 0 && !isPlayingRep && (
+                    <span className="lesson-start-hand" aria-hidden="true">👉</span>
+                  )}
                   <button
                     type="button"
-                    className={`lesson-replay-btn${isPlayingRep ? ' is-running' : ''}${isTricolor ? ' is-tricolor' : ''}`}
+                    className={`lesson-replay-btn${isPlayingRep ? ' is-running' : ''}${isTricolor ? ' is-tricolor' : ''}${startHintOn && l.id === 'a' && stars === 0 && !isPlayingRep ? ' is-hinting' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation()
+                      setStartHintOn(false)
                       if (isPlayingRep) { handleReplayStop(); return }
                       setPausedColKey(null)
                       if (trophyEarned) void handleReplay()
