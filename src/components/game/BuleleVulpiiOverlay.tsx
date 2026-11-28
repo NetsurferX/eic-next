@@ -35,6 +35,7 @@ import { FoxFlight, type FlightOrigin } from './FoxFlight'
 const LAUNCH_MS = 3000          // durata totală a tranziției = când pornește primul pește
 const FOX_DELAY_MS = 1200       // cât stă vulpea la medalion înainte să sară (jocul crește între timp)
 const FOX_FLIGHT_MS = LAUNCH_MS - FOX_DELAY_MS   // săritura aterizează exact la sfârșitul tranziției
+const FIRST_FISH_PAUSE_MS = 700 // după aterizare vulpea are o clipă să se așeze; abia apoi apare primul pește + anunțul vocal
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -124,7 +125,10 @@ export function BuleleVulpiiOverlay({
       {/* dock-ul FoxHelper stă deasupra overlay-ului — îl ascundem cât joacă */}
       {/* medalionul din coloană (în spatele overlay-ului) își ascunde vulpea cât joacă: ea e acum în joc;
           vulpea din joc rămâne ascunsă cât zboară cea de la medalion */}
-      <style>{`.fox-helper { display: none !important; } .aik-corner .aik-corner-head { visibility: hidden !important; }${flying ? ' .pf-fox { visibility: hidden !important; }' : ''}`}</style>
+      {/* Cât zboară vulpea, scena din joc stă „fără ea": vulpea, undița (cu plută și fir) sunt ascunse, iar mișcarea
+          lor de repaus e în PAUZĂ la faza 0 → la aterizare zburătoarea și vulpea reală sunt identice, iar legănarea
+          reia lin de acolo (fără salt la schimb). */}
+      <style>{`.fox-helper { display: none !important; } .aik-corner .aik-corner-head { visibility: hidden !important; }${flying ? ' .pf-fox { visibility: hidden !important; animation-play-state: paused !important; } .pf-fox .mascot-fox-anchor { animation-play-state: paused !important; } .pf-rod-rest { visibility: hidden !important; }' : ''}`}</style>
       {flying && config.fromRect && (
         <FoxFlight from={config.fromRect} onLand={handleLanded} delayMs={FOX_DELAY_MS} durationMs={FOX_FLIGHT_MS} />
       )}
@@ -147,7 +151,7 @@ export function BuleleVulpiiOverlay({
             distractorLessons={config.distractorLessons}
             nextLesson={config.nextLesson}
             level={level}
-            startDelayMs={level === 1 ? introMs : 0}
+            startDelayMs={level === 1 && introMs > 0 ? introMs + FIRST_FISH_PAUSE_MS : 0}
             onFinish={setResult}
             onExit={closeAndFinish}
           />

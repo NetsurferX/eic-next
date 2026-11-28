@@ -69,10 +69,13 @@ export function FoxFlight({
     const openedAt = performance.now()
     let done = false
 
+    let shadowP = 0
     const show = (x: number, y: number, rot: number, scaleX: number, scaleY: number, toBody: number) => {
       flyer.style.transform = `translate(${x - BASE / 2}px, ${y - BASE / 2}px) rotate(${rot}deg) scale(${scaleX}, ${scaleY})`
       head.style.opacity = String(1 - toBody)
       body.style.opacity = String(toBody)
+      // umbra de pe sol apare doar spre aterizare (în aer ar fi o pată desprinsă de vulpe)
+      body.style.setProperty('--fox-shadow-o', String(smooth(0.82, 1, shadowP)))
       flyer.style.visibility = 'visible'
     }
 
@@ -108,6 +111,7 @@ export function FoxFlight({
       const rot = -360 * easeInOut(clamp01((p - 0.1) / 0.8))                // tumbul
       // întindere la decolare, ghemuire ușoară la aterizare
       const stretch = 0.12 * Math.sin(Math.PI * clamp01(p / 0.22)) - 0.1 * Math.sin(Math.PI * clamp01((p - 0.86) / 0.14))
+      shadowP = p
       show(x, y, rot, s * (1 - stretch * 0.5), s * (1 + stretch), smooth(0.08, 0.4, p))
 
       if (p >= 1) { done = true; landRef.current(); return }
@@ -139,7 +143,7 @@ export function FoxFlight({
           style={{ borderWidth: 2 / Math.max(0.2, from.w / BASE) }}   // 2px reali după scalare, ca în medalion
         />
       </div>
-      <div ref={bodyRef} style={{ position: 'absolute', inset: 0, opacity: 0 }}>
+      <div ref={bodyRef} className="fox-flight-body" style={{ position: 'absolute', inset: 0, opacity: 0 }}>
         <FoxMotion state="sitting" size={BASE} />
       </div>
     </div>,

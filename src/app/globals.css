@@ -1999,9 +1999,11 @@ button, textarea, input { font-family: var(--font-sans); }
 /* ── Lansarea jocului, la relanti (~3 s, vezi LAUNCH_MS în BuleleVulpiiOverlay.tsx):
    fundalul se întunecă încet → buton rotund în centru, „apăsat" → cardul jocului crește din el.
    Vulpea sare între timp de la medalion în joc (FoxFlight). Cardul nu e atins cât durează. ── */
-.bulele-overlay.is-launching { animation: level-overlay-in 800ms ease both; }
+/* `backwards` (nu `both`): după ce se termină, animațiile nu mai impun nimic, iar starea finală e cea naturală —
+   deci la sfârșitul lansării (când clasa dispare) nu se schimbă nimic pe ecran, nici un salt/pâlpâire. */
+.bulele-overlay.is-launching { animation: level-overlay-in 800ms ease backwards; }
 .bulele-overlay.is-launching .bulele-overlay-card {
-  animation: bulele-card-grow 1800ms cubic-bezier(.22, .75, .25, 1) 900ms both;
+  animation: bulele-card-grow 1800ms cubic-bezier(.22, .75, .25, 1) 900ms backwards;
   pointer-events: none;
 }
 @keyframes bulele-card-grow {
@@ -3299,6 +3301,13 @@ button, textarea, input { font-family: var(--font-sans); }
   filter: none !important;
 }
 
+.fox-flight-body .mascot,
+.fox-flight-body .mascot-fox-anchor,
+.fox-flight-body .mascot-fox-img { animation: none !important; }   /* fără „pop"-ul de intrare / respirație în zbor */
+.fox-flight-body .mascot-glow,
+.fox-flight-body .mascot-sparkles,
+.fox-flight-body .mascot-dust { display: none !important; }
+.fox-flight-body .mascot-shadow { opacity: var(--fox-shadow-o, 0); transition: none; }   /* umbra apare doar la aterizare */
 .fox-flight-head {   /* portretul din FoxFlight: identic cu medalionul, ca decolarea să nu aibă salt vizual */
   display: block;
   width: 100%;
