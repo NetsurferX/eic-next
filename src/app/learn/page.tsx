@@ -422,8 +422,10 @@ export default function LearnPage() {
   // Bara este împărțită în grupuri fixe de câte patru simboluri.
   // Selectarea unui grup nou activează prima lui coloană deblocată (mare, sus; celelalte mici dedesubt).
   const [selectedSymbolGroup, setSelectedSymbolGroup] = useState(0)
-  // direcția ultimei mutări a grupului (pentru animația de glisare pe telefon); n re-montează bara
-  const [groupSlide, setGroupSlide] = useState<{ dir: 0 | 1 | -1; n: number }>({ dir: 0, n: 0 })
+  // Bara de simboluri e o bandă derulabilă liber (deget / mouse / rotiță); ref-ul e folosit
+  // doar ca să aducem grupul selectat la mijloc când se schimbă.
+  const symbolBarRef = useRef<HTMLDivElement>(null)
+  const symbolBarFirstRef = useRef(true)
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
   const [unlockedLevels, setUnlockedLevels] = useState<boolean[]>(() => LEVELS.map((_, i) => i === 0))
   // Dimensionat dinamic din level.lessons.length — NU mai presupune 4
@@ -767,6 +769,17 @@ export default function LearnPage() {
     if (idx >= 0) setSelectedSymbolGroup(Math.floor(idx / 4))
   }, [levelIndex, active])
 
+  // Banda de simboluri se derulează liber; când grupul selectat se schimbă (click, săgeți, avans de
+  // lecție) îl aducem la mijloc. Derularea manuală NU schimbă selecția.
+  useEffect(() => {
+    const bar = symbolBarRef.current
+    const btn = bar?.querySelector<HTMLElement>(`[data-symbol-group="${selectedSymbolGroup}"]`)
+    if (!bar || !btn) return
+    const smooth = !symbolBarFirstRef.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    symbolBarFirstRef.current = false
+    bar.scrollTo({ left: Math.max(0, btn.offsetLeft - (bar.clientWidth - btn.offsetWidth) / 2), behavior: smooth ? 'smooth' : 'auto' })
+  }, [selectedSymbolGroup])
+
   // Alegerea unui grup nou (buton, săgeți, swipe): prima coloană deblocată din grup devine
   // coloana activă (mare, sus), iar celelalte trei stau mici dedesubt. Dacă grupul conține deja
   // coloana activă, rămâne ea. Coloana nouă se activează ca la selectarea unui simbol
@@ -775,7 +788,6 @@ export default function LearnPage() {
     if (n === selectedSymbolGroup || n < 0 || n >= symbolGroupCount || (!allowLocked && !symbolGroupUnlocked(n))) return
     const items = ALL_SYMBOLS.slice(n * 4, n * 4 + 4)
     setSelectedSymbolGroup(n)
-    setGroupSlide(prev => ({ dir: n > selectedSymbolGroup ? 1 : -1, n: prev.n + 1 }))
     if (items.some(it => it.levelIdx === levelIndex && it.colIdx === active)) return
     const first = items.find(it => !!colUnlocked[it.levelIdx]?.[it.colIdx])
     if (first) selectSymbol(first.levelIdx, first.colIdx)
@@ -1554,7 +1566,7 @@ export default function LearnPage() {
           Grupate vizual câte 4 (gap mai mare la fiecare 4). Derulare
           orizontală dacă nu încap. Selectarea unui simbol deblocat
           afișează exclusiv coloana lui și pornește antrenamentul. ── */}
-      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri" {...swipeProps}>
+      <div className="symbol-bar-wrap" role="toolbar" aria-label="Selectare grupuri de simboluri">
         <button
           type="button"
           className="symbol-bar-arrow"
@@ -1564,10 +1576,7 @@ export default function LearnPage() {
         >
           ‹
         </button>
-        <div
-          key={groupSlide.n}
-          className={`symbol-bar${groupSlide.dir === 1 ? ' slide-next' : groupSlide.dir === -1 ? ' slide-prev' : ''}`}
-        >
+        <div ref={symbolBarRef} className="symbol-bar">
           {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
             const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
             const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
@@ -1577,7 +1586,7 @@ export default function LearnPage() {
                 key={groupIndex}
                 data-symbol-group={groupIndex}
                 type="button"
-                className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}${groupIndex === selectedSymbolGroup - 1 ? ' is-near-prev' : ''}${groupIndex === selectedSymbolGroup + 1 ? ' is-near-next' : ''}`}
+                className={`symbol-group-btn ${groupSelected ? 'is-selected' : ''}`}
                 disabled={!groupUnlocked}
                 aria-pressed={groupSelected}
                 aria-label={`Grupul ${groupIndex + 1}: ${items.map(item => symbolView(item.lesson).text).join(', ')}`}
@@ -1590,7 +1599,7 @@ export default function LearnPage() {
                   return (
                     <span className="symbol-group-symbol" key={item.lesson.id}>
                       {!unlocked && <span className="symbol-group-lock" aria-hidden="true">🔒</span>}
-                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, unlocked)}>
+                      <span className="lesson-letter symbol-btn-text" style={lessonSymbolTextStyle(item.lesson, true)}>
                         {ringify(HEAD_SYMBOL_ALIAS[item.lesson.id]?.show ?? sv.text)}
                       </span>
                     </span>

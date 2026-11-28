@@ -3537,26 +3537,35 @@ button, textarea, input { font-family: var(--font-sans); }
 
 /* ── Bara permanentă de simboluri (selectare + antrenament) ── */
 .symbol-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   margin: 0 0 1rem;
   padding: 0 2px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
 }
+/* Banda derulabilă liber (deget, mouse, rotiță): treci prin oricâte grupuri vrei, nu doar pas cu pas. */
 .symbol-bar {
+  position: relative;            /* offsetParent pentru centrarea grupului selectat */
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   gap: 4px;
-  min-width: min-content;
   padding: 3px 2px 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
 }
 
 /* Un singur buton compact pentru fiecare grup de patru simboluri. */
 .symbol-group-btn {
   flex: 0 0 auto;
+  scroll-snap-align: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3580,8 +3589,7 @@ button, textarea, input { font-family: var(--font-sans); }
   outline-offset: 1px;
 }
 .symbol-group-btn:disabled {
-  cursor: not-allowed;
-  opacity: .65;
+  cursor: not-allowed;   /* fără opacity: simbolurile își păstrează culorile; doar lacătul arată blocarea */
 }
 .symbol-group-symbol {
   position: relative;
@@ -3681,17 +3689,10 @@ button, textarea, input { font-family: var(--font-sans); }
 /* ── Săgețile grupurilor: doar pe telefon ── */
 .symbol-bar-arrow { display: none; }
 
-/* ── Telefon: linia de simboluri devine un carusel de trei grupuri.
-   ‹  [grup precedent, mic]  [GRUPUL SELECTAT, mare]  [grup următor, mic]  ›
-   Celelalte grupuri se ascund; se ajunge la ele cu săgețile. ── */
+/* ── Telefon: toate grupurile în aceeași bandă, derulabilă liber cu degetul (cât vrei);
+   săgețile ‹ › mută selecția cu un grup, iar grupul selectat se aduce la mijloc. ── */
 @media (max-width: 720px) {
-  .symbol-bar-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    overflow: visible;
-    padding: 0;
-  }
+  .symbol-bar-wrap { padding: 0; }
   .symbol-bar-arrow {
     flex: 0 0 auto;
     display: inline-flex;
@@ -3711,56 +3712,19 @@ button, textarea, input { font-family: var(--font-sans); }
   .symbol-bar-arrow:active:not(:disabled) { transform: translateY(1px); }
   .symbol-bar-arrow:disabled { opacity: .3; cursor: not-allowed; }
 
-  .symbol-bar {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    column-gap: 8px;
-    padding: 3px 0 5px;
-  }
-  .symbol-group-btn:not(.is-selected):not(.is-near-prev):not(.is-near-next) { display: none; }
-  .symbol-group-btn.is-near-prev { grid-column: 1; grid-row: 1; justify-self: end; }
-  .symbol-group-btn.is-selected  { grid-column: 2; grid-row: 1; }
-  .symbol-group-btn.is-near-next { grid-column: 3; grid-row: 1; justify-self: start; }
-
-  /* grupul selectat: mare */
-  .symbol-group-btn.is-selected {
+  .symbol-bar { gap: 6px; scrollbar-width: none; }
+  .symbol-bar::-webkit-scrollbar { display: none; }
+  .symbol-group-btn {
     gap: .3rem;
-    min-height: 2.2rem;
-    padding: .32rem .65rem;
-    border-radius: 12px;
+    min-height: 2rem;
+    padding: .25rem .55rem;
+    border-radius: 10px;
   }
-  .symbol-group-btn.is-selected .symbol-btn-text { font-size: 1.05rem; }
-  .symbol-group-btn.is-selected .symbol-group-symbol { min-width: 1.05rem; }
+  .symbol-group-btn .symbol-btn-text { font-size: .95rem; }
+  .symbol-group-btn .symbol-group-symbol { min-width: .95rem; }
 
-  /* vecinii: mici */
-  .symbol-group-btn.is-near-prev,
-  .symbol-group-btn.is-near-next {
-    gap: .15rem;
-    min-height: 1.3rem;
-    padding: .1rem .28rem;
-    border-radius: 7px;
-    opacity: .85;
-  }
-  .symbol-group-btn.is-near-prev .symbol-btn-text,
-  .symbol-group-btn.is-near-next .symbol-btn-text { font-size: .62rem; }
-  .symbol-group-btn.is-near-prev .symbol-group-symbol,
-  .symbol-group-btn.is-near-next .symbol-group-symbol { min-width: .5rem; }
-}
-
-/* ── Telefon: swipe stânga/dreapta între grupuri + glisare scurtă la schimbare ── */
-@media (max-width: 720px) {
-  .symbol-bar-wrap,
-  .lesson-layout { touch-action: pan-y; }   /* scroll vertical normal; orizontalul îl preia swipe-ul */
-  @keyframes symbol-slide-next { from { transform: translateX(26px);  opacity: .3; } to { transform: none; opacity: 1; } }
-  @keyframes symbol-slide-prev { from { transform: translateX(-26px); opacity: .3; } to { transform: none; opacity: 1; } }
-  .symbol-bar.slide-next { animation: symbol-slide-next 220ms ease-out; }
-  .symbol-bar.slide-prev { animation: symbol-slide-prev 220ms ease-out; }
-}
-@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
-  .symbol-bar.slide-next, .symbol-bar.slide-prev { animation: none; }
+  /* swipe-ul pe coloane (între grupuri) rămâne; banda de simboluri se derulează nativ */
+  .lesson-layout { touch-action: pan-y; }
 }
 
 /* ── Aik (asistent) în medalionul de sus: bula de mesaje și meniul apar sub medalion ── */
