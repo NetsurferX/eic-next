@@ -1909,13 +1909,14 @@ export default function LearnPage() {
 
       {/* ── Restul lecțiilor (cele care nu se lucrează acum), sub coloanele lecției afișate:
           câte patru coloane în formatul din v2 (antet cu simbol, stele, cuvinte colorate),
-          mai mici, cu titlul „Lesson N". Lecțiile terminate nu mai apar aici: s-au strâns în
-          butonul lor din linia de sus. Apăsarea pe un grup deblocat îl afișează deasupra. ── */}
+          mai mici, cu titlul „Lesson N". Lecțiile terminate (deblocate și trecute) merg jos, sub o linie cu titlul „Repeat". Apăsarea pe un grup deblocat îl afișează deasupra. ── */}
       <section className="lesson-index" aria-label="Celelalte lecții">
-        {Array.from({ length: Math.ceil(ALL_SYMBOLS.length / 4) }, (_, groupIndex) => {
-          if (groupIndex === selectedSymbolGroup) return null
+        {(() => {
+          const groupCount = Math.ceil(ALL_SYMBOLS.length / 4)
+          const isFinished = (g: number) =>
+            ALL_SYMBOLS.slice(g * 4, g * 4 + 4).every(it => (starsEarned[it.levelIdx]?.[it.colIdx] ?? 0) >= REPS_PER_LESSON)
+          const renderGroup = (groupIndex: number) => {
           const items = ALL_SYMBOLS.slice(groupIndex * 4, groupIndex * 4 + 4)
-          if (items.every(it => (starsEarned[it.levelIdx]?.[it.colIdx] ?? 0) >= REPS_PER_LESSON)) return null
           const groupUnlocked = items.some(item => !!colUnlocked[item.levelIdx]?.[item.colIdx])
           return (
             <div className="lesson-index-group" key={groupIndex}>
@@ -1975,7 +1976,22 @@ export default function LearnPage() {
               </div>
             </div>
           )
-        })}
+          }
+          const others = Array.from({ length: groupCount }, (_, g) => g).filter(g => g !== selectedSymbolGroup)
+          const pending = others.filter(g => !isFinished(g))
+          const finished = others.filter(isFinished)
+          return (
+            <>
+              {pending.map(renderGroup)}
+              {finished.length > 0 && (
+                <div className="lesson-repeat">
+                  <div className="lesson-repeat-head"><h2 className="lesson-repeat-title">Repeat</h2></div>
+                  {finished.map(renderGroup)}
+                </div>
+              )}
+            </>
+          )
+        })()}
       </section>
 
 

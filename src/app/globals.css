@@ -3829,6 +3829,14 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 .lesson-index-row { display: grid; grid-template-columns: repeat(4, max-content); justify-content: start; gap: 14px; cursor: pointer; }
 .lesson-index-row.is-locked { cursor: not-allowed; }
 .lesson-index-row:focus-visible { outline: 3px solid #1c7ed6; outline-offset: 6px; border-radius: 12px; }
+/* secțiunea „Repeat": lecțiile deblocate și trecute, sub o linie cu titlu */
+.lesson-repeat { display: flex; flex-direction: column; gap: 30px; margin-top: 6px; }
+.lesson-repeat-head { display: flex; align-items: center; gap: 14px; }
+.lesson-repeat-head::before, .lesson-repeat-head::after {
+  content: ""; flex: 1; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #e2c98a 35%, #e2c98a 65%, transparent);
+}
+.lesson-repeat-title { margin: 0; font-family: var(--font-lora, Georgia, serif); font-size: 1.35rem; font-weight: 600; line-height: 1.1; color: #2b2b2b; }
 .lesson-col-preview { width: 200px; zoom: .7; opacity: .86; pointer-events: none; }
 .lesson-col-preview .lesson-word { cursor: inherit; }
 /* butonul din bara de sus „primește" lecția terminată */
