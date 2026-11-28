@@ -3982,3 +3982,11 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 @media (prefers-reduced-motion: reduce) {
   .lesson-replay-btn.is-hinting, .lesson-start-hand { animation: none; }
 }
+
+/* NEXT la coloana „a”: începe să pulseze discret odată cu a doua repetare */
+.lesson-col-btn.is-nudging { animation: next-nudge 1800ms ease-in-out infinite; }
+@keyframes next-nudge {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(0, 0, 0, .12); }
+  50%      { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(0, 0, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .lesson-col-btn.is-nudging { animation: none; } }

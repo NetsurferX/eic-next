@@ -1860,7 +1860,7 @@ export default function LearnPage() {
                 <div className="lesson-col-btn-wrap">
                   <button
                     type="button"
-                    className="lesson-col-btn"
+                    className={`lesson-col-btn${l.id === 'a' && ((stars === 1 && isPlayingRep) || stars >= 2) ? ' is-nudging' : ''}`}
                     onClick={(e) => { e.stopPropagation(); handleStudiedButton() }}
                     style={{ background: triBg }}
                   >
