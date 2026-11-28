@@ -887,16 +887,23 @@ export function BulelePestilorGame({
         {announce && !paused && !done && (() => {
           const sv = symbolView(announce)
           const border = sv.tricolor ? (sv.bands ?? TRICOLOR_BANDS)[1] : sv.whiteOutlined ? '#000' : sv.color
+          // simbol tricolor → chenar tricolor (aceleași 3 benzi ca simbolul); border-radius se păstrează prin straturi de fundal
+          const triGrad = sv.tricolor ? bandsCssVertical(sv.bands ?? TRICOLOR_BANDS) : null
           return (
             <div style={{
               position: 'absolute', left: FOX_LEFT + FOX_SIZE + 2, top: SKY_H - FOX_SIZE - 16, zIndex: 5,
-              background: '#fff', border: `3px solid ${border}`, borderRadius: 14, padding: '2px 12px',
+              ...(triGrad
+                ? { background: `linear-gradient(#fff, #fff) padding-box, ${triGrad} border-box`, border: '3px solid transparent' }
+                : { background: '#fff', border: `3px solid ${border}` }),
+              borderRadius: 14, padding: '2px 12px',
               fontSize: 26, fontWeight: 800, fontStyle: 'italic', boxShadow: '2px 3px 0 rgba(0,0,0,.15)',
             }}>
               <span style={sv.tricolor ? tricolorLetterStyle(6, 1, sv.bands) : sv.whiteOutlined ? WHITE_OUTLINED_TEXT_STYLE : { color: sv.color }}>{ringify(sv.text)}</span>
               {announceWord && <span style={{ marginLeft: 10, fontSize: 20, fontStyle: 'normal', fontWeight: 700, color: '#333' }}>{announceWord}</span>}
               {helpMessage && <div style={{ marginTop: 5, maxWidth: 260, width: 'max-content', fontSize: 13, lineHeight: 1.3, fontStyle: 'normal', fontWeight: 600, color: '#333', whiteSpace: 'normal' }}>{helpMessage}</div>}
-              <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />
+              {triGrad
+                ? <span aria-hidden="true" style={{ position: 'absolute', left: -11, bottom: 6, width: 11, height: 14, background: triGrad, clipPath: 'polygon(100% 0, 0 50%, 100% 100%)' }} />
+                : <span aria-hidden="true" style={{ position: 'absolute', left: -9, bottom: 6, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: `10px solid ${border}` }} />}
             </div>
           )
         })()}
