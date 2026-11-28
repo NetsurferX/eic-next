@@ -2028,22 +2028,21 @@ button, textarea, input { font-family: var(--font-sans); }
   box-shadow: 0 10px 28px rgba(0, 0, 0, .4), inset 0 -6px 10px rgba(0, 0, 0, .16);
   pointer-events: none;
   z-index: 2;
-  animation: bulele-launch-btn 2100ms cubic-bezier(.3, .7, .3, 1) both;
+  animation: bulele-launch-btn 1000ms cubic-bezier(.3, .7, .3, 1) both;   /* gata înainte să apară jocul (cardul începe să se vadă după ~1,1 s) */
 }
 .bulele-launch-btn::after {   /* inel care se extinde în clipa „apăsării" */
   content: '';
   position: absolute; inset: -4px;
   border-radius: 50%;
   border: 3px solid rgba(255, 255, 255, .85);
-  animation: bulele-launch-ring 1100ms ease-out 900ms both;
+  animation: bulele-launch-ring 340ms ease-out 660ms both;   /* în clipa „apăsării", se stinge odată cu butonul */
 }
 @keyframes bulele-launch-btn {
   0%   { transform: scale(.3);  opacity: 0; }
-  22%  { transform: scale(1.1); opacity: 1; }
-  34%  { transform: scale(1); }
-  46%  { transform: scale(.88); }                 /* apăsat */
-  58%  { transform: scale(1.02); opacity: 1; }
-  100% { transform: scale(2.4); opacity: 0; }     /* se dizolvă în joc */
+  26%  { transform: scale(1.1); opacity: 1; }
+  44%  { transform: scale(1); }
+  66%  { transform: scale(.88); opacity: 1; }     /* apăsat (la ~0,66 s) */
+  100% { transform: scale(1.7); opacity: 0; }     /* dispare complet la ~1 s: nu se mai vede când apare jocul */
 }
 @keyframes bulele-launch-ring {
   0%   { transform: scale(1);   opacity: .9; }
