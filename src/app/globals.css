@@ -4002,3 +4002,6 @@ em .x-ring-o, i .x-ring-o { transform: translateX(-50%) translateX(.40em); }
 /* „Next →” din cardul Challenge: pulsează discret (aceeași mișcare ca NEXT din coloană) */
 .read-challenge-next { animation: next-nudge 1800ms ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .read-challenge-next { animation: none; } }
+
+/* „ə+”: plusul ca exponent (ridicare la putere); line-height:0 ca să nu mărească înălțimea rândului. */
+.sym-plus { font-size: .62em; font-style: inherit; font-weight: inherit; line-height: 0; vertical-align: super; margin-left: .04em; }
