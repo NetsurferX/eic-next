@@ -100,6 +100,9 @@ const SAND_H = 16
 // Ritm (mai lent decât prima variantă: 6000 / 1300 / 250) — ajustabil aici.
 const SWIM_MS = 10000   // traversarea completă a apei
 const NEXT_FISH_DELAY_MS = 800
+const ROBBED_FADE_MS = 1500   // nivelul 3: peștele păgubit dispare în 1,5 s (rechinul stă și râde)
+const SHARK_EXIT_MS = 1100    // nivelul 3: durata plecării rechinului
+const FISH_ENTER_MS = 900     // nivelul 3: intrarea laterală a peștelui următor
 const FISH_W = 140      // pești mai mari (înainte 112)
 const FROM_RIGHT_P = 0.75   // șansa ca peștele să vină din dreapta (spre vulpe); restul vin din stânga
 const START_HOLD_MS = 0      // pauza de la apariție ELIMINATĂ (înainte 3000): peștele înoată imediat
@@ -329,8 +332,9 @@ export function BulelePestilorGame({
   const [sharkApproaching, setSharkApproaching] = useState(false)
   // Rechinul traversează scena pe lângă pește (de la dreapta la stânga) și fură literele-țintă când ajunge la ele;
   // apoi își continuă drumul până iese din scenă (de aceea are stare proprie după mușcătură).
-  const [sharkLeaving, setSharkLeaving] = useState(false)
-  const [sharkSpec, setSharkSpec] = useState<{ id: number; top: number; start: number; end: number; dur: number } | null>(null)
+  const [sharkLeaving, setSharkLeaving] = useState(false)   // după furt: rămâne pe loc și râde, apoi pleacă
+  const [sharkExiting, setSharkExiting] = useState(false)   // faza finală: rechinul înoată spre stânga și iese
+  const [sharkSpec, setSharkSpec] = useState<{ id: number; top: number; start: number; bite: number; end: number; dur: number } | null>(null)
   const sharkTimers = useRef<number[]>([])
 
   const stageRef = useRef<HTMLDivElement>(null)
@@ -421,6 +425,7 @@ export function BulelePestilorGame({
     sharkTimers.current = []
     setSharkApproaching(false)
     setSharkLeaving(false)
+    setSharkExiting(false)
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const q = buildQueue(currentGroup, distractorGroups, nextGroup)
     queueRef.current = q
@@ -540,8 +545,7 @@ export function BulelePestilorGame({
       const labelCenter = W / 2 + ((LABEL.x + LABEL.w / 2 - 50) / 100) * FISH_W        // centrul etichetei, în px
       const lettersX = labelCenter + (((idx + fish.word.mark.length / 2) / n) - 0.5) * (textUnits * FISH_W / 100)
       const startX = W + 10, endX = -90, biteX = lettersX - 10                          // 10 px = botul rechinului față de marginea stângă
-      const dur = Math.round(3000 * (startX - endX) / Math.max(startX - biteX, 1))      // la 3000 ms ajunge exact la litere
-      setSharkSpec({ id: fishId, top: fish.y - 24, start: startX, end: endX, dur })
+      setSharkSpec({ id: fishId, top: fish.y - 24, start: startX, bite: biteX, end: endX, dur: 3000 })   // în 3000 ms ajunge la litere și se oprește acolo
       setSharkApproaching(true)
       const eat = window.setTimeout(() => {
         setFish(prev => prev && prev.id === fishId && prev.state === 'swimming'
@@ -579,7 +583,14 @@ export function BulelePestilorGame({
       setScore(scoreRef.current)
       flashScore()
       setFourthVisible(false)
-      later(() => { setFish(null); advanceQueue() }, 650)
+      if (level === 3) {
+        // Rechinul stă pe loc și râde cât peștele se stinge (1,5 s), apoi pleacă (1,1 s);
+        // abia după aceea intră lateral următorul pește.
+        later(() => { setFish(null); setSharkExiting(true) }, ROBBED_FADE_MS)
+        later(() => advanceQueue(), ROBBED_FADE_MS + SHARK_EXIT_MS - NEXT_FISH_DELAY_MS)
+      } else {
+        later(() => { setFish(null); advanceQueue() }, 650)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fish])
@@ -701,6 +712,7 @@ export function BulelePestilorGame({
     sharkTimers.current = []
     setSharkApproaching(false)
     setSharkLeaving(false)
+    setSharkExiting(false)
     scoreRef.current += fish.group.kind === 'next' ? 2 : 1
     setScore(scoreRef.current)
     correctRef.current += 1
@@ -998,8 +1010,9 @@ export function BulelePestilorGame({
                   ? `translate3d(${(W / 2).toFixed(1)}px, ${fish.y.toFixed(1)}px, 0) translate(-50%,-50%)`
                   : swimTransform(fish, progressRef.current, W),
                 animation: fish.state === 'miss'
-                  ? (level === 3 ? 'pf-robbed-away 400ms ease-in 250ms forwards' : `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards`)
-                  : undefined,
+                  ? (level === 3 ? `pf-robbed-away ${ROBBED_FADE_MS}ms ease-in forwards` : `${(fish.dir ?? 1) === 1 ? 'pf-away' : 'pf-away-l'} 600ms ease-in forwards`)
+                  : (level === 3 && fish.state === 'swimming' ? `pf-fish-enter ${FISH_ENTER_MS}ms ease-out` : undefined),
+                ['--enter-x' as string]: `${-(W / 2 + FISH_W)}px`,   // intră din stânga, dinspre marginea scenei
                 ['--flip' as string]: fish.dir ?? 1,
               }}
             >
@@ -1017,17 +1030,18 @@ export function BulelePestilorGame({
           <div
             key={sharkSpec.id}
             aria-hidden="true"
-            className="pf-shark-approach"
-            onAnimationEnd={() => setSharkLeaving(false)}
+            className={`pf-shark-approach${sharkLeaving && !sharkExiting ? ' is-staying' : ''}${sharkExiting ? ' is-exiting' : ''}`}
+            onAnimationEnd={() => { if (sharkExiting) { setSharkLeaving(false); setSharkExiting(false) } }}
             style={{
               top: sharkSpec.top,   // înălțime fixă: rămâne la nivelul peștelui și după ce acesta dispare
               ['--shark-start' as string]: `${sharkSpec.start}px`,
+              ['--shark-bite' as string]: `${sharkSpec.bite}px`,
               ['--shark-end' as string]: `${sharkSpec.end}px`,
               ['--shark-dur' as string]: `${sharkSpec.dur}ms`,
             } as CSSProperties}
           >
-            <span className={`pf-shark-body${sharkLeaving ? ' is-laughing' : ''}`}>🦈</span>
-            {sharkLeaving && <span className="pf-shark-laugh">Mua-ha-ha!</span>}
+            <span className={`pf-shark-body${sharkLeaving && !sharkExiting ? ' is-laughing' : ''}`}>🦈</span>
+            {sharkLeaving && !sharkExiting && <span className="pf-shark-laugh">Mua-ha-ha!</span>}
           </div>
         )}
         {/* peștele prins, atârnat de undiță / în zbor spre celulă (poziția o scrie rAF) */}
@@ -1123,7 +1137,11 @@ export function BulelePestilorGame({
         @keyframes pf-away { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: 70px } }
         @keyframes pf-away-l { 0% { opacity: 1; margin-left: 0 } 100% { opacity: 0; margin-left: -70px } }
         @keyframes pf-eaten { 0% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(5px); } }
-        @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(var(--shark-end)); } }
+        @keyframes pf-shark-approach { from { transform: translateX(var(--shark-start)); } to { transform: translateX(var(--shark-bite)); } }
+        @keyframes pf-shark-leave { from { transform: translateX(var(--shark-bite)); } to { transform: translateX(var(--shark-end)); } }
+        .pf-shark-approach.is-staying { animation: none; transform: translateX(var(--shark-bite)); }
+        .pf-shark-approach.is-exiting { animation: pf-shark-leave ${SHARK_EXIT_MS}ms ease-in forwards; }
+        @keyframes pf-fish-enter { from { translate: var(--enter-x) 0; } to { translate: 0 0; } }
         .pf-shark-approach { position: absolute; left: 0; z-index: 4; font-size: 58px; line-height: 1; pointer-events: none; animation: pf-shark-approach var(--shark-dur, 6000ms) linear forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
         .pf-shark-body { display: inline-block; transform-origin: 60% 60%; }
         .pf-shark-body.is-laughing { animation: pf-shark-giggle 150ms ease-in-out infinite alternate; }
@@ -1132,9 +1150,10 @@ export function BulelePestilorGame({
           position: absolute; left: 18px; bottom: 100%; margin-bottom: 2px; white-space: nowrap;
           font-size: 15px; font-weight: 800; font-style: italic; color: #b00020; line-height: 1;
           background: #fff; border: 2px solid #1a1006; border-radius: 12px; padding: 4px 9px;
-          animation: pf-laugh-bubble 2600ms ease forwards; filter: none;
+          animation: pf-laugh-pop 250ms ease-out, pf-laugh-pulse 700ms ease-in-out 250ms infinite; filter: none;
         }
-        @keyframes pf-laugh-bubble { 0% { opacity: 0; transform: scale(.3); } 12% { opacity: 1; transform: scale(1.15); } 22% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes pf-laugh-pop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pf-laugh-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
         @media (prefers-reduced-motion: reduce) { .pf-shark-body.is-laughing { animation: none; } }
         @keyframes pf-robbed-away { 0% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes pf-stolen { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateX(-12px) scale(.15); } }
